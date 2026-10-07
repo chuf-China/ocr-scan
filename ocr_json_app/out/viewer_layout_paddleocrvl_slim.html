@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>静安区2026届高三一模数学试卷 · OCR 原版式阅读器</title>
+<link rel="stylesheet" href="./vendor/katex/katex.min.css"
+      onerror="this.onerror=null;this.href='./katex.min.css';">
+<!-- KaTeX 必须**同步**加载：defer 脚本的完成时刻不确定，
+     实测 headless 下 DOM 已渲染但 katex 仍是 undefined，于是整页公式都退化成 LaTeX 源码。
+     同步放在 head 里，主脚本执行时 window.katex 一定就位。 -->
+<script src="./vendor/katex/katex.min.js"
+        onerror="var s=document.createElement('script');s.src='./katex.min.js';document.head.appendChild(s);"></script>
+<script src="./vendor/katex/auto-render.min.js"></script>
+<style>
+:root{
+  --bg:#e9ebef; --paper:#fff; --ink:#16181c; --muted:#6b7280; --line:#d7dbe0;
+  --accent:#2563eb; --accent-soft:#eff6ff; --hit:#fde68a;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);
+  font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.93);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  padding:10px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+header h1{font-size:16px;margin:0;font-weight:650;white-space:nowrap}
+header .meta{color:var(--muted);font-size:13px}
+/* 当前渲染的是哪个 OCR 引擎的产物 —— 两份 JSON 长得不一样，必须一眼可辨 */
+header .engine{font-size:12px;font-weight:600;color:#fff;background:#0f766e;
+  border-radius:999px;padding:3px 11px;white-space:nowrap}
+header .grow{flex:1}
+input[type=search]{border:1px solid var(--line);border-radius:8px;padding:6px 11px;
+  font-size:13.5px;width:190px;background:#fff}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:6px 12px;font-size:13.5px;cursor:pointer;
+  color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+.hitinfo{font-size:12.5px;color:var(--muted);min-width:72px}
+.stage{padding:22px 16px 60px;display:flex;flex-direction:column;align-items:center;gap:22px}
+/* 一页 = 一张 A4。宽高由脚本按 PDF 页尺寸算成绝对像素，
+   这样 1pt→k px 的换算是确定的，行坐标不会被 aspect-ratio 的取整带偏 */
+.page{position:relative;background:var(--paper);box-shadow:0 2px 14px rgba(0,0,0,.13);
+  border:1px solid #c9ced6;
+  font-family:"HYShuSongErKW",SimSun,"Songti SC","Noto Serif CJK SC",serif;
+  color:#000;overflow:hidden}
+.page .scan{position:absolute;inset:0;width:100%;height:100%;display:block}
+.page .layer{position:absolute;inset:0}
+.page .pno{position:absolute;right:8px;bottom:6px;font-size:11px;color:#9aa1a9;
+  font-family:system-ui,sans-serif}
+/* 文本层：默认显示，和原稿同位置同字号 */
+body[data-mode=scan] .page .layer{display:none}
+body[data-mode=text] .page .scan{display:none}
+.ln{position:absolute;white-space:nowrap;color:#000}
+/* 行组：盒里原本就有多行，按换行原样排 */
+.ln.multi{white-space:pre-wrap}
+.ln.math{white-space:nowrap}
+/* 插图裁片：纯黑白线稿，不描边不加底 */
+.fig{position:absolute;object-fit:contain;pointer-events:none}
+/* 表格：按原行盒宽度铺开 */
+.tbl{position:absolute;line-height:1.35}
+.tbl table{border-collapse:collapse;width:100%;font-family:inherit}
+.tbl th,.tbl td{border:1px solid #444;padding:2px 7px;text-align:center;
+  font-weight:inherit;color:#000}
+.ln .katex{font-size:1em}
+body.hide-text .page .layer{display:none}
+mark,::highlight(ocrhit){background:var(--hit);color:inherit}
+::highlight(ocr-search){background:var(--accent);color:#fff}
+.empty{color:var(--muted);text-align:center;padding:40px}
+.legend{font-size:12.5px;color:var(--muted);padding:0 18px 18px;text-align:center}
+kbd{background:#fff;border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px}
+</style>
+</head>
+<body data-mode="text">
+<!-- 生成器会把这里替换成 <script>window.__OCR_LAYOUT__ = {...}</script>；
+     必须排在主脚本之前，主脚本执行时才能读到。 -->
+
+<header>
+  <h1 id="title">静安区2026届高三一模数学试卷</h1>
+  <span class="engine" id="engine">llama.cpp/paddleocr-vl</span>
+  <span class="meta" id="meta">加载中…</span>
+  <span class="grow"></span>
+  <div class="seg" role="group">
+    <button id="btn-text" aria-pressed="true">OCR 文本层</button>
+    <button id="btn-scan" aria-pressed="false">原始扫描</button>
+  </div>
+  <input type="search" id="q" placeholder="搜索（Ctrl+F 也可）">
+  <span class="hitinfo" id="hitinfo"></span>
+</header>
+<div class="stage" id="stage"></div>
+<div class="legend">
+  版面坐标取自页面像素投影，文字为本地 OCR 逐行识别结果；
+  切到「原始扫描」可直接对照原稿。
+</div>
+<script>
+// 数据由生成器直接嵌进页面（见文件末尾的 __OCR_LAYOUT__ 脚本）：
+// 这样 viewer 是**单文件**，file:// 双击就能开，不依赖本地服务器。
+const DATA_URL = new URLSearchParams(location.search).get("json");
+const EMBEDDED = window.__OCR_LAYOUT__ || null;
+
+// HTML 转义。表格/单元格内容来自 OCR，必须转义后再拼进 innerHTML。
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// KaTeX 渲染：把 OCR 行里的公式编译出来。
+// 定界符**按引擎不同**：OvisOCR2 输出 `$...$` / `$$...$$`，PaddleOCR-VL 输出 `\(...\)`。
+// 生成器把 [{"left": "\\[", "right": "\\]", "display": true}, {"left": "\\(", "right": "\\)", "display": false}] 换成对应引擎的定界符表；否则另一种引擎的公式会整页退化成源码
+// （实测 Paddle 的产物用只认 `$` 的阅读器打开，"含公式"计数是 0）。
+const DELIMS = [{"left": "\\[", "right": "\\]", "display": true}, {"left": "\\(", "right": "\\)", "display": false}];
+
+function renderMath(tex, display) {
+  try {
+    return katex.renderToString(tex, { displayMode: !!display, throwOnError: false, strict: false });
+  } catch (e) { return null; }
+}
+// 整行就是一个公式时直接剥定界符编译；否则交给 auto-render 做混排
+function wholeMath(text) {
+  const t = text.trim();
+  for (const d of DELIMS) {
+    const L = d.left, R = d.right;
+    if (t.length <= L.length + R.length || !t.startsWith(L) || !t.endsWith(R)) continue;
+    const inner = t.slice(L.length, t.length - R.length);
+    if (!inner.includes(R)) return { tex: inner, display: !!d.display };
+  }
+  return null;
+}
+
+function buildPage(page, doc) {
+  const wrap = document.createElement("div");
+  wrap.className = "page";
+  wrap.dataset.page = page.page;  // 纸张宽度：视口内自适应，上限 880px（A4 的舒适阅读宽度）
+  const paperW = Math.round(Math.min(880, Math.max(360, window.innerWidth - 44)));
+  const k = paperW / page.width;              // 1pt = k px（按页宽归一，等比缩放）
+  wrap.style.width = paperW + "px";
+  wrap.style.height = Math.round(page.height * k) + "px";
+
+  if (page.image_jpeg_base64) {
+    const img = document.createElement("img");
+    img.className = "scan";
+    img.loading = "lazy";
+    img.alt = `第 ${page.page} 页原稿`;
+    img.src = "data:image/jpeg;base64," + page.image_jpeg_base64;
+    wrap.appendChild(img);
+  }
+  const layer = document.createElement("div");
+  layer.className = "layer";
+  wrap.appendChild(layer);
+
+  // 插图：从原稿裁出来的图片裁片，按原始坐标原位贴回文本层。
+  // 这样「OCR 文本层」视图里几何图/坐标图不再缺失。
+  for (const fig of (page.figures || [])) {
+    if (!fig.png_base64) continue;
+    const im = document.createElement("img");
+    im.className = "fig";
+    im.alt = `插图（第 ${page.page} 页）`;
+    im.src = "data:image/png;base64," + fig.png_base64;
+    im.style.left = (fig.pt[0] * k).toFixed(2) + "px";
+    im.style.top = (fig.pt[1] * k).toFixed(2) + "px";
+    im.style.width = (fig.w_pt * k).toFixed(2) + "px";
+    im.style.height = (fig.h_pt * k).toFixed(2) + "px";
+    im.dataset.figure = String(fig.index);
+    layer.appendChild(im);
+  }
+
+  for (const ln of page.lines) {
+    const el = document.createElement("div");
+    const fontPx = (ln.size_pt || 12) * k;
+    el.className = "ln";
+    el.dataset.text = ln.text;
+    el.style.left = (ln.left * k).toFixed(2) + "px";
+    el.style.fontSize = fontPx.toFixed(2) + "px";
+    // 行盒顶对齐。**不能**用垂直居中（translateY(-50%)）：含分式/大括号的公式行
+    // 盒高远大于字号，居中会把整行上推半行，和上一行叠在一起（实测严重错位）。
+    el.style.top = (ln.top * k).toFixed(2) + "px";
+    // 单行：行高按字号（中文约 1.2 倍字身）；组行：按原文行距摊
+    const isMulti = ln.multiline || /\n/.test(ln.text.trim());
+    el.style.lineHeight = isMulti
+      ? String(((ln.height_pt || fontPx / k) / Math.max(1, ln.text.trim().split("\n").length) / (ln.size_pt || 12) * 1.06).toFixed(3))
+      : "1.18";
+    // 不越过纸张右缘；KaTeX 重排后的宽度和原稿不可能完全一致，宁可略窄也不出血
+    el.style.maxWidth = Math.max(60, (page.width - ln.left + 6) * k).toFixed(0) + "px";
+
+    const math = wholeMath(ln.text);
+    if (math) {
+      const html = renderMath(math.tex, math.display);
+      if (html) { el.classList.add("math"); el.innerHTML = html; }
+      else el.textContent = ln.text;
+    } else {
+      // 混排行：文字原样，交给 KaTeX 的 auto-render 后续处理 $...$
+      el.textContent = ln.text;
+    }
+    if (isMulti) el.classList.add("multi");
+    layer.appendChild(el);
+
+    // 表格：单独画成真表格，宽度铺到原行盒的宽度
+    for (const tb of (ln.tables || [])) {
+      const box = document.createElement("div");
+      box.className = "tbl";
+      box.style.left = (ln.left * k).toFixed(2) + "px";
+      box.style.top = (ln.top * k).toFixed(2) + "px";
+      box.style.width = Math.max(120, (ln.right - ln.left) * k).toFixed(2) + "px";
+      box.style.fontSize = ((ln.size_pt || 11) * k * 1.05).toFixed(2) + "px";
+      let html = "<table>";
+      if (tb.headers && tb.headers.length) {
+        html += "<thead><tr>" + tb.headers.map(h => `<th>${esc(h)}</th>`).join("") + "</tr></thead>";
+      }
+      html += "<tbody>" + (tb.rows || []).map(r =>
+        "<tr>" + r.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>").join("") + "</tbody>";
+      box.innerHTML = html + "</table>";
+      layer.appendChild(box);
+    }
+  }
+
+  const pno = document.createElement("span");
+  pno.className = "pno";
+  pno.textContent = `第 ${page.page} 页 / ${doc.document.pages_total}`;
+  wrap.appendChild(pno);
+  return wrap;
+}
+
+function rerenderPages(doc) {
+  const stage = document.getElementById("stage");
+  stage.innerHTML = "";
+  const pages = [...doc.pages].sort((a, b) => a.page - b.page);
+  for (const p of pages) {
+    try { stage.appendChild(buildPage(p, doc)); }
+    catch (e) {
+      const d = document.createElement("div");
+      d.className = "empty";
+      d.textContent = `第 ${p.page} 页渲染失败：${e.message}`;
+      stage.appendChild(d);
+    }
+  }
+  // 混排公式交给 auto-render（按本引擎的定界符扫文本节点）。
+  // KaTeX 是同步加载的，但为稳妥仍做一次重试轮询。
+  renderMixedMath(stage, 0);
+}
+
+function renderMixedMath(stage, tries) {
+  if (window.renderMathInElement) {
+    // ⚠️ 幂等保护：auto-render 会对**已经渲染过**的文本节点再扫一遍。
+    // 实测重建页面（窗口 resize / 二次 fit）时公式会被渲染两遍，两套 KaTeX 叠在同一个
+    // 坐标上，看起来就是"文字重影"（'12. 设' 上叠着 '设'）。已渲染过的行打标记跳过。
+    stage.querySelectorAll(".ln").forEach(el => {
+      if (el.dataset.mathDone === "1") return;
+      window.__MATH_CALLS__ = (window.__MATH_CALLS__ || 0) + 1;
+      try {
+        window.renderMathInElement(el, {
+          delimiters: DELIMS,
+          throwOnError: false, ignoredClasses: ["katex"]
+        });
+        el.dataset.mathDone = "1";
+      } catch (e) { console.warn("auto-render 失败", e); }
+    });
+    return;
+  }
+  if (tries < 25) setTimeout(() => renderMixedMath(stage, tries + 1), 120);
+}
+
+let DOC = null;
+
+function loadDoc() {
+  // ① 页面内嵌数据（单文件模式，file:// 也能开）
+  if (EMBEDDED) return Promise.resolve(EMBEDDED);
+  // ② ?json=xxx 指定外部数据
+  // ③ 默认同目录 ./paper.layout.json（配合 --serve-only 用）
+  const url = DATA_URL || "./paper.layout.paddle.json";
+  return fetch(url).then(r => {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  });
+}
+
+loadDoc().then(d => {
+  DOC = d;
+  document.title = (d.document.title || "OCR") + " · 原版式阅读器";
+  document.getElementById("title").textContent = d.document.title || "OCR 结果";
+  document.getElementById("meta").textContent =
+    `${d.stats.pages} 页 · ${d.stats.lines} 行 · ${d.stats.lines_with_math} 行含公式 · ${d.document.dpi} dpi`;
+  const eng = document.getElementById("engine");
+  if (eng) {
+    eng.textContent = (d.document.engine || "?").replace(/^llama\.cpp\//, "");
+    eng.title = "本页渲染自 " + (d.document.engine || "") + " 产出的 JSON";
+  }
+
+  const fit = () => {
+    rerenderPages(DOC);
+    // 供截图/自动化判断"首屏已渲染"——headless 截图不等 setTimeout，
+    // 有标记才能确定性地等到内容就位
+    window.__OCR_RENDERED__ = true;
+    window.__OCR_DIAG__ = measureOverflow();
+  };
+  fit();
+
+  // 版式自检：把"越出纸张"和"行间重叠"量出来，避免只能靠肉眼判断。
+  function measureOverflow() {
+    const out = { pages: [], papers: [], overflowing_lines: 0, overlapping_lines: 0 };
+    document.querySelectorAll(".page").forEach(pg => {
+      const pr = pg.getBoundingClientRect();
+      const lnodes = [...pg.querySelectorAll(".ln")].map(el => ({
+        el, r: el.getBoundingClientRect(), t: el.dataset.text || "" }));
+      let over = 0, lap = 0;
+      for (const n of lnodes) {
+        if (n.r.right > pr.right + 1 || n.r.left < pr.left - 1) over++;
+      }
+      // 同一页内，行盒在垂直方向重叠超过 60% 的相邻对，视为叠字
+      for (let i = 1; i < lnodes.length; i++) {
+        const a = lnodes[i - 1].r, b = lnodes[i].r;
+        if (b.top > a.top + 2) {
+          const inter = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+          if (inter > 0 && inter > Math.min(a.height, b.height) * 0.6) lap++;
+        }
+      }
+      out.overflowing_lines += over;
+      out.overlapping_lines += lap;
+      out.papers.push({ page: pg.dataset.page, w: Math.round(pr.width), h: Math.round(pr.height) });
+      out.pages.push({ page: pg.dataset.page, lines: lnodes.length, overflow: over, overlap: lap });
+    });
+    return out;
+  }
+
+  // 逐行几何自检：把每行的**实测**矩形（含公式撑开后的真实高度）与它按 JSON 坐标应有的
+  // 位置比一比。只看统计量（如"重叠行数"）会漏掉真正的病因——实测同一行内部因为行高设置
+  // 不当，文字会向上溢出到上一行的区域，而 .ln 盒子本身并不相交。
+  window.__OCR_GEOM__ = function () {
+    const rows = [];
+    document.querySelectorAll(".page").forEach(pg => {
+      const pr = pg.getBoundingClientRect();
+      pg.querySelectorAll(".ln").forEach(el => {
+        const r = el.getBoundingClientRect();
+        // 逐个子节点量：同一行内部如果出现两套错位的绘制，只有在这里才看得见
+        const kids = [...el.childNodes].map(k => {
+          if (k.nodeType !== 1) return { tag: "#text", top: null };
+          const kr = k.getBoundingClientRect();
+          return { tag: k.tagName + (k.className ? "." + String(k.className).split(" ")[0] : ""),
+                   top: +(kr.top - r.top).toFixed(1), h: +kr.height.toFixed(1),
+                   left: +(kr.left - r.left).toFixed(1),
+                   pos: getComputedStyle(k).position };
+        });
+        rows.push({
+          page: pg.dataset.page,
+          top: +(r.top - pr.top).toFixed(1),
+          bottom: +(r.bottom - pr.top).toFixed(1),
+          height: +r.height.toFixed(1),
+          cssTop: parseFloat(el.style.top),
+          lineHeight: el.style.lineHeight,
+          textNodes: (() => { let n = 0; const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+                              while (w.nextNode()) n++; return n; })(),
+          kids,
+          text: (el.dataset.text || "").slice(0, 26),
+        });
+      });
+    });
+    return rows;
+  };
+  // 纸张宽度依赖视口，窗口变化后按新宽度重算坐标
+  let timer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(timer);
+    timer = setTimeout(fit, 180);
+  });
+
+  const btnText = document.getElementById("btn-text");
+  const btnScan = document.getElementById("btn-scan");
+  function setMode(mode) {
+    document.body.dataset.mode = mode;
+    btnText.setAttribute("aria-pressed", String(mode === "text"));
+    btnScan.setAttribute("aria-pressed", String(mode === "scan"));
+  }
+  btnText.onclick = () => setMode("text");
+  btnScan.onclick = () => setMode("scan");
+
+  // 搜索：统计命中并高亮
+  const q = document.getElementById("q");
+  const hitinfo = document.getElementById("hitinfo");
+  q.addEventListener("input", () => {
+    const needle = q.value.trim();
+    document.querySelectorAll("::highlight(ocr-search)");
+    const ranges = [];
+    if (!needle) { hitinfo.textContent = ""; applyHighlight(null); return; }
+    const low = needle.toLowerCase();
+    document.querySelectorAll(".ln").forEach(el => {
+      const txt = (el.dataset.text || "").toLowerCase();
+      let i = txt.indexOf(low);
+      while (i !== -1) {
+        ranges.push({ el, from: i, to: i + low.length });
+        i = txt.indexOf(low, i + low.length);
+      }
+    });
+    hitinfo.textContent = `${ranges.length} 处`;
+    applyHighlight({ ranges, needle });
+    if (ranges.length) ranges[0].el.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
+
+  function applyHighlight(payload) {
+    if (!window.Highlight || !CSS.highlights) return;
+    CSS.highlights.delete("ocr-search");
+    if (!payload) return;
+    const hl = new Highlight();
+    for (const r of payload.ranges) {
+      // 文本节点：优先第一个文本子节点（混排行的文字部分）
+      const walker = document.createTreeWalker(r.el, NodeFilter.SHOW_TEXT);
+      let node, offset = 0;
+      while ((node = walker.nextNode())) {
+        const len = node.nodeValue.length;
+        const s = Math.max(r.from, offset), e = Math.min(r.to, offset + len);
+        if (s < e) hl.add(new Range(node, s - offset, e - offset));
+        offset += len;
+      }
+    }
+    CSS.highlights.set("ocr-search", hl);
+  }
+}).catch(err => {
+  document.getElementById("stage").innerHTML =
+    `<div class="empty">加载数据失败：${err.message}<br>` +
+    `单文件版应自带数据；外部模式请用 <code>--serve-only</code> 起本地服务，` +
+    `或加 <code>?json=路径</code>。</div>`;
+});
+</script>
+</body>
+</html>

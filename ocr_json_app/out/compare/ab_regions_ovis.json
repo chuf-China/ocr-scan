@@ -1,0 +1,55 @@
+{
+ "cases": [
+  {
+   "label": "p2 直方图 + 外扩 25pt",
+   "page": 2,
+   "box": [
+    130,
+    936,
+    521,
+    1200
+   ],
+   "kb": 20,
+   "res": {
+    "ovisocr2": {
+     "elapsed": 0.31,
+     "text": "14. 如图，已知某频率分布直方图开\n\n<img src=\"images/bbox_152_194_849_771.jpg\" />\n\nA. 众数 = 平均数 = 中位数"
+    }
+   }
+  },
+  {
+   "label": "p3 第17题那一行组",
+   "page": 3,
+   "box": [
+    177,
+    447,
+    1064,
+    485
+   ],
+   "kb": 20,
+   "res": {
+    "ovisocr2": {
+     "elapsed": 0.16,
+     "text": "17. 为开展社区与学校教育共建活动，某地区教育系统从 A、B 两所学校的 5 名教师志愿者"
+    }
+   }
+  },
+  {
+   "label": "p3 表格本体（仅表格）",
+   "page": 3,
+   "box": [
+    170,
+    585,
+    480,
+    868
+   ],
+   "kb": 10,
+   "res": {
+    "ovisocr2": {
+     "elapsed": 0.35,
+     "text": "<table border=1><tr><td rowspan=\"2\"></td><td colspan=\"2\">学科</td></tr><tr><td>语文</td><td>数学</td></tr><tr><td>A学校</td><td>1</td><td>2</td></tr><tr><td>B学校</td><td>1</td><td>1</td></tr></table>"
+    }
+   }
+  }
+ ]
+}

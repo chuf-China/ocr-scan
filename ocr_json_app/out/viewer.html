@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>静安区2026届高三一模数学试卷 · OCR 阅读器</title>
+<!-- KaTeX 本地自带（离线可用）；jsDelivr 只作为本地文件缺失时的兜底 -->
+<link rel="stylesheet" href="./vendor/katex/katex.min.css"
+      onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';">
+<script defer src="./vendor/katex/katex.min.js"
+        onerror="var s=document.createElement('script');s.defer=true;s.src='https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';document.head.appendChild(s);"></script>
+<script defer src="./vendor/katex/auto-render.min.js"
+        onerror="var s=document.createElement('script');s.defer=true;s.src='https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js';document.head.appendChild(s);"></script>
+<style>
+:root {
+  --bg: #f6f7f9; --card: #fff; --ink: #1f2328; --muted: #6b7280;
+  --line: #e5e7eb; --accent: #2563eb; --accent-soft: #eff6ff; --warn: #b45309;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.85 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+header {
+  position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.92);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+  padding: 12px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+}
+header h1 { font-size: 17px; margin: 0; font-weight: 650; }
+header .meta { color: var(--muted); font-size: 13px; }
+header .grow { flex: 1; }
+input[type=search] {
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px;
+  font-size: 14px; width: 220px; background: #fff;
+}
+.layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px;
+  max-width: 1400px; margin: 20px auto; padding: 0 20px 60px; align-items: start; }
+nav {
+  position: sticky; top: 74px; max-height: calc(100vh - 100px); overflow: auto;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+}
+nav a { display: block; padding: 5px 8px; border-radius: 7px; color: var(--ink);
+  text-decoration: none; font-size: 13.5px; }
+nav a:hover { background: var(--accent-soft); color: var(--accent); }
+nav a.q { font-variant-numeric: tabular-nums; }
+nav .navtitle { font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); margin: 8px 8px 6px; }
+main { min-width: 0; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 18px 22px; margin-bottom: 14px; }
+.card h2 { font-size: 18px; margin: 0 0 10px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--line); }
+.blk { padding: 10px 12px; margin: 10px 0; border-radius: 9px; }
+.blk:hover { background: #fafbfc; }
+.blk.heading { font-weight: 650; font-size: 17px; background: var(--accent-soft);
+  border-left: 3px solid var(--accent); }
+.blk.question { border: 1px solid var(--line); border-left: 3px solid #94a3b8; }
+.blk .qn { display: inline-block; min-width: 2.4em; font-weight: 700; color: var(--accent);
+  font-variant-numeric: tabular-nums; }
+.blk.paragraph { color: #374151; }
+.blk.table { overflow-x: auto; border: 1px solid var(--line); }
+.blk .tag { float: right; font-size: 11px; color: var(--muted); background: #f3f4f6;
+  border-radius: 99px; padding: 1px 9px; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; }
+th { background: #f9fafb; font-weight: 650; }
+.pagebadge { font-size: 12px; color: var(--muted); margin-left: 8px; }
+.warn { background: #fffbeb; border: 1px solid #fde68a; color: var(--warn);
+  border-radius: 10px; padding: 10px 14px; margin: 0 0 14px; font-size: 14px; }
+mark { background: #fef08a; }
+.searchbar { display: flex; gap: 10px; align-items: center; }
+.pager { display: flex; gap: 8px; align-items: center; }
+.pager button { border: 1px solid var(--line); background: #fff; border-radius: 8px;
+  padding: 6px 12px; cursor: pointer; font-size: 14px; }
+.pager button:disabled { opacity: .45; cursor: default; }
+.katex { font-size: 1.02em; }
+mjx-container, .katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">静安区2026届高三一模数学试卷</h1>
+  <span class="meta" id="meta">加载中…</span>
+  <span class="grow"></span>
+  <div class="searchbar">
+    <input type="search" id="q" placeholder="搜索题目 / 文本…">
+  </div>
+</header>
+<div class="layout">
+  <nav id="toc"></nav>
+  <main id="main"></main>
+</div>
+<script>
+const DATA_URL = new URLSearchParams(location.search).get("json") || "./paper.ocr.json";
+let DOC = null, FILTER = "";
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function withMath(elem) {
+  // 必须走 window.：KaTeX 的 auto-render 挂在全局对象上，
+  // 手写里直接引用裸标识符会在非全局作用域下抛 ReferenceError。
+  const fn = window.renderMathInElement;
+  if (typeof fn !== "function") return false;
+  try {
+    fn(elem, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "\\[", right: "\\]", display: true },
+        { left: "$", right: "$", display: false },
+        { left: "\\(", right: "\\)", display: false }
+      ],
+      throwOnError: false
+    });
+    return true;
+  } catch (e) {
+    console.warn("KaTeX 渲染失败：", e);
+    return false;
+  }
+}
+
+function blockHTML(b) {
+  if (b.type === "table") {
+    let t = "<table>";
+    if (b.headers && b.headers.length) {
+      t += "<thead><tr>" + b.headers.map(h => `<th>${esc(h)}</th>`).join("") + "</tr></thead>";
+    }
+    t += "<tbody>" + (b.rows || []).map(r =>
+      "<tr>" + r.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>").join("") + "</tbody>";
+    return t + "</table>";
+  }
+  const body = esc(b.text || "");
+  if (b.type === "question") {
+    return `<span class="qn">${b.number ?? ""}.</span>${body.replace(/^\s*\d{1,2}\s*[.、]\s*/, "")}`;
+  }
+  return body;
+}
+
+function render() {
+  const main = document.getElementById("main");
+  const toc = document.getElementById("toc");
+  const needle = FILTER.trim().toLowerCase();
+  main.innerHTML = ""; toc.innerHTML = "";
+
+  if (DOC.warnings && DOC.warnings.length && !needle) {
+    const w = document.createElement("div");
+    w.className = "warn";
+    w.textContent = "⚠ " + DOC.warnings.join("；");
+    main.appendChild(w);
+  }
+
+  let tocHtml = `<div class="navtitle">目录</div>`;
+  let shown = 0, mathOk = true, failed = 0;
+
+  for (const page of DOC.pages) {
+    try {
+    const blocks = (page.blocks || []).filter(b => {
+      if (!needle) return true;
+      const hay = [b.text, b.headers?.join(" "), b.rows?.flat().join(" ")]
+        .filter(Boolean).join(" ").toLowerCase();
+      return hay.includes(needle);
+    });
+    if (!blocks.length) continue;
+    shown++;
+
+    const sec = document.createElement("section");
+    sec.className = "card";
+    sec.id = "page-" + page.page;
+    sec.innerHTML = `<h2>第 ${page.page} 页<span class="pagebadge">`
+      + `${blocks.length} 块 · ${page.elapsed_s != null ? page.elapsed_s + "s" : ""}`
+      + `${page.finish_reason === "length" ? " · ⚠被截断" : ""}</span></h2>`;
+    for (const b of blocks) {
+      const d = document.createElement("div");
+      d.className = "blk " + b.type;
+      d.innerHTML = blockHTML(b);
+      sec.appendChild(d);
+    }
+    main.appendChild(sec);
+    if (!withMath(sec)) mathOk = false;
+
+    const qs = blocks.filter(b => b.type === "question" && b.number != null);
+    tocHtml += `<a href="#page-${page.page}">第 ${page.page} 页</a>`;
+    for (const q of qs) {
+      tocHtml += `<a class="q" href="#page-${page.page}">　${q.number}. `
+        + `${esc((q.text || "").replace(/^\s*\d{1,2}\s*[.、]\s*/, "").slice(0, 16))}</a>`;
+    }
+    } catch (e) {
+      failed++;
+      console.error("第 " + page.page + " 页渲染失败：", e);
+      const bad = document.createElement("section");
+      bad.className = "card";
+      bad.innerHTML = `<h2>第 ${page.page} 页<span class="pagebadge">渲染失败</span></h2>`
+        + `<div class="warn">该页渲染出错：${esc(e && e.message || e)}</div>`;
+      main.appendChild(bad);
+    }
+  }
+
+  if (!shown) main.innerHTML = `<div class="card">没有匹配 “${esc(FILTER)}” 的内容。</div>`;
+  else if (!mathOk) {
+    const note = document.createElement("div");
+    note.className = "warn";
+    note.textContent = "⚠ 公式排版库 KaTeX 未加载（离线？），已按 LaTeX 原文显示。";
+    main.insertBefore(note, main.firstChild);
+  }
+  if (failed) console.warn(failed + " 页渲染失败");
+  toc.innerHTML = tocHtml;
+}
+
+fetch(DATA_URL).then(r => {
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}).then(d => {
+  DOC = d;
+  document.getElementById("title").textContent = d.document.title || "OCR 结果";
+  document.getElementById("meta").textContent =
+    `${d.pages.length} 页 · ${d.document.engine} · ${d.document.dpi} dpi`;
+  if (d.document.source_pdf) {
+    document.getElementById("meta").textContent += ` · ${d.document.source_pdf}`;
+  }
+  render();
+  document.getElementById("q").addEventListener("input", e => {
+    FILTER = e.target.value; render();
+  });
+}).catch(err => {
+  document.getElementById("main").innerHTML =
+    `<div class="card">加载 ${esc(DATA_URL)} 失败：${esc(err.message)}<br>`
+    + `请用 <code>--serve</code> 启动，或用本地服务器托管该目录。</div>`;
+});
+</script>
+</body>
+</html>
