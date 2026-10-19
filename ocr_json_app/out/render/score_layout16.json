@@ -1,0 +1,169 @@
+{
+ "pdf": "C:\\Users\\25840\\Desktop\\ocr-scan\\ocr_json_app\\data\\静安区2026届高三一模数学试卷.pdf",
+ "dpi": 150,
+ "scale": 2.0833333333333335,
+ "pages": [
+  {
+   "page": 1,
+   "size": [
+    1241,
+    1754
+   ],
+   "ink": {
+    "ink_iou": 0.0719,
+    "ink_prec": 0.1607,
+    "ink_rec": 0.1152,
+    "ink_px_orig": 80905,
+    "ink_px_render": 57994,
+    "ink_px_common": 9322
+   },
+   "lines": {
+    "orig_lines": 21,
+    "render_lines": 30,
+    "matched": 21,
+    "recall": 1.0,
+    "precision": 0.7,
+    "center_dev_pt_median": 54.58,
+    "center_dev_pt_p95": 94.81,
+    "width_dev_median": 0.3744,
+    "within_tol": 0,
+    "within_tol_ratio": 0.0
+   }
+  },
+  {
+   "page": 2,
+   "size": [
+    1241,
+    1754
+   ],
+   "ink": {
+    "ink_iou": 0.0931,
+    "ink_prec": 0.2099,
+    "ink_rec": 0.1434,
+    "ink_px_orig": 69315,
+    "ink_px_render": 47348,
+    "ink_px_common": 9939
+   },
+   "lines": {
+    "orig_lines": 20,
+    "render_lines": 21,
+    "matched": 20,
+    "recall": 1.0,
+    "precision": 0.9524,
+    "center_dev_pt_median": 83.08,
+    "center_dev_pt_p95": 187.07,
+    "width_dev_median": 0.5599,
+    "within_tol": 1,
+    "within_tol_ratio": 0.05
+   }
+  },
+  {
+   "page": 3,
+   "size": [
+    1241,
+    1754
+   ],
+   "ink": {
+    "ink_iou": 0.1205,
+    "ink_prec": 0.2551,
+    "ink_rec": 0.186,
+    "ink_px_orig": 50895,
+    "ink_px_render": 37092,
+    "ink_px_common": 9464
+   },
+   "lines": {
+    "orig_lines": 14,
+    "render_lines": 15,
+    "matched": 14,
+    "recall": 1.0,
+    "precision": 0.9333,
+    "center_dev_pt_median": 33.16,
+    "center_dev_pt_p95": 166.09,
+    "width_dev_median": 0.3325,
+    "within_tol": 0,
+    "within_tol_ratio": 0.0
+   }
+  },
+  {
+   "page": 4,
+   "size": [
+    1241,
+    1754
+   ],
+   "ink": {
+    "ink_iou": 0.1039,
+    "ink_prec": 0.2111,
+    "ink_rec": 0.1697,
+    "ink_px_orig": 27177,
+    "ink_px_render": 21850,
+    "ink_px_common": 4613
+   },
+   "lines": {
+    "orig_lines": 9,
+    "render_lines": 14,
+    "matched": 9,
+    "recall": 1.0,
+    "precision": 0.6429,
+    "center_dev_pt_median": 49.99,
+    "center_dev_pt_p95": 100.07,
+    "width_dev_median": 0.44,
+    "within_tol": 1,
+    "within_tol_ratio": 0.1111
+   }
+  },
+  {
+   "page": 5,
+   "size": [
+    1241,
+    1754
+   ],
+   "ink": {
+    "ink_iou": 0.0702,
+    "ink_prec": 0.1423,
+    "ink_rec": 0.1216,
+    "ink_px_orig": 26216,
+    "ink_px_render": 22405,
+    "ink_px_common": 3189
+   },
+   "lines": {
+    "orig_lines": 9,
+    "render_lines": 10,
+    "matched": 9,
+    "recall": 1.0,
+    "precision": 0.9,
+    "center_dev_pt_median": 57.81,
+    "center_dev_pt_p95": 109.97,
+    "width_dev_median": 0.318,
+    "within_tol": 1,
+    "within_tol_ratio": 0.1111
+   }
+  },
+  {
+   "page": 6,
+   "size": [
+    1241,
+    1754
+   ],
+   "ink": {
+    "ink_iou": 0.0689,
+    "ink_prec": 0.1576,
+    "ink_rec": 0.109,
+    "ink_px_orig": 30999,
+    "ink_px_render": 21442,
+    "ink_px_common": 3380
+   },
+   "lines": {
+    "orig_lines": 9,
+    "render_lines": 11,
+    "matched": 9,
+    "recall": 1.0,
+    "precision": 0.8182,
+    "center_dev_pt_median": 72.02,
+    "center_dev_pt_p95": 205.73,
+    "width_dev_median": 0.3724,
+    "within_tol": 0,
+    "within_tol_ratio": 0.0
+   }
+  }
+ ]
+}

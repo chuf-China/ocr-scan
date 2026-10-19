@@ -1,0 +1,4 @@
+# Python 字节码（py_compile / 直接运行时产生，不应进仓库）
+__pycache__/
+*.pyc
+

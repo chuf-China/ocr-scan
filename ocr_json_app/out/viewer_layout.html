@@ -128,6 +128,34 @@ function wholeMath(text) {
   return null;
 }
 
+// 用 canvas 量文本真实渲染宽度（比元素 measurement 更稳：不受盒宽/换行影响）
+const _measureCanvas = document.createElement("canvas");
+const _measureCtx = _measureCanvas.getContext("2d");
+function measureTextPx(text, fontPx, family) {
+  // 去掉 $...$ 定界符再量：KaTeX 渲染后不含 `$`，带着量会偏宽
+  const plain = String(text || "").replace(/\$/g, "");
+  _measureCtx.font = `${fontPx}px ${family}`;
+  return _measureCtx.measureText(plain).width;
+}
+
+/**
+ * 把一行的字号缩放到"渲染宽度 ≈ 行盒宽度"。
+ *
+ * 为什么需要：原卷字体 HYShuSongErKW 本机没有、回退 SimSun，字宽不匹配，
+ * 导致行内文本横向漂移（实测 dx 从 -135pt 到 +144pt）。
+ * 用 canvas 量**真实**宽度后按比例改字号，是本机条件下唯一可靠的水平对齐手段。
+ * 限制：字号只在 [0.75, 1.15] 倍内调整——超出这个范围说明该行文本与行盒本就
+ * 不匹配（例如整段文本被塞进一行），强行缩放会让字号明显失真。
+ */
+function fitLineWidth(el, text, targetPx, fontPx) {
+  if (!text || !(targetPx > 8)) return;
+  const family = getComputedStyle(el).fontFamily || "serif";
+  const w = measureTextPx(text, fontPx, family);
+  if (!(w > 1)) return;
+  let scaled = fontPx * (targetPx / w);
+  el.style.fontSize = Math.max(fontPx * 0.75, Math.min(fontPx * 1.15, scaled)).toFixed(2) + "px";
+}
+
 function buildPage(page, doc) {
   const wrap = document.createElement("div");
   wrap.className = "page";
@@ -194,6 +222,14 @@ function buildPage(page, doc) {
     }
     if (isMulti) el.classList.add("multi");
     layer.appendChild(el);
+    // 文本宽度对齐：把该行字号缩放到"渲染宽度 = 行盒宽度"。
+    // 为什么必须做：原卷字体（HYShuSongErKW）本机没有、会回退 SimSun，字宽不匹配 →
+    // 行内文本横向漂移可达 ±140pt（实测）。这里用 canvas 量**真实**渲染宽度
+    // （不是估算），再按比例改字号——这是"水平对得上"的唯一可靠办法。
+    if (!isMulti) {
+      const targetPx = (ln.right - ln.left) * k;
+      fitLineWidth(el, ln.text, targetPx, fontPx);
+    }
 
     // 表格：单独画成真表格，宽度铺到原行盒的宽度
     for (const tb of (ln.tables || [])) {
