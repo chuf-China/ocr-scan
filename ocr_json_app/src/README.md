@@ -34,6 +34,18 @@ PDF 本身有文字层时，`ocr_pipeline_layout.py` 会从 `pdfplumber` 的 cha
 数学卷的原生字层常把公式拆成 `x2`/`y0`，或使用私有字库；原生文字只用于质量诊断和
 “OCR 缺字”兜底，不能拿它替换公式。
 
+## 页面分类与覆盖率（S1）
+
+每页有 `page_type`（`blank` / `no-lines` / `text`、横竖方向、栏数、是否有文字层、
+PDF rotation）和 `coverage`。覆盖审计把行盒与插图盒画成掩膜，找出仍有成片墨迹的
+`uncovered_regions`；文档级汇总在 `document.coverage`。它不依赖 OCR，能发现漏行、
+漏图、旋转页和整页扫描背景。
+
+覆盖率用 `audit_page_coverage()`；页面分类用 `classify_page()`。`exam_structure`
+把未覆盖区域转成 `page_uncovered_ink` warning，`checks.page_coverage_ok` 为 0 才表示
+没有未覆盖区域。图上字母标注紧贴裁片盒、表格框线、扫描噪点都可能触发 warning；
+先看 pt 坐标，再决定扩图或补行。
+
 ## 试卷结构层（exam_structure）
 
 layout JSON 的 `lines[]` 仍是自上而下的物理行序，不能直接当阅读顺序。`exam_structure.py`

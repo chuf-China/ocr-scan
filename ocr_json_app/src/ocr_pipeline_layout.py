@@ -1758,6 +1758,130 @@ def _line_content_type(line: dict) -> str:
     return "text"
 
 
+def _line_px_box(line: dict, scale: float) -> tuple[int, int, int, int] | None:
+    """行盒的像素坐标；兼容旧产物（只有 pt 坐标）。"""
+    try:
+        if "px_left" in line:
+            return (int(line["px_left"]), int(line["px_top"]),
+                    int(line["px_right"]), int(line["px_bottom"]))
+        return (int(float(line["left"]) * scale), int(float(line["top"]) * scale),
+                int(float(line["right"]) * scale), int(float(line["bottom"]) * scale))
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def audit_page_coverage(gray: np.ndarray, lines: list[dict], figures: list[dict],
+                        scale: float, typical_h_px: float) -> dict:
+    """检查“有墨但没被任何行/图盒覆盖”的区域。
+
+    行检测是投影启发式，失败时不会抛错，只会静默漏行；这是最危险的错误。
+    这里把已检测的行盒和插图盒画成覆盖掩膜，再找剩余的成片墨迹。这样即使
+    OCR 完全没看到某一行，也能在 quality 里留下证据。
+
+    只统计成片的竖向行程（过滤单像素噪点），并按页比例给出覆盖率。这个函数
+    不依赖 OCR 结果，因此也能发现“整页没切成行”的旋转/扫描页。
+    """
+    ink = gray < INK_THRESHOLD
+    covered = np.zeros(ink.shape, dtype=bool)
+    pad = 2
+
+    for line in lines:
+        box = _line_px_box(line, scale)
+        if not box:
+            continue
+        x0, y0, x1, y1 = box
+        x0 = max(0, x0 - pad)
+        y0 = max(0, y0 - pad)
+        x1 = min(ink.shape[1], x1 + pad)
+        y1 = min(ink.shape[0], y1 + pad)
+        if x1 > x0 and y1 > y0:
+            covered[y0:y1, x0:x1] = True
+
+    for fig in figures:
+        px = fig.get("px") or []
+        if len(px) != 4:
+            continue
+        x0, y0, x1, y1 = (max(0, int(px[0])), max(0, int(px[1])),
+                          min(ink.shape[1], int(px[2])),
+                          min(ink.shape[0], int(px[3])))
+        if x1 > x0 and y1 > y0:
+            covered[y0:y1, x0:x1] = True
+
+    ink_total = int(ink.sum())
+    if ink_total == 0:
+        return {"ink_pixels": 0, "covered_ink_pixels": 0,
+                "ratio": 1.0, "uncovered_regions": []}
+
+    uncovered = ink & ~covered
+    covered_total = int((ink & covered).sum())
+    width = ink.shape[1]
+    min_row_ink = max(3, int(width * 0.0015))
+    min_height = max(4, int(round(typical_h_px * 0.45)))
+    row_active = uncovered.sum(axis=1) >= min_row_ink
+
+    # 把相距 1~2px 的行程合并，避免同一行被字间空白切成多个碎片。
+    runs: list[list[int]] = []
+    for run in _runs_from_projection(row_active):
+        if runs and run[0] - runs[-1][1] <= 2:
+            runs[-1][1] = run[1]
+        else:
+            runs.append(list(run))
+
+    regions: list[dict] = []
+    for start, end in runs:
+        height = end - start + 1
+        if height < min_height:
+            continue
+        cols = np.where(uncovered[start:end + 1].any(axis=0))[0]
+        if len(cols) == 0:
+            continue
+        x0, x1 = int(cols[0]), int(cols[-1]) + 1
+        count = int(uncovered[start:end + 1, x0:x1].sum())
+        if count < 30:
+            continue
+        regions.append({
+            "px": [x0, start, x1, end + 1],
+            "pt": [round(x0 / scale, 2), round(start / scale, 2),
+                   round(x1 / scale, 2), round((end + 1) / scale, 2)],
+            "w_pt": round((x1 - x0) / scale, 2),
+            "h_pt": round(height / scale, 2),
+            "ink": count,
+        })
+
+    # 只保留最严重的 20 个，防止坏页把 JSON 撑爆；计数仍然保留真实值。
+    regions.sort(key=lambda r: (r["h_pt"] * r["w_pt"], r["ink"]), reverse=True)
+    kept = regions[:20]
+    return {
+        "ink_pixels": ink_total,
+        "covered_ink_pixels": covered_total,
+        "ratio": round(covered_total / ink_total, 5) if ink_total else 1.0,
+        "uncovered_regions": kept,
+        "uncovered_regions_total": len(regions),
+    }
+
+
+def classify_page(gray: np.ndarray, lines: list[dict], gutters: list[int],
+                  chars: list[dict], page_w: float, page_h: float) -> dict:
+    """页面类型/方向/文字层标记；给下游决定“空白页、图像页还是正常试卷页”。"""
+    ink = int((gray < INK_THRESHOLD).sum())
+    area = max(1, gray.shape[0] * gray.shape[1])
+    ratio = ink / area
+    if not lines and ratio < 0.0002:
+        kind = "blank"
+    elif not lines:
+        kind = "no-lines"
+    else:
+        kind = "text"
+    orientation = "landscape" if page_w > page_h * 1.18 else "portrait"
+    return {
+        "kind": kind,
+        "orientation": orientation,
+        "columns": len(gutters) + 1,
+        "has_text_layer": bool(chars),
+        "ink_ratio": round(ratio, 5),
+    }
+
+
 def build(args) -> dict:
     pdfium = import_pdfium()
     doc = pdfium.PdfDocument(args.pdf)
@@ -1775,6 +1899,8 @@ def build(args) -> dict:
     native_total = {"chars": 0, "lines": 0, "reliable": 0, "matched": 0,
                     "mismatched": 0, "native_only": 0, "ocr_only": 0,
                     "fallbacks": 0}
+    coverage_total = {"ink_pixels": 0, "covered_ink_pixels": 0,
+                      "uncovered_regions": 0, "blank_pages": 0}
     t_start = time.time()
 
     # pypdfium2 是原生库，多线程渲染会 access violation → 渲染串行，OCR 并发
@@ -1787,6 +1913,10 @@ def build(args) -> dict:
             pil = page_obj.render(scale=scale).to_pil().convert("RGB")
             gray = np.asarray(pil.convert("L"))
             pw, ph = page_obj.get_size()
+            try:
+                rotation = int(page_obj.get_rotation())
+            except Exception:  # noqa: BLE001 - 旧版 pdfium 没有这个接口
+                rotation = 0
 
         native_boxes = (font_probe.figure_boxes(pno)
                         if font_probe is not None and not args.no_figures else [])
@@ -1870,8 +2000,10 @@ def build(args) -> dict:
         native_lines = native_lines_from_chars(
             sizes_hint or [], native_boxes if not args.no_figures else [])
 
-        # 兜底：整页只有一条超长行时不硬拆，直接整页 OCR
-        if args.single_line_fallback and len(lines) <= 1:
+        # 兜底：整页只有一条超长行时不硬拆，直接整页 OCR。
+        # 注意 0 行不能走这里：空白页/纯图页没有行是正常分类，硬造一条整页行
+        # 会调用 OCR 并把空白页误报成“整页解析失败”。
+        if args.single_line_fallback and len(lines) == 1:
             lines = [{"px_top": 0, "px_bottom": gray.shape[0] - 1,
                       "px_left": 0, "px_right": gray.shape[1] - 1,
                       "px_height": gray.shape[0], "ink": int((gray < INK_THRESHOLD).sum())}]
@@ -2012,6 +2144,17 @@ def build(args) -> dict:
                                    for f in figures)
             log(f"第 {pno} 页还原插图 {len(figures)} 张（{sizes_text}）")
 
+        coverage = audit_page_coverage(gray, page_lines, figures, scale, typical_h_px)
+        classification = classify_page(gray, page_lines, gutters, chars, pw, ph)
+        classification["rotation"] = rotation
+        if coverage.get("uncovered_regions"):
+            uncovered_count = coverage.get(
+                "uncovered_regions_total", len(coverage["uncovered_regions"]))
+            log(f"第 {pno} 页覆盖率 {coverage['ratio']:.3%}，"
+                f"发现 {uncovered_count} 处未覆盖墨迹区域（已写入 quality）")
+            warnings.append(f"第 {pno} 页覆盖率 {coverage['ratio']:.3%}，"
+                            f"有 {uncovered_count} 处未覆盖墨迹")
+
         # 行序 = 页面自上而下。检测是按行墨迹投影出的行程顺序，理论上已是自上而下，
         # 但并叠下划线、过滤空行之后仍可能错序（渲染时表现为第 4 题跑到第 2 题上面）。
         # 显式排序，版面顺序不能依赖上游的偶然性。
@@ -2054,12 +2197,20 @@ def build(args) -> dict:
             "line_source": used,
             "columns": columns_pt,
             "reading_order": page_reading_ids,
+            "page_type": classification,
+            "coverage": coverage,
             "lines": page_lines,
             "figures": figures,
             "markdown": "\n".join(l["text"] for l in reading),
             "elapsed_s": round(time.time() - t_page, 2),
             "native_text": native_info,
         }
+        coverage_total["ink_pixels"] += coverage.get("ink_pixels", 0)
+        coverage_total["covered_ink_pixels"] += coverage.get("covered_ink_pixels", 0)
+        coverage_total["uncovered_regions"] += coverage.get(
+            "uncovered_regions_total", len(coverage.get("uncovered_regions") or []))
+        if classification.get("kind") == "blank":
+            coverage_total["blank_pages"] += 1
         native_total["chars"] += native_info.get("chars", 0)
         native_total["lines"] += native_info.get("lines", 0)
         native_total["reliable"] += native_info.get("reliable_lines", 0)
@@ -2097,6 +2248,15 @@ def build(args) -> dict:
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
             "elapsed_s": round(time.time() - t_start, 2),
             "warnings": warnings,
+            "coverage": {
+                "ink_pixels": coverage_total["ink_pixels"],
+                "covered_ink_pixels": coverage_total["covered_ink_pixels"],
+                "ratio": (round(coverage_total["covered_ink_pixels"]
+                                 / coverage_total["ink_pixels"], 5)
+                          if coverage_total["ink_pixels"] else 1.0),
+                "uncovered_regions": coverage_total["uncovered_regions"],
+                "blank_pages": coverage_total["blank_pages"],
+            },
             "native_text": {
                 "available": native_total["chars"] > 0,
                 "chars": native_total["chars"],

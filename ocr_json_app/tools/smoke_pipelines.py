@@ -102,7 +102,7 @@ def find_python311() -> str | None:
 
 
 def test_low_version_syntax() -> None:
-    print("[1/8] 低版本解释器语法（只允许 3.9 / 3.11 能编译的写法）")
+    print("[1/10] 低版本解释器语法（只允许 3.9 / 3.11 能编译的写法）")
     files = sorted(glob.glob(os.path.join(BOOT, "*.py")))
     # 先用当前解释器确认全部可解析
     for path in files:
@@ -183,7 +183,7 @@ def _free_names_in_functions(tree: ast.Module) -> dict[str, set[str]]:
 
 
 def test_undefined_names() -> None:
-    print("[2/8] 未定义名（函数体引用了模块级没有的名字）")
+    print("[2/10] 未定义名（函数体引用了模块级没有的名字）")
     for path in sorted(glob.glob(os.path.join(BOOT, "*.py"))):
         fn = os.path.basename(path)
         tree = ast.parse(open(path, encoding="utf-8").read(), fn)
@@ -194,7 +194,7 @@ def test_undefined_names() -> None:
 
 # ---------------------------------------------------------------- ③ 结构块流水线
 def test_blocks_pipeline() -> None:
-    print("[3/8] ocr_pipeline_blocks 纯函数")
+    print("[3/10] ocr_pipeline_blocks 纯函数")
     try:
         blocks = load_module("ocr_pipeline_blocks.py")
     except Exception as exc:  # noqa: BLE001
@@ -256,7 +256,7 @@ def test_table_shape_guard() -> None:
     实测模型会吐 100 列表头（1..100）和整表 1,000.00 的财务表；没有这道闸门，
     页面上会出现一张看起来像原文的假表——比乱码更危险（乱码一眼可辨）。
     """
-    print("[4/8] 表格形状闸门（ocr_pipeline_layout._table_shape_ok）")
+    print("[4/10] 表格形状闸门（ocr_pipeline_layout._table_shape_ok）")
     try:
         import numpy  # noqa: F401
     except ImportError:
@@ -284,7 +284,7 @@ def test_table_shape_guard() -> None:
 
 # ---------------------------------------------------------------- ⑤ 版式纯函数
 def test_layout_helpers() -> None:
-    print("[5/8] ocr_pipeline_layout 纯函数（投票 / 幻觉 / 行合并 / 框线）")
+    print("[5/10] ocr_pipeline_layout 纯函数（投票 / 幻觉 / 行合并 / 框线）")
     try:
         import numpy
     except ImportError:
@@ -384,7 +384,7 @@ def test_native_figures() -> None:
     渲染时压到下一节标题。像素掩膜只能按"文字少"猜图形，混排图必然漏；这里用
     PDF 自己的 image / curve / line / rect 资源，并用表格与装饰图反例锁死过滤。
     """
-    print("[6/8] ocr_pipeline_layout 原生图形（图片 / 矢量簇 / 掩膜 / 300dpi 裁片）")
+    print("[6/10] ocr_pipeline_layout 原生图形（图片 / 矢量簇 / 掩膜 / 300dpi 裁片）")
     try:
         import numpy
         from PIL import Image
@@ -498,7 +498,7 @@ def test_native_figures() -> None:
 
 def test_native_text() -> None:
     """原生文字层：质量标记、字符聚行、与 OCR 行匹配。"""
-    print("[7/9] ocr_pipeline_layout 原生文字层（质量 / 聚行 / 匹配）")
+    print("[7/10] ocr_pipeline_layout 原生文字层（质量 / 聚行 / 匹配）")
     layout = load_module("ocr_pipeline_layout.py")
 
     quality, score = layout.native_text_quality("2024 年普通高等学校招生全国统一考试")
@@ -547,7 +547,7 @@ def test_native_text() -> None:
 
 def test_exam_structure() -> None:
     """试卷结构层：跨栏阅读顺序、题号/选项、统计小数不误判、质量门。"""
-    print("[9/9] exam_structure（栏序 / 题号 / 选项 / quality）")
+    print("[9/10] exam_structure（栏序 / 题号 / 选项 / quality）")
     es = load_module("exam_structure.py")
 
     def line(text, left, top):
@@ -594,6 +594,42 @@ def test_exam_structure() -> None:
           str(quality["summary"]))
 
 
+def test_page_coverage() -> None:
+    """页面覆盖审计：漏行/未识别图像必须在 quality 里留下证据。"""
+    print("[10/10] ocr_pipeline_layout 页面覆盖审计")
+    import numpy as np
+
+    layout = load_module("ocr_pipeline_layout.py")
+    gray = np.full((100, 100), 255, dtype=np.uint8)
+    gray[20:40, 10:80] = 0       # 已检测行
+    gray[70:90, 10:80] = 0       # 故意漏掉的一行
+    line = {"px_left": 8, "px_top": 18, "px_right": 82, "px_bottom": 42,
+            "left": 8, "top": 18, "right": 82, "bottom": 42}
+    cov = layout.audit_page_coverage(gray, [line], [], 1.0, 12)
+    check("未覆盖行被检出", bool(cov["uncovered_regions"]),
+          str(cov["uncovered_regions"]))
+    check("覆盖率小于 1", cov["ratio"] < 1.0, str(cov["ratio"]))
+
+    covered = layout.audit_page_coverage(
+        gray, [line, {"px_left": 8, "px_top": 68, "px_right": 82,
+                      "px_bottom": 92}], [], 1.0, 12)
+    check("覆盖完整时不误报", covered["uncovered_regions"] == [],
+          str(covered["uncovered_regions"]))
+
+    blank = np.full((100, 100), 255, dtype=np.uint8)
+    info = layout.classify_page(blank, [], [], [], 100, 100)
+    check("空白页分类", info["kind"] == "blank", str(info))
+    check("空白页覆盖率为 1", layout.audit_page_coverage(
+        blank, [], [], 1.0, 12)["ratio"] == 1.0)
+
+    scanned = np.full((100, 160), 255, dtype=np.uint8)
+    scanned[20:80, 20:120] = 0
+    no_lines = layout.classify_page(scanned, [], [], [], 160, 100)
+    check("有墨但无行分类", no_lines["kind"] == "no-lines", str(no_lines))
+    check("横向页方向", no_lines["orientation"] == "landscape", str(no_lines))
+    check("无文字层标记", no_lines["has_text_layer"] is False, str(no_lines))
+
+
 def test_output_path_collision() -> None:
     """认不出的引擎必须单独命名，不能覆盖 OvisOCR2 的产物。
 
@@ -602,7 +638,7 @@ def test_output_path_collision() -> None:
     产物换成了另一个引擎的结果，而 `run_all_checks.py` 还在校验那份文件，
     校验照旧"通过"。这类覆盖没有任何报错，只能靠断言锁住。
     """
-    print("[8/9] 产物路径：不同引擎不得互相覆盖")
+    print("[8/10] 产物路径：不同引擎不得互相覆盖")
     import paths
 
     reserved = {
@@ -644,6 +680,7 @@ def main() -> int:
     test_native_figures()
     test_native_text()
     test_exam_structure()
+    test_page_coverage()
     test_output_path_collision()
     print(f"\n{PASSED} 个通过 / {len(FAILED)} 个失败"
           f"{f' / {len(SKIPPED)} 个跳过' if SKIPPED else ''}")

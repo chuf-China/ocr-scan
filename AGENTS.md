@@ -193,6 +193,12 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
     `check_exam_json.py` 退出 1。不要用“能渲染”代替试卷结构正确。布局 JSON 的新字段
     （`schema_version`、稳定 `id`、`column`、`reading_order`、`content_type`）只增不改，
     旧产物仍须可读。
+15. **版面层必须报告“没覆盖到的墨迹”，不能只报成功**：每页写 `page_type`
+    （`blank` / `no-lines` / `text`、方向、栏数、文字层、rotation）和 `coverage`
+    （行盒+插图盒掩膜、`ratio`、`uncovered_regions`）；文档级写 `document.coverage`。
+    `exam_structure` 把未覆盖区域变成 `page_uncovered_ink` warning，不要为了消
+    warning 直接放宽容差。覆盖率告警先定位 pt 区域：可能是插图裁片切掉字母标注、
+    表格框线或扫描噪点；确认后再扩图/补行，不能把未覆盖区域静默当成空白。
 
 ## 改哪里 / 怎么改
 

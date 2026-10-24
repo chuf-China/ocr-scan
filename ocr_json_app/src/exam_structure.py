@@ -478,6 +478,27 @@ def build_quality(layout: dict, exam: dict) -> dict:
                                          f"同栏行重叠：{a.get('id')} / {b.get('id')}",
                                          page=pno, ref=a.get("id")))
 
+    # 页面覆盖率：行/图盒之外仍有成片墨迹，说明可能有漏行、未识别插图或旋转页。
+    # 这是 warning 而不是 error：噪点/装饰线也可能触发；但必须在 quality 里可见，
+    # 不能像旧版一样“页面看起来正常就当作没漏”。
+    coverage_ratios: list[float] = []
+    uncovered_total = 0
+    for page in pages:
+        pno = int(page.get("page") or 1)
+        cov = page.get("coverage") or {}
+        ratio = cov.get("ratio")
+        if isinstance(ratio, (int, float)):
+            coverage_ratios.append(float(ratio))
+        regions = cov.get("uncovered_regions") or []
+        if regions:
+            uncovered_total += int(cov.get("uncovered_regions_total") or len(regions))
+            issues.append(_issue(
+                "warning", "page_uncovered_ink",
+                f"第 {pno} 页有 {len(regions)} 处未覆盖墨迹"
+                f"（覆盖率 {float(ratio or 0):.2%}），可能漏行/漏图",
+                page=pno))
+    coverage_ratio = min(coverage_ratios) if coverage_ratios else 1.0
+
     stats = exam.get("stats") or {}
     native = (layout.get("document") or {}).get("native_text") or {}
     if native.get("mismatched_lines") and native.get("matched_lines"):
@@ -503,6 +524,8 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "duplicate_question_numbers": duplicates,
             "line_overflow": overflow,
             "line_overlaps": overlaps,
+            "coverage_ratio": round(coverage_ratio, 5),
+            "uncovered_regions": uncovered_total,
         },
         "checks": {
             "question_numbers_complete": not missing,
@@ -516,6 +539,7 @@ def build_quality(layout: dict, exam: dict) -> dict:
                                    if s.get("id") == q.get("section_id")), "")),
             "all_figures_assigned": not unassigned_figs,
             "geometry_ok": overflow == 0 and overlaps == 0,
+            "page_coverage_ok": uncovered_total == 0,
         },
         "issues": issues,
     }

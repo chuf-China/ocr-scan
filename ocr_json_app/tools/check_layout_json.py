@@ -132,6 +132,37 @@ def main() -> int:
             if line.get("column") is not None and cols:
                 if not (0 <= int(line["column"]) < len(cols)):
                     errors.append(f"第 {pno} 页行 column 越界：{line.get('id')}")
+        ptype = p.get("page_type")
+        if ptype:
+            if ptype.get("kind") not in ("blank", "no-lines", "text"):
+                errors.append(f"第 {pno} 页未知 page_type.kind：{ptype.get('kind')}")
+            if ptype.get("rotation") not in (0, 90, 180, 270, None):
+                errors.append(f"第 {pno} 页 rotation 非 0/90/180/270：{ptype.get('rotation')}")
+        cov = p.get("coverage")
+        if cov:
+            ratio = cov.get("ratio")
+            if not isinstance(ratio, (int, float)) or not (0 <= ratio <= 1):
+                errors.append(f"第 {pno} 页 coverage.ratio 非法：{ratio}")
+            ink = cov.get("ink_pixels")
+            covered = cov.get("covered_ink_pixels")
+            if not isinstance(ink, int) or not isinstance(covered, int):
+                errors.append(f"第 {pno} 页 coverage 像素计数不是整数")
+            elif covered > ink + 1:
+                errors.append(f"第 {pno} 页 covered_ink_pixels > ink_pixels")
+            regions = cov.get("uncovered_regions") or []
+            total_regions = cov.get("uncovered_regions_total")
+            if total_regions is not None:
+                if not isinstance(total_regions, int) or total_regions < len(regions):
+                    errors.append(f"第 {pno} 页 uncovered_regions_total 非法：{total_regions}")
+            for reg in regions:
+                pt = reg.get("pt") or []
+                if len(pt) != 4:
+                    errors.append(f"第 {pno} 页 uncovered region 缺 pt")
+                    continue
+                x0, y0, x1, y1 = pt
+                if not (0 <= x0 < x1 <= float(p.get("width") or 0) + 2
+                        and 0 <= y0 < y1 <= float(p.get("height") or 0) + 2):
+                    errors.append(f"第 {pno} 页 uncovered region 越出页面：{pt}")
     for p in pages:
         pno = p.get("page")
         fig_ids = [f.get("id") for f in (p.get("figures") or []) if f.get("id")]
@@ -143,6 +174,10 @@ def main() -> int:
         errors.append(f"stats.lines={stats.get('lines')} 与实际 {total_lines} 不符")
     if stats.get("pages") != len(pages):
         errors.append(f"stats.pages={stats.get('pages')} 与实际 {len(pages)} 不符")
+    pages_total = (doc.get("document") or {}).get("pages_total")
+    if pages_total is not None:
+        if not isinstance(pages_total, int) or pages_total < len(pages):
+            errors.append(f"document.pages_total={pages_total} 小于已处理页数 {len(pages)}")
 
     # 插图：坐标必须落在页内，载图必须能解码且非空白
     fig_total = 0
