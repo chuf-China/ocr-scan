@@ -199,6 +199,11 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
     `exam_structure` 把未覆盖区域变成 `page_uncovered_ink` warning，不要为了消
     warning 直接放宽容差。覆盖率告警先定位 pt 区域：可能是插图裁片切掉字母标注、
     表格框线或扫描噪点；确认后再扩图/补行，不能把未覆盖区域静默当成空白。
+16. **公式先过结构门，再过 KaTeX 编译门**：`src/formula_quality.py` 只检查定界符、
+   花括号、`\left`/`\right`、`\begin{...}`/`\end{...}` 是否成对，**不改写正文**。
+   结构错误写 `formula_structure_broken` error，`check_exam_json.py` 退出 1；可疑字符/
+   超长写 warning。真实可渲染性仍由 `verify/verify_math.mjs` 逐条编译证明，两者不能互相
+   替代。不要用“页面能显示”代替公式结构正确。
 
 ## 改哪里 / 怎么改
 

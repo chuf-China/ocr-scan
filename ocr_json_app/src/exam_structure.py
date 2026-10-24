@@ -23,9 +23,14 @@ from typing import Any
 
 try:  # The module also runs from src/ directly in smoke tests.
     from ocr_pipeline_blocks import is_section_heading
+    from formula_quality import audit_formulas
 except Exception:  # pragma: no cover - fallback only when imported standalone
     def is_section_heading(text: str) -> bool:  # type: ignore
         return bool(re.match(r"^\s*[一二三四五六七八九十]{1,3}\s*[、．.]\s*\S", text))
+
+    def audit_formulas(lines, engine=None, page_no=None):  # type: ignore
+        return {"count": 0, "lines": 0, "broken": 0, "suspicious": 0,
+                "samples": [], "ok": True}
 
 
 SECTION_RE = re.compile(r"^\s*([一二三四五六七八九十]{1,3})\s*[、．.]\s*(\S.*)$")
@@ -499,6 +504,32 @@ def build_quality(layout: dict, exam: dict) -> dict:
                 page=pno))
     coverage_ratio = min(coverage_ratios) if coverage_ratios else 1.0
 
+    # 公式结构审计：先做纯 Python 的定界符/括号/环境检查，KaTeX 编译由
+    # verify/verify_math.mjs 在内容层单独做。两者都不能少：前者能在生成时
+    # 立即定位行，后者才证明真的可渲染。
+    engine = (layout.get("document") or {}).get("engine")
+    formula_total = 0
+    formula_lines = 0
+    formula_broken = 0
+    formula_suspicious = 0
+    formula_samples: list[dict[str, Any]] = []
+    for page in pages:
+        pno = int(page.get("page") or 1)
+        audit = audit_formulas(reading_lines(page), engine=engine, page_no=pno)
+        formula_total += int(audit.get("count") or 0)
+        formula_lines += int(audit.get("lines") or 0)
+        formula_broken += int(audit.get("broken") or 0)
+        formula_suspicious += int(audit.get("suspicious") or 0)
+        formula_samples.extend(audit.get("samples") or [])
+    if formula_broken:
+        issues.append(_issue(
+            "error", "formula_structure_broken",
+            f"{formula_broken} 条公式括号/定界符/环境不平衡，无法可靠渲染"))
+    if formula_suspicious:
+        issues.append(_issue(
+            "warning", "formula_suspicious",
+            f"{formula_suspicious} 条公式含可疑字符或超长，需要人工抽查"))
+
     stats = exam.get("stats") or {}
     native = (layout.get("document") or {}).get("native_text") or {}
     if native.get("mismatched_lines") and native.get("matched_lines"):
@@ -526,6 +557,11 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "line_overlaps": overlaps,
             "coverage_ratio": round(coverage_ratio, 5),
             "uncovered_regions": uncovered_total,
+            "formula_count": formula_total,
+            "formula_lines": formula_lines,
+            "formula_broken": formula_broken,
+            "formula_suspicious": formula_suspicious,
+            "formula_samples": formula_samples[:20],
         },
         "checks": {
             "question_numbers_complete": not missing,
@@ -540,6 +576,7 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "all_figures_assigned": not unassigned_figs,
             "geometry_ok": overflow == 0 and overlaps == 0,
             "page_coverage_ok": uncovered_total == 0,
+            "formula_structure_ok": formula_broken == 0,
         },
         "issues": issues,
     }

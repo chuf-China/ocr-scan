@@ -6,6 +6,7 @@
 | `ocr_pipeline_layout.py` | **原版式流水线**：原生图形资源 + 逐行坐标 + 插图/表格裁片 → 单文件网页 |
 | `ocr_pipeline_blocks.py` | **结构块流水线**：heading/question/paragraph/table（供程序消费） |
 | `exam_structure.py` | **试卷语义层**：从 layout JSON 重建题号/选项/小问/图归属，输出 `exam.json` + `quality.json` |
+| `formula_quality.py` | **公式结构审计**：定界符、花括号、`\left`/`\right`、环境成对检查；不改写正文 |
 | `paths.py` | 项目根与所有默认路径（脚本不依赖当前工作目录） |
 
 层级是单向的：`paths` / `ocr_common` 不 import 任何流水线；两条流水线只依赖它们。
@@ -45,6 +46,13 @@ PDF rotation）和 `coverage`。覆盖审计把行盒与插图盒画成掩膜，
 把未覆盖区域转成 `page_uncovered_ink` warning，`checks.page_coverage_ok` 为 0 才表示
 没有未覆盖区域。图上字母标注紧贴裁片盒、表格框线、扫描噪点都可能触发 warning；
 先看 pt 坐标，再决定扩图或补行。
+
+## 公式结构（S2）
+
+`formula_quality.py` 按 `document.engine` 选 `\(...\)` 或 `$...$`，检查每条公式的
+花括号、`\left`/`\right`、`\begin{...}`/`\end{...}` 和空公式/替换字符。它只报告
+issue，不改正文；结构错误由 `exam_structure.build_quality()` 升级为 `error`，
+真实 KaTeX 编译仍由 `verify/verify_math.mjs` 单独验证。
 
 ## 试卷结构层（exam_structure）
 

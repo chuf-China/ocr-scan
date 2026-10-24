@@ -630,6 +630,36 @@ def test_page_coverage() -> None:
     check("无文字层标记", no_lines["has_text_layer"] is False, str(no_lines))
 
 
+def test_formula_quality() -> None:
+    """公式结构：括号、left/right、环境必须成对；不静默改文本。"""
+    print("[11/11] formula_quality（定界符 / 括号 / 环境）")
+    fq = load_module("formula_quality.py")
+
+    good = fq.extract_formulas(
+        r"已知 \(x^2+\frac{1}{2}\) 且 \(\left(a+b\right)\)",
+        engine="llama.cpp/paddleocr-vl")
+    check("抽取两条公式", len(good) == 2, str(good))
+    check("合法公式无 issue", good and fq.latex_issues(good[0]["body"]) == [],
+          str(fq.latex_issues(good[0]["body"]) if good else "no formula"))
+    check("左括号不配对", "unbalanced_braces" in fq.latex_issues(r"\frac{x}{2"),
+          str(fq.latex_issues(r"\frac{x}{2")))
+    check("left 不配对", "unbalanced_left_right" in fq.latex_issues(r"\left( x"),
+          str(fq.latex_issues(r"\left( x")))
+    check("环境不配对", "unbalanced_environment" in fq.latex_issues(r"\begin{cases} x"),
+          str(fq.latex_issues(r"\begin{cases} x")))
+    check("空公式", "empty" in fq.latex_issues(" "), str(fq.latex_issues(" ")))
+
+    audit = fq.audit_formulas([
+        {"id": "p1-l1", "text": r"\(x^2\)"},
+        {"id": "p1-l2", "text": r"\(\frac{x}{2\)"},
+    ], engine="llama.cpp/paddleocr-vl", page_no=1)
+    check("审计计数", audit["count"] == 2 and audit["broken"] == 1,
+          str(audit))
+    check("审计失败即 ok=False", audit["ok"] is False, str(audit))
+    check("失败样本带行号", audit["samples"] and audit["samples"][0]["line_id"] == "p1-l2",
+          str(audit["samples"]))
+
+
 def test_output_path_collision() -> None:
     """认不出的引擎必须单独命名，不能覆盖 OvisOCR2 的产物。
 
@@ -681,6 +711,7 @@ def main() -> int:
     test_native_text()
     test_exam_structure()
     test_page_coverage()
+    test_formula_quality()
     test_output_path_collision()
     print(f"\n{PASSED} 个通过 / {len(FAILED)} 个失败"
           f"{f' / {len(SKIPPED)} 个跳过' if SKIPPED else ''}")

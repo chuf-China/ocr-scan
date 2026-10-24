@@ -336,6 +336,21 @@ CLI 不要求手动传 `--prompt`。
 把它当作边缘噪点；不要为了消 warning 直接放宽阈值。
 
 
+### 公式结构与可编译性
+
+公式先过两道互补的闸门，而不是只看“页面能显示”：
+
+1. **结构审计**（纯 Python，`src/formula_quality.py`）：`\(...\)` / `$...$`
+   定界符、花括号、`\left`/`\right`、`\begin{...}`/`\end{...}` 是否成对；
+   `quality.json` 写 `formula_count` / `formula_broken` / `formula_suspicious`
+   和带行号的样本。结构错误是 `error`，可疑字符是 warning，**不改写正文**。
+2. **真实编译**（Node + KaTeX，`verify/verify_math.mjs`）：按 `document.engine`
+   选对定界符，逐条 `renderToString(..., throwOnError: true)`；不通过即退出 1。
+
+三套 A3 验收卷共 149 / 153 / 127 条公式，结构错误 0、KaTeX 全部可编译。
+公式模型本身不在这层替换；S2 只保证“结构坏掉的公式不会静默发布”。
+
+
 ### 试卷结构层（exam / quality）
 
 版式 JSON 只回答“字画在哪”，不回答“这是第几题、选项属于谁、图属于哪题”。
@@ -348,9 +363,9 @@ CLI 不要求手动传 `--prompt`。
 3. **结构解析**：识别 `一、单选题` 等大题、题号、`(A)` 选项、`(1)` 小问，
    跨页/跨栏续题合并；统计表里的 `15.2 18.8…` 不会被当成题号 15。
 4. **质量门** `quality`：缺号/重号、空题干、选择题选项不足 A–D、空选项、
-   图未归属、行越界/同栏重叠、原生文字层与 OCR 高比例不一致，全部落成
-   `error` / `warning`；`error` 让 `check_exam_json.py` 退出 1，不允许“能渲染
-   就算过”。
+   图未归属、行越界/同栏重叠、页面未覆盖墨迹、公式结构损坏、原生文字层与
+   OCR 高比例不一致，全部落成 `error` / `warning`；`error` 让
+   `check_exam_json.py` 退出 1，不允许“能渲染就算过”。
 
 ```powershell
 python tools\build_exam_json.py out\exams\2023beijing.layout.json
