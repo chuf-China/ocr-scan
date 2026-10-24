@@ -65,6 +65,12 @@ bbox；`ocr_table_cells()` 按单元格裁片逐格 OCR。每页写 `tables[]`�
 `unassigned.tables`；行级 `source=pdf-table-cells` 的表格不重复归属。
 `build_quality()` 检查空表头/空行/空单元格/未归属表，并审计表格单元格里的公式结构。
 
+## 内容一致性（S4）
+
+`_stem_truncation_reason()` 检查非选择题题干是否以连接词、运算符或未闭合括号结尾；
+`build_quality()` 同时检查空大题。结果是 `question_content_truncated` /
+`section_empty` error，并写 `content_consistency_ok=false`。它是纯规则检测，不补字。
+
 ## 试卷结构层（exam_structure）
 
 layout JSON 的 `lines[]` 仍是自上而下的物理行序，不能直接当阅读顺序。`exam_structure.py`

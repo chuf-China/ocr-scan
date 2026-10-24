@@ -106,6 +106,26 @@ class ExamStructureTests(unittest.TestCase):
         self.assertEqual([q["number"] for q in exam["questions"]], [1])
         self.assertTrue(any("答卷前" in item["text"] for item in exam["front_matter"]))
 
+    def test_content_truncation_and_empty_section(self) -> None:
+        page = {
+            "page": 1, "width": 1000, "height": 800,
+            "lines": [
+                line("一、解答题", 50, 40),
+                line("1. 已知函数，则", 50, 70),
+                line("(A) 1", 70, 90),
+                line("(B) 2", 70, 110),
+                line("二、填空题", 50, 150),
+            ],
+            "figures": [], "tables": [],
+        }
+        layout = {"document": {}, "pages": [page]}
+        exam = es.build_exam(layout)
+        quality = es.build_quality(layout, exam)
+        codes = [i["code"] for i in quality["issues"]]
+        self.assertIn("question_content_truncated", codes)
+        self.assertIn("section_empty", codes)
+        self.assertFalse(quality["checks"]["content_consistency_ok"])
+
     def test_native_table_ownership(self) -> None:
         page = {
             "page": 1, "width": 1000, "height": 800,

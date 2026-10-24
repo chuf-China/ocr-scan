@@ -211,6 +211,11 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    压成一行正文；无文字层/无框线表格仍走裁片，但必须在 `quality` 里可见。行级
    `source=pdf-table-cells` 的 table 不再重复归属；空表头/空行/空单元格/未归属表是
    warning，表格单元格公式结构损坏是 error。
+18. **内容截断必须显式报错**：非选择题题干以 `则/求/若/已知/设/得/且/…`、运算符、
+   未闭合括号结尾，或公式定界符不平衡，`build_quality()` 写
+   `question_content_truncated` error；空大题写 `section_empty`。选择题题干允许以
+   `则/若` 结尾（后面本来就跟选项），不要误报。检测到后不要自动补字，保留原样并让
+   质量门失败。
 
 ## 改哪里 / 怎么改
 

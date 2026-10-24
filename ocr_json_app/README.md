@@ -385,6 +385,20 @@ CLI 不要求手动传 `--prompt`。
 `table_formula_broken` error。无文字层或无框线表格仍走插图裁片，见已知限制。
 
 
+### 内容一致性（S4）
+
+结构层还会把“题号对、文字却断了”的题目变成显式 error：
+
+- 非选择题题干以 `则/求/若/已知/设/得/且/…`、运算符、未闭合括号结尾，或公式定界符
+  不平衡 → `question_content_truncated`；选择题题干允许以 `则/若` 结尾（后面本来
+  就跟选项）。
+- 大题标题下没有任何题目 → `section_empty`。
+
+`quality.json` 写 `content_truncated` / `content_truncated_samples` /
+`empty_sections` 和 `checks.content_consistency_ok`。这是**检测**，不自动补字；被截断的
+题干仍保留原样，由人工或下一层修复。
+
+
 ### 试卷结构层（exam / quality）
 
 版式 JSON 只回答“字画在哪”，不回答“这是第几题、选项属于谁、图属于哪题”。

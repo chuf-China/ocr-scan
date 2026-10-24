@@ -42,6 +42,15 @@ OPTION_RE = re.compile(r"(?:^|(?<=\s))[（(]?\s*([A-D])\s*[)）．.]\s*")
 PAGE_NUMBER_RE = re.compile(r"^\s*(?:第\s*)?\d{1,4}\s*(?:页)?\s*$")
 PAGE_FOOTER_RE = re.compile(r"第\s*\d+\s*页|共\s*\d+\s*页")
 
+# A stem that ends on one of these is almost certainly a truncated line.  The
+# list is intentionally short: content heuristics are warnings/errors only when
+# they are strong enough to survive without a language model.
+DANGLING_STEM_SUFFIXES = (
+    "则", "求", "若", "已知", "设", "得", "且", "及", "与", "或",
+    "的", "是", "有", "由", "当", "将", "把", "使", "对于", "证明",
+    "解", "计算",
+)
+
 
 def _text(line: dict) -> str:
     return (line.get("text") or "").strip()
@@ -459,6 +468,21 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
     }
 
 
+def _stem_truncation_reason(text: str) -> str | None:
+    body = (text or "").strip()
+    if not body:
+        return "题干为空"
+    if body[-1] in "=+-×÷*/<（(【[":
+        return f"以 {body[-1]!r} 结尾"
+    for suffix in DANGLING_STEM_SUFFIXES:
+        if body.endswith(suffix):
+            return f"以“{suffix}”结尾"
+    audit = audit_formulas([{"text": body}])
+    if int(audit.get("broken") or 0):
+        return "公式括号/定界符不完整"
+    return None
+
+
 def _issue(level: str, code: str, message: str, *, page: int | None = None,
            ref: str | None = None) -> dict:
     item: dict[str, Any] = {"level": level, "code": code, "message": message}
@@ -485,15 +509,31 @@ def build_quality(layout: dict, exam: dict) -> dict:
         issues.append(_issue("error", "question_number_duplicate",
                              f"题号重复：{duplicates}"))
 
+    truncated_stems = 0
+    truncated_samples: list[dict] = []
     for q in questions:
-        if not (q.get("stem_text") or "").strip():
-            issues.append(_issue("error", "empty_stem",
-                                 f"第 {q.get('number')} 题没有题干", ref=q.get("id")))
         title = ""
         sec = next((s for s in exam.get("sections") or []
                     if s.get("id") == q.get("section_id")), None)
         if sec:
             title = sec.get("title") or ""
+        stem = (q.get("stem_text") or "").strip()
+        if not stem:
+            issues.append(_issue("error", "empty_stem",
+                                 f"第 {q.get('number')} 题没有题干", ref=q.get("id")))
+        elif "选择" not in title:
+            # Choice stems legitimately end in "则"/"若" before their options;
+            # only non-choice stems use the dangling-suffix heuristic.
+            reason = _stem_truncation_reason(stem)
+            if reason:
+                truncated_stems += 1
+                truncated_samples.append({"number": q.get("number"),
+                                          "reason": reason,
+                                          "tail": stem[-80:]})
+                issues.append(_issue(
+                    "error", "question_content_truncated",
+                    f"第 {q.get('number')} 题题干疑似截断：{reason}",
+                    ref=q.get("id")))
         if "选择" in title:
             options = q.get("options") or []
             if len(options) < 4:
@@ -509,6 +549,13 @@ def build_quality(layout: dict, exam: dict) -> dict:
                 issues.append(_issue("error", "choice_option_empty",
                                      f"第 {q.get('number')} 题有空选项",
                                      ref=q.get("id")))
+
+    empty_sections = [s for s in exam.get("sections") or []
+                      if not (s.get("question_ids") or [])]
+    for sec in empty_sections:
+        issues.append(_issue("error", "section_empty",
+                             f"大题“{sec.get('label')}、{sec.get('title')}”没有题目",
+                             page=(sec.get("pages") or [None])[0]))
 
     unassigned_figs = (exam.get("unassigned") or {}).get("figures") or []
     for fig in unassigned_figs:
@@ -659,6 +706,9 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "figures_unassigned": stats.get("figures_unassigned", 0),
             "missing_question_numbers": missing,
             "duplicate_question_numbers": duplicates,
+            "content_truncated": truncated_stems,
+            "content_truncated_samples": truncated_samples[:10],
+            "empty_sections": len(empty_sections),
             "line_overflow": overflow,
             "line_overlaps": overlaps,
             "coverage_ratio": round(coverage_ratio, 5),
@@ -681,6 +731,7 @@ def build_quality(layout: dict, exam: dict) -> dict:
                 for q in questions
                 if "选择" in next((s.get("title") or "" for s in exam.get("sections") or []
                                    if s.get("id") == q.get("section_id")), "")),
+            "content_consistency_ok": truncated_stems == 0 and not empty_sections,
             "all_figures_assigned": not unassigned_figs,
             "all_tables_structured": all(
                 (t.get("headers") or []) and (t.get("rows") or [])
