@@ -109,8 +109,8 @@ $env:PYTHONIOENCODING = "utf-8"
 
 ```powershell
 $env:PYTHONIOENCODING = "utf-8"
-python tools\run_all_checks.py           # 四层 + 真浏览器；当前基线 17/17
-python tools\run_all_checks.py --fast    # 跳过浏览器；当前基线 14/14
+python tools\run_all_checks.py           # 五道门 + 真浏览器；当前基线 21/21
+python tools\run_all_checks.py --fast    # 跳过浏览器；当前基线 18/18
 ```
 
 四层分工——改哪层至少跑哪层，UI/版式改动必须跑完整版（含浏览器）：
@@ -186,6 +186,13 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
     否则另一栏的文字会填满行间空白，把多行粘成超高行（实测吞过整道 Q20）。
     不假设栏数，也不假设中缝居中。行序仍按 `top/left` 自上而下排序，
     `check_layout_json` 只接受这个口径；阅读器的绝对定位不依赖行序。
+14. **坐标不是语义，试卷结构必须单独建层**：`src/exam_structure.py` 从 layout JSON 重建
+   `sections/questions/options/subquestions/figures`，栏感知阅读顺序用 `reading_order`，
+    不能拿 `lines[]` 数组下标当题号或归属。题号、选项（选择题必须 A–D 四项且非空）、
+    图归属、跨页/跨栏续题、缺号/重号都进 `quality`；`quality.status=error` 时
+    `check_exam_json.py` 退出 1。不要用“能渲染”代替试卷结构正确。布局 JSON 的新字段
+    （`schema_version`、稳定 `id`、`column`、`reading_order`、`content_type`）只增不改，
+    旧产物仍须可读。
 
 ## 改哪里 / 怎么改
 

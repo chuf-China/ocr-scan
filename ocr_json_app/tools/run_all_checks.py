@@ -180,6 +180,8 @@ def main() -> int:
             [py, "tools/check_layout_json.py", path])
         add(f"[渲染] 裁片/叠字/越界 · {engine}",
             [py, "tools/check_render.py", path])
+        add(f"[内容] 试卷结构/质量门 · {engine}",
+            [py, "tools/check_exam_json.py", path])
 
     # 结构块产物也**发现式**：`paper.ocr.json` 与官方流程的
     # `paper.ocr.paddleocrvl16.json` 都该进回归，否则新产物又是"文件在、没人校验"。

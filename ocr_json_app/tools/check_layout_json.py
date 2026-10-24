@@ -41,6 +41,8 @@ def main() -> int:
     for key in ("document", "stats", "pages"):
         if key not in doc:
             errors.append(f"缺少顶层字段 {key}")
+    if doc.get("schema_version") not in (None, 1):
+        errors.append(f"未知 schema_version：{doc.get('schema_version')}")
     if errors:
         print("\n".join("✗ " + e for e in errors))
         return 1
@@ -99,6 +101,42 @@ def main() -> int:
                 errors.append(f"{tag} 文本异常长（{len(t)} 字符）")
             if re.search(r"<table\b|<img\b", t, re.I):
                 warnings.append(f"{tag} 仍含 HTML 占位符")
+
+    # Schema v1: stable IDs, column metadata, and reading order are optional on
+    # historical artifacts but must be self-consistent when present.
+    for p in pages:
+        pno = p.get("page")
+        lines = p.get("lines") or []
+        ids = [l.get("id") for l in lines if l.get("id")]
+        if ids and len(ids) != len(set(ids)):
+            errors.append(f"第 {pno} 页行 ID 重复")
+        order = p.get("reading_order")
+        if order:
+            known = {l.get("id") for l in lines if l.get("id")}
+            if len(order) != len(known) or set(order) != known:
+                errors.append(f"第 {pno} 页 reading_order 与行 ID 不一致")
+        cols = p.get("columns") or []
+        if cols:
+            prev_right = -1.0
+            for col in cols:
+                if not isinstance(col, dict):
+                    errors.append(f"第 {pno} 页 columns 项不是对象")
+                    continue
+                left, right = col.get("left"), col.get("right")
+                if left is None or right is None or left >= right:
+                    errors.append(f"第 {pno} 页 column 区间非法：{col}")
+                elif left < prev_right - 0.5:
+                    errors.append(f"第 {pno} 页 columns 未按 x 升序")
+                prev_right = right if right is not None else prev_right
+        for line in lines:
+            if line.get("column") is not None and cols:
+                if not (0 <= int(line["column"]) < len(cols)):
+                    errors.append(f"第 {pno} 页行 column 越界：{line.get('id')}")
+    for p in pages:
+        pno = p.get("page")
+        fig_ids = [f.get("id") for f in (p.get("figures") or []) if f.get("id")]
+        if fig_ids and len(fig_ids) != len(set(fig_ids)):
+            errors.append(f"第 {pno} 页图 ID 重复")
 
     stats = doc.get("stats") or {}
     if stats.get("lines") != total_lines:

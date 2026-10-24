@@ -5,6 +5,7 @@
 | `ocr_common.py` | **共用底层**：PDF 渲染、OCR 引擎调用、本地网页服务、提示词选择 |
 | `ocr_pipeline_layout.py` | **原版式流水线**：原生图形资源 + 逐行坐标 + 插图/表格裁片 → 单文件网页 |
 | `ocr_pipeline_blocks.py` | **结构块流水线**：heading/question/paragraph/table（供程序消费） |
+| `exam_structure.py` | **试卷语义层**：从 layout JSON 重建题号/选项/小问/图归属，输出 `exam.json` + `quality.json` |
 | `paths.py` | 项目根与所有默认路径（脚本不依赖当前工作目录） |
 
 层级是单向的：`paths` / `ocr_common` 不 import 任何流水线；两条流水线只依赖它们。
@@ -32,3 +33,15 @@ PDF 本身有文字层时，`ocr_pipeline_layout.py` 会从 `pdfplumber` 的 cha
 
 数学卷的原生字层常把公式拆成 `x2`/`y0`，或使用私有字库；原生文字只用于质量诊断和
 “OCR 缺字”兜底，不能拿它替换公式。
+
+## 试卷结构层（exam_structure）
+
+layout JSON 的 `lines[]` 仍是自上而下的物理行序，不能直接当阅读顺序。`exam_structure.py`
+用 `column`/`reading_order` 先排栏内顺序，再识别大题、题号、选项、小问；行/图/题目都有稳定
+`id`，归属通过 `refs` 回溯。`build_quality()` 检查缺号/重号、空题干、选择题选项不足 A–D、
+图未归属、几何越界和原生/OCR 不一致率；`status=error` 时 `tools/check_exam_json.py` 退出 1。
+
+```powershell
+python tools\build_exam_json.py out\exams\2023beijing.layout.json
+python tools\check_exam_json.py out\exams\2023beijing.layout.json
+```

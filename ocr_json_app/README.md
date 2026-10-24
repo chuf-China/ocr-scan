@@ -176,13 +176,16 @@ ocr_json_app/
 │  ├─ ocr_common.py             PDF 渲染 / OCR 引擎调用 / 本地网页服务
 │  ├─ ocr_pipeline_layout.py    ★ 原版式流水线：逐行坐标 + 插图 + 表格裁片
 │  ├─ ocr_pipeline_blocks.py    结构块流水线：heading/question/table（供程序消费）
+│  ├─ exam_structure.py         ★ 试卷语义层：题号/选项/小问/图归属 + 质量门
 │  └─ paths.py                  项目根、默认 PDF、两份产物的路径映射
 │
 ├─ tools/                       命令行工具
 │  ├─ smoke_pipelines.py        ★ 代码层冒烟：真 import 两个流水线跑纯函数
 │  ├─ build_viewers.py          为每份 JSON 生成单文件渲染
 │  ├─ build_compare.py          生成两引擎并排对比页
+│  ├─ build_exam_json.py        layout JSON → exam.json + quality.json
 │  ├─ check_layout_json.py      JSON 结构/坐标/行序/幻觉残留
+│  ├─ check_exam_json.py        ★ 试卷结构/质量门（error 退出 1）
 │  ├─ check_render.py           ★ 裁片不得压正文、行不得叠字、不得越界
 │  ├─ check_ocr_json.py         结构块 JSON 校验
 │  ├─ cdp_probe.mjs             真浏览器渲染 + 版式诊断量 + 整页截图
@@ -308,7 +311,35 @@ CLI 不要求手动传 `--prompt`。
 
 实测三份 A3 真题：2024 新高考 I（2 栏，83 行/2 图）、2024 北京（3 栏，
 107 行/2 图）、2023 全国甲理（3 栏，94 行/3 图），三份都通过结构/渲染校验，
-浏览器 `overlap=0`、`overflow=0`；4 页纵向 A4 回归仍是 90 行/2 图。
+浏览器 `overlap=0`、`overflow=0`；4 页纵向 A4 回归仍是 90 行/2 图。另三份
+2023 新高考 I / 2023 北京 / 2023 全国乙理（均为 3 栏）也已跑通：
+
+| 试卷 | 行/图 | 题数 | 质量门 |
+|---|---|---|---|
+| 2023 新高考 I | 97 / 1 | 22 | warn（原生/OCR 文字层不一致 47%） |
+| 2023 北京 | 104 / 2 | 21 | pass |
+| 2023 全国乙理 | 89 / 4 | 23 | warn（原生/OCR 文字层不一致 36%） |
+
+### 试卷结构层（exam / quality）
+
+版式 JSON 只回答“字画在哪”，不回答“这是第几题、选项属于谁、图属于哪题”。
+`src/exam_structure.py` 在它上面单独建一层：
+
+1. **栏感知阅读顺序**：按 `column` → `top` → `left` 排序，而不是直接拿
+   `lines[]` 数组下标；跨栏卷的题干、选项、下一题不会被数组顺序搅乱。
+2. **稳定身份**：行/图有 `p<页>-l<序>`、`p<页>-f<序>`，题目/选项/小问有自己的
+   id；后续按 `refs` 回溯，不靠“第几个元素”。
+3. **结构解析**：识别 `一、单选题` 等大题、题号、`(A)` 选项、`(1)` 小问，
+   跨页/跨栏续题合并；统计表里的 `15.2 18.8…` 不会被当成题号 15。
+4. **质量门** `quality`：缺号/重号、空题干、选择题选项不足 A–D、空选项、
+   图未归属、行越界/同栏重叠、原生文字层与 OCR 高比例不一致，全部落成
+   `error` / `warning`；`error` 让 `check_exam_json.py` 退出 1，不允许“能渲染
+   就算过”。
+
+```powershell
+python tools\build_exam_json.py out\exams\2023beijing.layout.json
+python tools\check_exam_json.py out\exams\2023beijing.layout.json
+```
 
 ### 为什么要投票
 
@@ -379,21 +410,23 @@ python tools\run_all_checks.py --fast   # 跳过浏览器
 # 单独用
 python tools\smoke_pipelines.py         # ⓪ 代码层：真 import 流水线跑纯函数
 python tools\check_layout_json.py out\paper.layout.paddle.json   # 结构/坐标/行序/幻觉残留
+python tools\check_exam_json.py   out\paper.layout.paddle.json   # 题号/选项/图归属/质量门
 python tools\check_render.py      out\paper.layout.paddle.json   # 裁片压正文 / 叠字 / 越界
 node   tools\cdp_probe.mjs out\viewer_layout_paddleocrvl.html --shot shot.png
 python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 裁块放大看清局部
 ```
 
-校验分四层，越靠下越接近用户看到的东西：
+校验分五道门，越靠下越接近用户看到的东西：
 
 | 层 | 抓什么 |
 |---|---|
 | ⓪ 代码 | 未定义名、低版本语法、投票/幻觉/框线判据（真的 import 流水线跑） |
-| ① 结构 | JSON 自身是否合法、页序、题号、幻觉残留 |
+| ① 结构 | JSON 自身是否合法、页序、坐标、行序、幻觉残留 |
 | ② 渲染 | **裁片是否压正文**、行是否叠字、是否越界、浏览器实渲节点数；llama 产物的浏览器叠字/越界已升为硬门（`__OCR_DIAG__` 非 0 即失败） |
-| ③ 内容 | 公式能否被 KaTeX 编译、前端断言 |
+| ③ 试卷 | 题号是否连续、选项是否 A–D 且非空、小问/图归属、跨页续题；`quality=error` 直接失败 |
+| ④ 内容 | 公式能否被 KaTeX 编译、前端断言 |
 
-**为什么必须分四层**：① ② ③ **全部只看已经生成好的产物**，从不 import `src/` 里的代码，
+**为什么必须分层**：① ② ③ ④ **全部只看已经生成好的产物**，从不 import `src/` 里的代码，
 也不喂合成输入。实测漏过一次：`ocr_pipeline_blocks.py` 里 `SECTION_RE` 从未定义，而它是
 `blocks_from_text()` 的**第一个**判断 → 任何非表格文本块都 `NameError`，整条结构块流水线
 不可用（同文件 `base64` 也没 import）。当时 `run_all_checks.py` 的 **9 项里有 7 项通过**，

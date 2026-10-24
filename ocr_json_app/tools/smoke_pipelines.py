@@ -498,7 +498,7 @@ def test_native_figures() -> None:
 
 def test_native_text() -> None:
     """原生文字层：质量标记、字符聚行、与 OCR 行匹配。"""
-    print("[7/8] ocr_pipeline_layout 原生文字层（质量 / 聚行 / 匹配）")
+    print("[7/9] ocr_pipeline_layout 原生文字层（质量 / 聚行 / 匹配）")
     layout = load_module("ocr_pipeline_layout.py")
 
     quality, score = layout.native_text_quality("2024 年普通高等学校招生全国统一考试")
@@ -545,6 +545,55 @@ def test_native_text() -> None:
           f"实得 {info.get('mismatch_samples')}")
 
 
+def test_exam_structure() -> None:
+    """试卷结构层：跨栏阅读顺序、题号/选项、统计小数不误判、质量门。"""
+    print("[9/9] exam_structure（栏序 / 题号 / 选项 / quality）")
+    es = load_module("exam_structure.py")
+
+    def line(text, left, top):
+        return {"text": text, "left": left, "right": left + 80,
+                "top": top, "bottom": top + 12, "height_pt": 12,
+                "size_pt": 10, "tables": []}
+
+    page = {
+        "page": 1, "width": 1000, "height": 800,
+        "lines": [
+            line("一、单选题", 50, 50),
+            line("1. 第一题", 50, 80),
+            line("(A) 1", 70, 100),
+            line("(B) 2", 70, 112),
+            line("(C) 3", 70, 124),
+            line("(D) 4", 70, 136),
+            line("2. 右栏题", 500, 70),
+            line("(A) 3", 520, 90),
+            line("(B) 4", 520, 102),
+            line("(C) 5", 520, 114),
+            line("(D) 6", 520, 126),
+            line("15.2 18.8 20.2", 50, 150),
+            line("3. 左栏第二题", 50, 170),
+            line("(A) 5", 70, 190),
+            line("(B) 6", 70, 202),
+            line("(C) 7", 70, 214),
+            line("(D) 8", 70, 226),
+        ],
+        "figures": [{"id": "p1-f1", "pt": [480, 60, 560, 130],
+                     "source": "raster-projection"}],
+    }
+    layout = {"document": {"title": "合成卷"}, "pages": [page]}
+    exam = es.build_exam(layout)
+    check("栏序：左栏整栏先于右栏", [q["number"] for q in exam["questions"]] == [1, 3, 2],
+          f"实得 {[q['number'] for q in exam['questions']]}")
+    check("统计小数不当成题号", len(exam["questions"]) == 3,
+          f"实得 {len(exam['questions'])}")
+    check("选项拆分", [o["label"] for o in exam["questions"][0]["options"]]
+          == ["A", "B", "C", "D"])
+    right_q = next(q for q in exam["questions"] if q["number"] == 2)
+    check("图归属右栏题", [f["ref"] for f in right_q["figures"]] == ["p1-f1"])
+    quality = es.build_quality(layout, exam)
+    check("质量门通过", quality["summary"]["status"] == "pass",
+          str(quality["summary"]))
+
+
 def test_output_path_collision() -> None:
     """认不出的引擎必须单独命名，不能覆盖 OvisOCR2 的产物。
 
@@ -553,7 +602,7 @@ def test_output_path_collision() -> None:
     产物换成了另一个引擎的结果，而 `run_all_checks.py` 还在校验那份文件，
     校验照旧"通过"。这类覆盖没有任何报错，只能靠断言锁住。
     """
-    print("[8/8] 产物路径：不同引擎不得互相覆盖")
+    print("[8/9] 产物路径：不同引擎不得互相覆盖")
     import paths
 
     reserved = {
@@ -594,6 +643,7 @@ def main() -> int:
     test_layout_helpers()
     test_native_figures()
     test_native_text()
+    test_exam_structure()
     test_output_path_collision()
     print(f"\n{PASSED} 个通过 / {len(FAILED)} 个失败"
           f"{f' / {len(SKIPPED)} 个跳过' if SKIPPED else ''}")

@@ -1734,6 +1734,30 @@ def parse_pages(spec: str | None, total: int) -> list[int]:
     return list(range(start, end + 1))
 
 
+def _column_of(line: dict, column_bounds: list[tuple[int, int]], scale: float) -> int:
+    """按行中心点落在哪个像素栏，返回从 0 开始的栏号。"""
+    center = (line["left"] + line["right"]) / 2 * scale
+    for idx, (left, right) in enumerate(column_bounds):
+        if left <= center < right:
+            return idx
+    return 0
+
+
+def _line_content_type(line: dict) -> str:
+    """行级内容类型：table / formula / text。
+
+    这是给下游路由用的粗分类，不替代公式识别；题干里只要出现 LaTeX 定界符或
+    数学符号就标 formula，避免把公式行当普通正文再送一遍文本处理。
+    """
+    if line.get("tables"):
+        return "table"
+    text = line.get("text") or ""
+    if ("$" in text or "\\(" in text or "\\[" in text
+            or _looks_math_text(text)):
+        return "formula"
+    return "text"
+
+
 def build(args) -> dict:
     pdfium = import_pdfium()
     doc = pdfium.PdfDocument(args.pdf)
@@ -1995,6 +2019,24 @@ def build(args) -> dict:
         # 若改成“先栏后行”，check_layout_json 的“自上而下”硬门会失败。
         page_lines.sort(key=lambda l: (l["top"], l["left"]))
 
+        # 稳定 ID / 阅读顺序 / 内容类型：下游 exam/quality 不靠数组下标猜身份。
+        # 行数组仍保持自上而下，兼容 check_layout_json 的硬门；栏感知顺序另存。
+        columns_pt = [{"left": round(a / scale, 2), "right": round(b / scale, 2)}
+                      for a, b in column_bounds]
+        for idx, line in enumerate(page_lines, start=1):
+            line["id"] = f"p{pno}-l{idx}"
+            line["column"] = _column_of(line, column_bounds, scale)
+            line["content_type"] = _line_content_type(line)
+        reading = sorted(page_lines, key=lambda l: (l["column"], l["top"], l["left"]))
+        for idx, line in enumerate(reading):
+            line["reading_index"] = idx
+        for idx, fig in enumerate(figures, start=1):
+            fig["id"] = f"p{pno}-f{idx}"
+            fig["page"] = pno
+            fig["content_type"] = ("table" if fig.get("source") == "table-grid"
+                                   else "figure")
+        page_reading_ids = [l["id"] for l in reading]
+
         empty = sum(1 for l in raw_lines if _is_noise(l))
         bad = [l for l in page_lines if str(l["finish_reason"]).startswith("error")]
         if bad:
@@ -2010,9 +2052,11 @@ def build(args) -> dict:
             "dpi": args.dpi,
             "lines_detected": len(lines),
             "line_source": used,
+            "columns": columns_pt,
+            "reading_order": page_reading_ids,
             "lines": page_lines,
             "figures": figures,
-            "markdown": "\n".join(l["text"] for l in page_lines),
+            "markdown": "\n".join(l["text"] for l in reading),
             "elapsed_s": round(time.time() - t_page, 2),
             "native_text": native_info,
         }
@@ -2040,6 +2084,7 @@ def build(args) -> dict:
     with_math = sum(1 for l in all_lines
                     if "$" in l["text"] or "\\(" in l["text"] or "\\[" in l["text"])
     payload = {
+        "schema_version": 1,
         "document": {
             "title": os.path.splitext(os.path.basename(args.pdf))[0],
             "source_pdf": os.path.abspath(args.pdf),
