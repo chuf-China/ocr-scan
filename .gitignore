@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node（本仓库没有 npm 依赖，仅防误入）
+node_modules/
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+
+# 本地临时文件（校验脚本产生的截图 / 日志）
+*.log
+*.tmp
+shot*.png
+crop*.png

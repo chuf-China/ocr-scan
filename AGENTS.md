@@ -3,8 +3,9 @@
 本文件给在本仓库工作的编码代理（Codex / Claude Code / Cursor / Copilot 等）使用。
 仓库文档用中文，本文件也用中文；命令、路径、标识符保持原样。
 
-**先读这三份，再动手**：`README.md`（设计与取舍 + 实测数据）、`ocr_json_app/src/README.md`、
-`ocr_json_app/tools/README.md`。本文件只写"代理需要、README 没写或最容易踩"的部分。
+**先读**：`ocr_json_app/README.md`（完整设计取舍 + 实测数据）、`ocr_json_app/src/README.md`、
+`ocr_json_app/tools/README.md`。根 `README.md` 只是入口导航，不承载细节。本文件只写"代理需要、
+README 没写或最容易踩"的部分。
 
 ## 项目一览
 
@@ -18,17 +19,18 @@ PDF → pypdfium2 渲染 150dpi → 行墨迹投影 → 逐行裁图 → 本地 
 ```
 
 - 仓库根是 `ocr scan/`，实际代码全在 `ocr_json_app/`。
-- 根 `README.md` 与 `ocr_json_app/README.md` 目前是**同一份内容的两个副本**；改一份必须同步另一份。
+- 根 `README.md` 是导航入口；正文以 `ocr_json_app/README.md` 为准（两份不再互相复制同步）。
 - 样例输入：`ocr_json_app/data/静安区2026届高三一模数学试卷.pdf`（6 页 A4，公开试卷）。
 - 产物 `ocr_json_app/out/*.json`、`out/viewer_layout*.html` **已提交进 git**，单份 0.9–1.6 MB；
   重跑流水线会刷新这些文件，产生大 diff——只在确有意图时重跑。
 - 两条流水线：`ocr_pipeline_layout`（按行 + 坐标，原版式，产物 `paper.layout*.json`）与
   `ocr_pipeline_blocks`（语义块 heading/question/table，产物 `paper.ocr.json`）。按用途选，别混用。
 
-> **仓库状态（2026-10 快照）**：本地 `main` 落后 `origin/main` 一个提交 `0f9a21b v0.1`
-> （133 个文件、约 +8.8 万行：新增 `.gitignore`、`ocr_json_app/docs/paddleocr-vl-guide.md`、
-> `ocr_json_app/out/fonts/`、约 20 个工具，重写两份 README，并把首选路线改为官方 PaddleOCR-VL 流程）。
-> 本文件只描述**当前本地快照**；`git pull` 前先确认按哪版工作，pull 后本文件需要重写。
+> **仓库状态（2026-10 快照）**：本地 `main` 与 `origin/main` 已分叉：本地多出代理文档与仓库整理
+> 提交，远端多一个 `0f9a21b v0.1`（133 文件、约 +8.8 万行：新增 `.gitignore`、
+> `ocr_json_app/docs/paddleocr-vl-guide.md`、`ocr_json_app/out/fonts/`、约 20 个工具，
+> 重写 README，并把首选路线改为官方 PaddleOCR-VL 流程）。
+> 本文件描述**本地快照**；合并/拉取前先确认按哪版工作，pull 后本文件需要重写。
 
 ## 环境
 
@@ -51,8 +53,8 @@ PDF → pypdfium2 渲染 150dpi → 行墨迹投影 → 逐行裁图 → 本地 
 - **同一时间只允许一个 `llama-server`**；用完必须停掉释放显存。
 - 长页图需要 `-Ctx 16384`，否则整页只出几行（README 排障表）。
 
-仓库本地快照没有 `pyproject.toml` / `package.json` / formatter / linter / `.gitignore` / CI 配置
-（上游 v0.1 已加 `.gitignore`）。
+仓库已有 `.gitignore`（忽略 `__pycache__/`、`*.pyc`、`node_modules/`、临时截图/日志等）；
+没有 `pyproject.toml` / `package.json` / formatter / linter / CI 配置（上游 v0.1 也有 `.gitignore`）。
 
 ## 常用命令
 
@@ -153,10 +155,9 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    交叠必须为 **0**（`check_render` 在 > 1 pt² 时即报错），这是红线。
 9. **公式定界符随引擎变**：Paddle 是 `\(...\)` / `\[...\]`，Ovis 是 `$...$` / `$$...$$`；
    `build_viewers.py` 按 `document.engine` 自动选，不要写死一种。
-10. **不要用 `git add -A`**：本地快照没有 `.gitignore`（上游 v0.1 已加）；
-    `ocr_json_app/src/__pycache__/paths.cpython-312.pyc` 已被跟踪，跑过工具后还会多出未跟踪的
-    `*.pyc`；`ocr_json_app/` 下还有未跟踪的 `ocr-workflow.html` / `.png`，工作区里还有仓库外的
-    `ocr_json_app.rar`。只添加真正改动的文件。
+10. **提交前只添加真正改动的文件**（不要 `git add -A`）：`out/` 样例产物、`data/` 输入、`vendor/`
+    是刻意跟踪的；`__pycache__/` 与 `*.pyc` 已被 `.gitignore` 忽略。工作区里仓库外的
+    `ocr_json_app.rar` 不要提交，也不要解压进仓库。
 
 ## 改哪里 / 怎么改
 
@@ -168,7 +169,9 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
   `__DELIMS__`、`__JSON_URL__`、`__DATA_SCRIPT__`）。改完必须重新生成并跑 `cdp_probe`；
   KaTeX 必须同步加载（模板注释解释了原因：defer 会在 headless 下让公式退化成源码）。
 - 新校验 → `tools/`，并挂进 `tools/run_all_checks.py`；否则不会被任何人跑到。
-- 文档：行为/命令变了同步 `README.md` + `ocr_json_app/README.md` + `src/README.md` / `tools/README.md`。
+- 工作流/架构可视化（手写 HTML，非流水线产物）→ `ocr_json_app/docs/ocr-workflow.html`。
+- 文档：行为/命令变了同步 `ocr_json_app/README.md`（正文）+ 根 `README.md`（导航）
+  + `src/README.md` / `tools/README.md`。
 
 小步原则：改模板/校验不需要 GPU（`build_viewers.py` 读已有 JSON，会 import 流水线所以需要 numpy）；
 跑 OCR 才需要。先用 `--pages 1-2 --vote 1 --no-images` 快速迭代，确认后再用 `run_ocr.ps1` 出正式产物。
@@ -222,8 +225,8 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
 - `out/compare.html` 必须经 `--serve-only` 打开；`file://` 下 fetch 会失败。
 - JSON 里的 `document.source_pdf` 记录的是**生成时机器上的绝对路径**（当前样例来自
   `C:\...\新建文件夹\...`），不要据此判断文件在哪。
-- 仓库没有 CI；`run_all_checks.py` 就是门槛。`ocr_json_app/ocr-workflow.html` 与
-  `.png` 目前未跟踪，不是流水线产物。
+- 仓库没有 CI；`run_all_checks.py` 就是门槛。`ocr_json_app/docs/ocr-workflow.html`（+ 预览 PNG）
+  是手写说明文档，不是流水线产物。
 
 ## 提交
 

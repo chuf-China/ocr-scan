@@ -20,7 +20,7 @@ cd ocr_json_app
 
 # 一条命令跑完：起引擎 → 逐行 OCR → JSON → 单文件网页 → 对比页
 pwsh -NoProfile -File run_ocr.ps1
-# 备选引擎：pwsh -NoProfile -File run_ocr.ps1 -Engine ovisocr2
+# 备选引擎 OvisOCR2：当前需手动起 :8081 并显式传 --model/--host（见 AGENTS.md）
 
 # 打开（单文件，不需要服务器）
 start out\viewer_layout_paddleocrvl.html
@@ -29,7 +29,8 @@ start out\viewer_layout_paddleocrvl.html
 python src\ocr_pipeline_layout.py --serve-only --out out\paper.layout.paddle.json --port 8780
 #   → http://127.0.0.1:8780/compare.html
 
-# 一键跑全部校验
+# 一键跑全部校验（Windows GBK 控制台必须先设 UTF-8）
+$env:PYTHONIOENCODING = "utf-8"
 python tools\run_all_checks.py
 ```
 
@@ -51,6 +52,9 @@ Get-Process llama-server | Stop-Process      # 用完释放显存
 ocr_json_app/
 ├─ run_ocr.ps1                  唯一入口：起引擎 → OCR → 渲染 → 对比页
 ├─ README.md
+├─ docs/                        手写说明：工作流与架构可视化
+│  ├─ ocr-workflow.html
+│  └─ ocr-workflow-preview.png
 │
 ├─ src/                         库与流水线
 │  ├─ ocr_common.py             PDF 渲染 / OCR 引擎调用 / 本地网页服务
