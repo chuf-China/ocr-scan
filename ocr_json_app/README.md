@@ -452,7 +452,8 @@ python tools\run_exam_acceptance.py --reuse out\exams\*.layout.json
 `quality.status=fail` 或任一结构/渲染检查非零都直接失败。这里的
 “公式通过率”只证明定界符/括号/环境可解析，“表格填充率”只证明需填单元格非空，
 **不等于**公式内容全对或表格 F1。20 套语料与已修正缺陷见
-[`docs/specs/s6-generalization.md`](docs/specs/s6-generalization.md)。
+[`docs/specs/s6-generalization.md`](docs/specs/s6-generalization.md)；发布门槛、发布物和
+已知限制见 [`docs/specs/release-standard.md`](docs/specs/release-standard.md)。
 
 逐行 OCR 裁片对 150dpi 小字行自动放大 2 倍；页顶栏首行再向左多带 40px，救回悬在
 栏缝外的题号（2025 全国 1 第 16 题）。栏中部行不能这样扩，否则左邻栏末字会混入，
