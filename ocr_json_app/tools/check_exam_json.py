@@ -27,11 +27,14 @@ def main(path: str) -> int:
         "sections": len(exam["sections"]),
         "figures": sum(len(q.get("figures") or []) for q in exam["questions"]),
         "unassigned_figures": len((exam.get("unassigned") or {}).get("figures") or []),
+        "tables": sum(len(q.get("tables") or []) for q in exam["questions"]),
+        "unassigned_tables": len((exam.get("unassigned") or {}).get("tables") or []),
         "unassigned_lines": len((exam.get("unassigned") or {}).get("lines") or []),
     }
 
     print(f"题数 {counts['questions']}，大题 {counts['sections']}，"
           f"图 {counts['figures']}，未归属图 {counts['unassigned_figures']}，"
+          f"表 {counts['tables']}，未归属表 {counts['unassigned_tables']}，"
           f"未归属行 {counts['unassigned_lines']}")
     for issue in quality["issues"]:
         print(f"  {issue['level'].upper()}: [{issue['code']}] {issue['message']}")

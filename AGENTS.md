@@ -204,6 +204,13 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    结构错误写 `formula_structure_broken` error，`check_exam_json.py` 退出 1；可疑字符/
    超长写 warning。真实可渲染性仍由 `verify/verify_math.mjs` 逐条编译证明，两者不能互相
    替代。不要用“页面能显示”代替公式结构正确。
+17. **表格用 PDF 原生框线 + 逐格 OCR，不靠模型结构**：`PdfFontProbe.table_boxes()`
+   取 `pdfplumber.find_tables()` 的 bbox/行列/单元格，`ocr_table_cells()` 逐格 OCR，
+   每页写 `page["tables"]`，`exam_structure` 按 bbox 归属到题并写 `question.tables`。
+   不要用 `pdfplumber.extract()` 的文本（数学卷中文字库常是 `(cid:0)`），不要把表格
+   压成一行正文；无文字层/无框线表格仍走裁片，但必须在 `quality` 里可见。行级
+   `source=pdf-table-cells` 的 table 不再重复归属；空表头/空行/空单元格/未归属表是
+   warning，表格单元格公式结构损坏是 error。
 
 ## 改哪里 / 怎么改
 

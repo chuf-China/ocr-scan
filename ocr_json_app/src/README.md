@@ -3,9 +3,9 @@
 | 模块 | 职责 |
 |---|---|
 | `ocr_common.py` | **共用底层**：PDF 渲染、OCR 引擎调用、本地网页服务、提示词选择 |
-| `ocr_pipeline_layout.py` | **原版式流水线**：原生图形资源 + 逐行坐标 + 插图/表格裁片 → 单文件网页 |
+| `ocr_pipeline_layout.py` | **原版式流水线**：原生图形资源 + 逐行坐标 + 插图/表格裁片 + 原生表格单元格 → 单文件网页 |
 | `ocr_pipeline_blocks.py` | **结构块流水线**：heading/question/paragraph/table（供程序消费） |
-| `exam_structure.py` | **试卷语义层**：从 layout JSON 重建题号/选项/小问/图归属，输出 `exam.json` + `quality.json` |
+| `exam_structure.py` | **试卷语义层**：从 layout JSON 重建题号/选项/小问/图/表归属，输出 `exam.json` + `quality.json` |
 | `formula_quality.py` | **公式结构审计**：定界符、花括号、`\left`/`\right`、环境成对检查；不改写正文 |
 | `paths.py` | 项目根与所有默认路径（脚本不依赖当前工作目录） |
 
@@ -53,6 +53,17 @@ PDF rotation）和 `coverage`。覆盖审计把行盒与插图盒画成掩膜，
 花括号、`\left`/`\right`、`\begin{...}`/`\end{...}` 和空公式/替换字符。它只报告
 issue，不改正文；结构错误由 `exam_structure.build_quality()` 升级为 `error`，
 真实 KaTeX 编译仍由 `verify/verify_math.mjs` 单独验证。
+
+## 表格结构（S3）
+
+`PdfFontProbe.table_boxes()` 取 `pdfplumber.find_tables()` 的 bbox、行列数和单元格
+bbox；`ocr_table_cells()` 按单元格裁片逐格 OCR。每页写 `tables[]`（`headers` /
+`rows_data` / `text_available`），同时保留 `table-grid` 裁片兜底。**不使用**
+`pdfplumber.extract()` 的文本，因为数学卷中文字库常被抽成 `(cid:0)`。
+
+`exam_structure` 按表格 bbox 到题目行的距离归属，写 `question.tables` 与
+`unassigned.tables`；行级 `source=pdf-table-cells` 的表格不重复归属。
+`build_quality()` 检查空表头/空行/空单元格/未归属表，并审计表格单元格里的公式结构。
 
 ## 试卷结构层（exam_structure）
 

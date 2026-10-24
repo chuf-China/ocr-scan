@@ -657,6 +657,20 @@ def table_from_text(text: str) -> dict | None:
     body = text.strip()
     if not body:
         return None
+    # ⓪ Markdown/管道表格：PaddleOCR-VL 对框线表常吐 `a | b\n---|---\n1 | 2`。
+    #    这是已带结构的信息，优先按 `|` 拆，不要把整行当成一段正文。
+    pipe_rows = [ln.strip() for ln in body.split("\n") if "|" in ln]
+    if len(pipe_rows) >= 2:
+        grid: list[list[str]] = []
+        for ln in pipe_rows:
+            if re.fullmatch(r"\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*", ln):
+                continue
+            cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+            if len(cells) >= 2:
+                grid.append(cells)
+        if len(grid) >= 2 and _table_shape_ok(grid):
+            return {"headers": grid[0], "rows": grid[1:],
+                    "source": "pipe-table"}
     # ① 多行且各行列数一致 → 表格
     lines = [ln.strip() for ln in body.split("\n") if ln.strip()]
     if len(lines) >= 3:
@@ -1402,6 +1416,50 @@ class PdfFontProbe:
                 self._figure_warned = True
             return []
 
+    def table_boxes(self, page_no: int) -> list[dict]:
+        """返回该页原生表格的几何与单元格框。
+
+        只把单元格几乎都有文字的候选当表格：矢量图（几何图、坐标系）也会被
+        pdfplumber 的框线算法切成 5x6 的“空表”，不能把图当表；表格是否真的
+        有内容，交给后面的单元格 OCR 验证。
+        """
+        if not self.pages or page_no > len(self.pages):
+            return []
+        page = self.pages[page_no - 1]
+        try:
+            found = page.find_tables()
+        except Exception:  # noqa: BLE001
+            return []
+        out: list[dict] = []
+        for table in found:
+            try:
+                data = table.extract()
+            except Exception:  # noqa: BLE001
+                continue
+            if not data or not data[0]:
+                continue
+            n_rows, n_cols = len(data), len(data[0])
+            cells_total = n_rows * n_cols
+            filled = sum(1 for row in data for cell in row
+                         if str(cell or "").strip())
+            if cells_total < 4 or filled < 0.6 * cells_total:
+                continue
+            bbox = [round(float(v), 2) for v in table.bbox]
+            cell_boxes: list[list[list[float] | None]] = []
+            for row in table.rows:
+                line_boxes: list[list[float] | None] = []
+                for cell in row.cells:
+                    line_boxes.append(
+                        [round(float(v), 2) for v in cell] if cell else None)
+                cell_boxes.append(line_boxes)
+            out.append({
+                "bbox_pt": bbox,
+                "rows": n_rows,
+                "cols": n_cols,
+                "cell_boxes": cell_boxes,
+            })
+        return out
+
     def close(self) -> None:
         if self.pages:
             try:
@@ -1718,6 +1776,51 @@ def ocr_line(host: str, model: str, png: bytes, prompt: str,
     return ocr_png(host, model, png, prompt, timeout, max_tokens)
 
 
+def crop_box_png(pil, px_box: list[float]) -> bytes:
+    """按像素盒裁一小块 PNG，供表格单元格单独 OCR。"""
+    x0, y0, x1, y1 = (int(round(v)) for v in px_box)
+    x0 = max(0, min(pil.width - 1, x0) - 2)
+    y0 = max(0, min(pil.height - 1, y0) - 2)
+    x1 = max(x0 + 1, min(pil.width, x1 + 2))
+    y1 = max(y0 + 1, min(pil.height, y1 + 2))
+    buf = io.BytesIO()
+    pil.crop((x0, y0, x1, y1)).save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
+def ocr_table_cells(host: str, model: str, pil, cell_boxes: list[list[list[float] | None]],
+                    scale: float, prompt: str, timeout: int, max_tokens: int,
+                    workers: int) -> list[list[str]]:
+    """逐单元格 OCR 原生表格。
+
+    为什么不直接用 pdfplumber 的 cell text：数学卷常用私有中文字库，extract() 会
+    吐 `(cid:0)`/乱码；单元格裁图走同一 OCR 引擎，至少与正文同一套识别口径。
+    """
+    flat: list[tuple[int, int, bytes]] = []
+    for r, row in enumerate(cell_boxes):
+        for c, box in enumerate(row):
+            if not box:
+                continue
+            px = [box[0] * scale, box[1] * scale, box[2] * scale, box[3] * scale]
+            flat.append((r, c, crop_box_png(pil, px)))
+    out = [["" for _ in row] for row in cell_boxes]
+    if not flat:
+        return out
+
+    def work(item):
+        r, c, png = item
+        try:
+            res = ocr_png(host, model, png, prompt, timeout, max_tokens)
+            return r, c, (res.get("text") or "").strip()
+        except Exception:  # noqa: BLE001
+            return r, c, ""
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+        for r, c, text in pool.map(work, flat):
+            out[r][c] = text
+    return out
+
+
 # ---------------------------------------------------------------- 主流程
 
 def parse_pages(spec: str | None, total: int) -> list[int]:
@@ -1926,6 +2029,8 @@ def build(args) -> dict:
 
         chars = (font_probe.char_boxes(pno)
                  if font_probe is not None and not args.no_figures else [])
+        native_tables = (font_probe.table_boxes(pno)
+                         if font_probe is not None and not args.no_figures else [])
         gutters = detect_column_gutters(gray, chars=chars, scale=scale)
         column_bounds = [(0, gray.shape[1])]
         if gutters:
@@ -1987,6 +2092,20 @@ def build(args) -> dict:
                 cells = ", ".join("{}x{}格".format(t["rows"], t["cols"])
                                   for t in table_regions)
                 log(f"第 {pno} 页识别到 {len(table_regions)} 个表格候选区（{cells}）")
+
+        # pdfplumber 找到的表格框与单元格：裁片仍交给 collect_figures，单元格文字
+        # 单独 OCR。不要用 pdfplumber 的 extract() 文本——数学卷中文字库常被抽成 (cid:0)。
+        for hint in native_tables:
+            box = hint["bbox_pt"]
+            figure_regions.append({
+                "px": [max(0, int(box[0] * scale) - 4),
+                       max(0, int(box[1] * scale) - 4),
+                       min(pil.width, int(box[2] * scale) + 5),
+                       min(pil.height, int(box[3] * scale) + 5)],
+                "kind": "table-grid",
+                "source": "pdf-table",
+                "rows": hint["rows"], "cols": hint["cols"],
+            })
 
         typical_h_px = float(np.median(typical_heights)) if typical_heights else 24.0
         noise = [l for l in raw_lines if _is_noise(l)]
@@ -2057,6 +2176,40 @@ def build(args) -> dict:
                 line["size_source"] = "estimated"
         clamp_sizes(lines)
 
+        # 原生表格：逐单元格 OCR。行盒只用于把表挂到行上（正文那一行会被
+        # `drop_lines_inside_figures` 丢掉），表本身写进 page["tables"]，不依赖行数组。
+        table_by_line: dict[int, dict] = {}
+        tables_out: list[dict] = []
+        for hint in native_tables:
+            box = hint["bbox_pt"]
+            best_idx, best_area = -1, 0.0
+            for idx, line in enumerate(lines):
+                ix = min(line["right"], box[2]) - max(line["left"], box[0])
+                iy = min(line["bottom"], box[3]) - max(line["top"], box[1])
+                if ix <= 0 or iy <= 0:
+                    continue
+                area = ix * iy
+                if area > best_area:
+                    best_idx, best_area = idx, area
+            cells = ocr_table_cells(
+                args.host, args.model, pil, hint["cell_boxes"], scale,
+                args.prompt, args.timeout, args.max_tokens,
+                min(max(1, args.workers), max(1, hint["rows"] * hint["cols"])))
+            table = {
+                "source": "pdf-table-cells",
+                "bbox_pt": box,
+                "rows": hint["rows"],
+                "cols": hint["cols"],
+                "headers": cells[0] if cells else [],
+                "rows_data": cells[1:] if len(cells) > 1 else [],
+                "text_available": any(any(c for c in row) for row in cells),
+            }
+            tables_out.append(table)
+            if best_idx >= 0:
+                table_by_line[best_idx] = table
+        if tables_out:
+            log(f"第 {pno} 页原生表格 {len(tables_out)} 个，已逐单元格 OCR")
+
         native_info = (annotate_native_text(lines, native_lines) if native_lines
                        else {"available": bool(sizes_hint), "lines": 0,
                              "reliable_lines": 0, "matched": 0, "mismatched": 0,
@@ -2073,10 +2226,13 @@ def build(args) -> dict:
         page_lines = []
         dropped = 0
         raw_texts = [line["_ocr"]["text"] for line in lines]
-        for line in lines:
+        for idx, line in enumerate(lines):
             res = line.pop("_ocr")
             # 表格单独成结构（不能让它被压成一行文本）
             tables, cleaned = extract_tables(clean_ocr_text(res["text"]), res["text"])
+            if idx in table_by_line:
+                tables = [table_by_line[idx]]
+                cleaned = "（表格）"
             text_source = "ocr"
             if (not cleaned and not tables
                     and line.get("native_quality") == "text"
@@ -2201,6 +2357,7 @@ def build(args) -> dict:
             "coverage": coverage,
             "lines": page_lines,
             "figures": figures,
+            "tables": tables_out,
             "markdown": "\n".join(l["text"] for l in reading),
             "elapsed_s": round(time.time() - t_page, 2),
             "native_text": native_info,

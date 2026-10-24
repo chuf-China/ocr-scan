@@ -38,7 +38,7 @@ SECTION_RE = re.compile(r"^\s*([一二三四五六七八九十]{1,3})\s*[、．.
 # otherwise be read as question 15 plus the text `2 18.8 ...`.
 QUESTION_RE = re.compile(r"^\s*(\d{1,3})\s*[.、．)）](?!\d)\s*(?=\S)")
 SUBQ_RE = re.compile(r"^\s*[（(]\s*(\d{1,2})\s*[)）]\s*(.*)$")
-OPTION_RE = re.compile(r"[（(]\s*([A-D])\s*[)）]")
+OPTION_RE = re.compile(r"(?:^|(?<=\s))[（(]?\s*([A-D])\s*[)）．.]\s*")
 PAGE_NUMBER_RE = re.compile(r"^\s*(?:第\s*)?\d{1,4}\s*(?:页)?\s*$")
 PAGE_FOOTER_RE = re.compile(r"第\s*\d+\s*页|共\s*\d+\s*页")
 
@@ -170,6 +170,14 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
     q_seq = 0
     sec_seq = 0
     attached_refs: set[str] = set()
+    # Numbered front matter (instructions) must not become questions when the
+    # paper uses section headings.  Papers without section headings still use
+    # numbered questions, so only suppress unscoped numbers when sections exist.
+    has_sections = any(
+        _section_from(_text(line))
+        for page in pages
+        for line in reading_lines(page)
+    )
 
     for page in pages:
         page_no = int(page.get("page") or 1)
@@ -201,7 +209,7 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                 current_sub = None
                 attached_refs.add(ref)
                 continue
-            if qm:
+            if qm and (current_section is not None or not has_sections):
                 q_seq += 1
                 current_q = _new_question(
                     f"q-{q_seq:03d}", int(qm.group(1)),
@@ -340,6 +348,10 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
         pno = int(page.get("page") or 1)
         for idx, line in enumerate(page.get("lines") or []):
             for t_idx, table in enumerate(line.get("tables") or [], start=1):
+                # 原生 pdfplumber 表格由 page["tables"] 统一归属，避免同一张表
+                # 既挂在行上又挂在页上。旧产物没有 page["tables"]，仍走这里。
+                if table.get("source") == "pdf-table-cells":
+                    continue
                 ref = _line_id(pno, idx, line)
                 owner = next((q for q in questions
                               if any(r == ref
@@ -361,6 +373,57 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                     unassigned_figures.append({"ref": item["ref"], "page": pno,
                                                "reason": "table_without_question"})
 
+    # pdfplumber 原生表格：行已被裁片吸收时，行级 table 不存在；按 bbox 归属。
+    unassigned_tables: list[dict] = []
+    for page in pages:
+        pno = int(page.get("page") or 1)
+        for t_idx, table in enumerate(page.get("tables") or [], start=1):
+            if table.get("source") != "pdf-table-cells":
+                continue
+            box = table.get("bbox_pt") or [0, 0, 0, 0]
+            tx0, ty0, tx1, ty1 = (float(box[0]), float(box[1]),
+                                  float(box[2]), float(box[3]))
+            best: tuple[float, dict | None] = (1e9, None)
+            for q in questions:
+                if pno not in q["pages"]:
+                    continue
+                refs = []
+                for bucket in (q["stem"], q["options"], q["subquestions"]):
+                    for item in bucket:
+                        for ref in ([item.get("ref")] if item.get("ref") else []) + list(item.get("refs") or []):
+                            if ref:
+                                refs.append(ref)
+                for ref in refs:
+                    line = line_lookup.get(ref)
+                    if line is None:
+                        continue
+                    ly0 = float(line.get("top") or 0)
+                    ly1 = float(line.get("bottom") or 0)
+                    vdist = (ty0 - ly1 if ly1 < ty0 else
+                             ly0 - ty1 if ly0 > ty1 else 0.0)
+                    lx0 = float(line.get("left") or 0)
+                    lx1 = float(line.get("right") or 0)
+                    hdist = (tx0 - lx1 if lx1 < tx0 else
+                             lx0 - tx1 if lx0 > tx1 else 0.0)
+                    dist = vdist + hdist
+                    if dist < best[0]:
+                        best = (dist, q)
+            item = {
+                "ref": f"p{pno}-t{t_idx}",
+                "page": pno,
+                "bbox_pt": [round(float(v), 2) for v in box],
+                "headers": table.get("headers") or [],
+                "rows": table.get("rows_data") or table.get("rows") or [],
+                "rows_count": table.get("rows"),
+                "cols_count": table.get("cols"),
+                "source": table.get("source"),
+                "distance_pt": round(best[0], 2) if best[1] is not None else None,
+            }
+            if best[1] is not None and best[0] <= 80:
+                best[1]["tables"].append(item)
+            else:
+                unassigned_tables.append(item)
+
     return {
         "schema_version": 1,
         "document": {
@@ -378,6 +441,7 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
         "front_matter": front_matter,
         "unassigned": {
             "figures": unassigned_figures,
+            "tables": unassigned_tables,
             "lines": [],
         },
         "stats": {
@@ -386,6 +450,8 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
             "front_matter_lines": len(front_matter),
             "figures_assigned": sum(len(q["figures"]) for q in questions),
             "figures_unassigned": len(unassigned_figures),
+            "tables_assigned": sum(len(q["tables"]) for q in questions),
+            "tables_unassigned": len(unassigned_tables),
             "questions_cross_page": sum(1 for q in questions if q["cross_page"]),
             "options": sum(len(q["options"]) for q in questions),
             "subquestions": sum(len(q["subquestions"]) for q in questions),
@@ -449,6 +515,33 @@ def build_quality(layout: dict, exam: dict) -> dict:
         issues.append(_issue("warning", "figure_unassigned",
                              f"图 {fig.get('ref')} 未归属到题目",
                              page=fig.get("page"), ref=fig.get("ref")))
+
+    # 表格：原生 pdfplumber 框只给几何，文字仍来自逐单元格 OCR；空表头/空行
+    # 不能静默通过，必须让质量门看见。
+    table_total = 0
+    for q in questions:
+        for table in q.get("tables") or []:
+            table_total += 1
+            headers = table.get("headers") or []
+            rows = table.get("rows") or []
+            if not headers:
+                issues.append(_issue("warning", "table_header_empty",
+                                     f"第 {q.get('number')} 题表格没有表头",
+                                     page=table.get("page"), ref=table.get("ref")))
+            if not rows:
+                issues.append(_issue("warning", "table_rows_empty",
+                                     f"第 {q.get('number')} 题表格没有数据行",
+                                     page=table.get("page"), ref=table.get("ref")))
+            if any(not str(cell).strip() for row in [headers] + rows
+                   for cell in row):
+                issues.append(_issue("warning", "table_empty_cell",
+                                     f"第 {q.get('number')} 题表格有空单元格"
+                                     f"（{table.get('rows_count')}x{table.get('cols_count')}）",
+                                     page=table.get("page"), ref=table.get("ref")))
+    for table in (exam.get("unassigned") or {}).get("tables") or []:
+        issues.append(_issue("warning", "table_unassigned",
+                             f"表 {table.get('ref')} 未归属到题目",
+                             page=table.get("page"), ref=table.get("ref")))
 
     # Geometry: horizontal overflow and same-column vertical overlaps.  These
     # are warnings because a legitimate multi-line title or a tall table cell
@@ -530,6 +623,19 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "warning", "formula_suspicious",
             f"{formula_suspicious} 条公式含可疑字符或超长，需要人工抽查"))
 
+    # 表格单元格里的公式也要过同一道结构门；逐格 OCR 可能把 \(...\) 截断，
+    # 不能让表格成为公式审计的盲区。
+    table_formula_broken = 0
+    for q in questions:
+        for table in q.get("tables") or []:
+            for row in [table.get("headers") or []] + list(table.get("rows") or []):
+                for cell in row:
+                    audit = audit_formulas([{"text": cell}], engine=engine)
+                    table_formula_broken += int(audit.get("broken") or 0)
+    if table_formula_broken:
+        issues.append(_issue("error", "table_formula_broken",
+                             f"{table_formula_broken} 个表格单元格公式结构损坏"))
+
     stats = exam.get("stats") or {}
     native = (layout.get("document") or {}).get("native_text") or {}
     if native.get("mismatched_lines") and native.get("matched_lines"):
@@ -562,6 +668,8 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "formula_broken": formula_broken,
             "formula_suspicious": formula_suspicious,
             "formula_samples": formula_samples[:20],
+            "tables": table_total,
+            "tables_unassigned": len((exam.get("unassigned") or {}).get("tables") or []),
         },
         "checks": {
             "question_numbers_complete": not missing,
@@ -574,6 +682,9 @@ def build_quality(layout: dict, exam: dict) -> dict:
                 if "选择" in next((s.get("title") or "" for s in exam.get("sections") or []
                                    if s.get("id") == q.get("section_id")), "")),
             "all_figures_assigned": not unassigned_figs,
+            "all_tables_structured": all(
+                (t.get("headers") or []) and (t.get("rows") or [])
+                for q in questions for t in (q.get("tables") or [])),
             "geometry_ok": overflow == 0 and overlaps == 0,
             "page_coverage_ok": uncovered_total == 0,
             "formula_structure_ok": formula_broken == 0,
