@@ -8,8 +8,9 @@
 | `build_viewers.py` | 为每份版式 JSON 生成单文件渲染（按 `document.engine` 自动选定界符） |
 | `build_compare.py` | 生成两引擎并排对比页 `out/compare.html` |
 | `build_exam_json.py` | 版式 JSON → `exam.json` + `quality.json`（题号/选项/小问/图归属） |
+| `run_exam_acceptance.py` | **批量验收**：多份 PDF/JSON → 覆盖率/选项/公式/表格/人工动作汇总，硬门失败退出 1 |
 | `check_layout_json.py` | 版式 JSON：页序、坐标是否在页内、行序、幻觉残留 |
-| `check_exam_json.py` | **试卷结构门**：题号/选项/图归属/质量；`quality=error` 退出 1 |
+| `check_exam_json.py` | **试卷结构门**：题号/选项/图归属/质量；`quality.status=fail` 退出 1；历史产物可加 `--advisory` |
 | `check_render.py` | **裁片是否压正文**、行是否叠字、是否越界 |
 | `check_ocr_json.py` | 结构块 JSON：页码、题号连续性、截断、乱码 |
 | `cdp_probe.mjs` | 真浏览器渲染：等静置后取诊断量（节点数/叠字/越界）并可整页截图 |
@@ -42,6 +43,7 @@ node   verify\verify_math.mjs                     # 默认参数即可
 | ② 渲染 | 裁片是否压正文、行是否叠字、越界、浏览器实渲 | `check_render` / `cdp_probe` |
 | ③ 试卷 | 题号连续、选项 A–D、小问/图归属、跨页续题 | `exam_structure` / `check_exam_json` |
 | ④ 内容 | 公式能否编译、前端断言 | `verify_math` / `verify_frontend` |
+| ⑤ 验收 | 多套真题的覆盖率/选项/人工动作门槛 | `run_exam_acceptance` |
 
 实测"插图裁片盖住题干"时：结构层通过、内容层通过、行与行的重叠统计也还是 0（裁片不是
 `.ln`，不在该统计口径里），**只有渲染层抓得到**。所以 `run_all_checks.py` 各层都跑。

@@ -185,7 +185,7 @@ ocr_json_app/
 │  ├─ build_compare.py          生成两引擎并排对比页
 │  ├─ build_exam_json.py        layout JSON → exam.json + quality.json
 │  ├─ check_layout_json.py      JSON 结构/坐标/行序/幻觉残留
-│  ├─ check_exam_json.py        ★ 试卷结构/质量门（error 退出 1）
+│  ├─ check_exam_json.py        ★ 试卷结构/质量门（fail 退出 1）
 │  ├─ check_render.py           ★ 裁片不得压正文、行不得叠字、不得越界
 │  ├─ check_ocr_json.py         结构块 JSON 校验
 │  ├─ cdp_probe.mjs             真浏览器渲染 + 版式诊断量 + 整页截图
@@ -435,6 +435,25 @@ python tools\build_exam_json.py out\exams\2023beijing.layout.json
 python tools\check_exam_json.py out\exams\2023beijing.layout.json
 ```
 
+### 批量验收（S6）
+
+单张卷“能打开”不算稳定。`tools/run_exam_acceptance.py` 用同一套命令跑一批真实
+试卷，每套都落 `layout/exam/quality` 三件套与原始日志，再汇总成
+`acceptance.json` / `acceptance.md`：
+
+```powershell
+# PDF 全跑（需要 OCR 服务）；--reuse 则只重算结构/质量
+python tools\run_exam_acceptance.py data\exams\corpus\*.pdf --out-dir out\acceptance\2026-01
+python tools\run_exam_acceptance.py --reuse out\exams\*.layout.json
+```
+
+硬门：覆盖率 ≥99%、公式结构通过率 ≥95%、表格填充率 ≥90%、人工动作 ≤1/页、
+文字选择题选项齐全；纯图形选项记为 `option_mode=graphical`，不按空文字项失败；
+`quality.status=fail` 或任一结构/渲染检查非零都直接失败。这里的
+“公式通过率”只证明定界符/括号/环境可解析，“表格填充率”只证明需填单元格非空，
+**不等于**公式内容全对或表格 F1。20 套语料与已修正缺陷见
+[`docs/specs/s6-generalization.md`](docs/specs/s6-generalization.md)。
+
 ### 为什么要投票
 
 引擎跑的是 `--temp 0`，但**不是确定性的**。实测同图同参 3 次全对，另一次整卷跑到第 3 页时，
@@ -510,6 +529,10 @@ node   tools\cdp_probe.mjs out\viewer_layout_paddleocrvl.html --shot shot.png
 python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 裁块放大看清局部
 ```
 
+没有 `schema_version` 的 `out/paper.layout*.json` 是架构升级前的演示产物：结构和渲染
+仍检查，内容门由 `run_all_checks.py` 自动加 `--advisory`，只告警不阻断。新产物
+（`schema_version=1`，含 `out/exams/**` 与验收批次）必须硬失败，不能借这个开关掩盖缺题。
+
 校验分五道门，越靠下越接近用户看到的东西：
 
 | 层 | 抓什么 |
@@ -517,7 +540,7 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 裁块放大�
 | ⓪ 代码 | 未定义名、低版本语法、投票/幻觉/框线判据（真的 import 流水线跑） |
 | ① 结构 | JSON 自身是否合法、页序、坐标、行序、幻觉残留 |
 | ② 渲染 | **裁片是否压正文**、行是否叠字、是否越界、浏览器实渲节点数；llama 产物的浏览器叠字/越界已升为硬门（`__OCR_DIAG__` 非 0 即失败） |
-| ③ 试卷 | 题号是否连续、选项是否 A–D 且非空、小问/图归属、跨页续题；`quality=error` 直接失败 |
+| ③ 试卷 | 题号是否连续、选项是否 A–D 且非空、小问/图归属、跨页续题；`quality.status=fail` 直接失败 |
 | ④ 内容 | 公式能否被 KaTeX 编译、前端断言 |
 
 **为什么必须分层**：① ② ③ ④ **全部只看已经生成好的产物**，从不 import `src/` 里的代码，

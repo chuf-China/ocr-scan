@@ -189,7 +189,7 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
 14. **坐标不是语义，试卷结构必须单独建层**：`src/exam_structure.py` 从 layout JSON 重建
    `sections/questions/options/subquestions/figures`，栏感知阅读顺序用 `reading_order`，
     不能拿 `lines[]` 数组下标当题号或归属。题号、选项（选择题必须 A–D 四项且非空）、
-    图归属、跨页/跨栏续题、缺号/重号都进 `quality`；`quality.status=error` 时
+    图归属、跨页/跨栏续题、缺号/重号都进 `quality`；`quality.status=fail` 时
     `check_exam_json.py` 退出 1。不要用“能渲染”代替试卷结构正确。布局 JSON 的新字段
     （`schema_version`、稳定 `id`、`column`、`reading_order`、`content_type`）只增不改，
     旧产物仍须可读。
@@ -221,6 +221,16 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    `reocr_table_cell`（幂等、可回退）；截断、缺选项、图表未归属、未覆盖墨迹、
    原生字层不一致一律 `manual`。`auto_candidate` 不等于已修复，执行前必须保留
    原 JSON；不得自动补题干/选项/表头/题号或改公式。
+20. **稳定性必须用多套真题验收，不能拿单张卷调参**：`tools/run_exam_acceptance.py`
+   对 20 套语料跑覆盖率（≥99%）、选项完整、公式结构（≥95%）、表格填充（≥90%）、
+   人工动作/页（≤1）；`quality.status=fail` 或任一检查非零即整批失败。纯图形选项用
+   `option_mode=graphical` 标记并按 warning 处理，不能假装成 4 个空文字选项。语料在
+   `data/exams/` 与 `data/exams/corpus/`，失败样本先复现再改判据；禁止只对某张卷
+   写特例。公式通过率/表格填充率不是内容准确率或 F1，报告里不得混称。
+21. **内容门对历史演示产物只告警，对新产物必须硬失败**：没有 `schema_version` 的
+   `out/paper.layout*.json` 是架构升级前的演示产物，仍跑结构与渲染检查；内容门用
+   `check_exam_json.py --advisory` 记录 fail 但不阻断回归。新产物（`schema_version=1`）
+   不得加 `--advisory`，验收批次更不得用它掩盖缺题/缺选项。
 
 ## 改哪里 / 怎么改
 

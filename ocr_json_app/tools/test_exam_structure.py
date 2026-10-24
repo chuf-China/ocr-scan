@@ -112,8 +112,6 @@ class ExamStructureTests(unittest.TestCase):
             "lines": [
                 line("一、解答题", 50, 40),
                 line("1. 已知函数，则", 50, 70),
-                line("(A) 1", 70, 90),
-                line("(B) 2", 70, 110),
                 line("二、填空题", 50, 150),
             ],
             "figures": [], "tables": [],
@@ -125,6 +123,95 @@ class ExamStructureTests(unittest.TestCase):
         self.assertIn("question_content_truncated", codes)
         self.assertIn("section_empty", codes)
         self.assertFalse(quality["checks"]["content_consistency_ok"])
+
+    def test_long_fill_in_section_and_blank_suffix(self) -> None:
+        page = {
+            "page": 1, "width": 1000, "height": 800,
+            "lines": [
+                line("一、填空题（本大题共 12 题，1-6 每题 4 分，"
+                     "7-12 每题 5 分，共 54 分）", 50, 40),
+                line("1. 已知集合，则实数 a 的取值范围是", 50, 70),
+                line("2. 已知直线 l1 与 l2，则夹角大小是", 50, 100),
+                line("二、解答题", 50, 140),
+                line("3. 已知函数，求最值", 50, 170),
+            ],
+            "figures": [], "tables": [],
+        }
+        layout = {"document": {}, "pages": [page]}
+        exam = es.build_exam(layout)
+        quality = es.build_quality(layout, exam)
+        self.assertEqual([q["number"] for q in exam["questions"]], [1, 2, 3])
+        self.assertEqual(len(exam["sections"]), 2)
+        self.assertNotIn("question_content_truncated",
+                         [i["code"] for i in quality["issues"]])
+        self.assertTrue(quality["checks"]["content_consistency_ok"])
+
+    def test_inline_options_and_missing_choice_detection(self) -> None:
+        page = {
+            "page": 1, "width": 1000, "height": 800,
+            "lines": [
+                line("一、单选题", 50, 40),
+                line("1. 第一题（）\n(A) 1 (B) 2 (C) 3 (D) 4", 50, 70),
+                line("2. 第二题（）", 50, 110),
+            ],
+            "figures": [], "tables": [],
+        }
+        layout = {"document": {}, "pages": [page]}
+        exam = es.build_exam(layout)
+        quality = es.build_quality(layout, exam)
+        q1, q2 = exam["questions"]
+        self.assertEqual([o["label"] for o in q1["options"]], ["A", "B", "C", "D"])
+        self.assertEqual(q2["options"], [])
+        self.assertIn("choice_options_incomplete",
+                      [i["code"] for i in quality["issues"]])
+
+    def test_latex_parentheses_are_not_options(self) -> None:
+        text = r"已知 \(B\) 满足 \(\sin A - \sin B\)，则 (A) 1 (B) 2 (C) 3 (D) 4"
+        self.assertEqual([x[0] for x in es._split_options(text)],
+                         ["A", "B", "C", "D"])
+        self.assertEqual(
+            es._split_options(r"\(P(A \cap B)\) 的值为()"), [])
+
+    def test_dot_options_are_supported(self) -> None:
+        self.assertEqual([x[0] for x in es._split_options("A. 1 B. 2 C. 3 D. 4")],
+                         ["A", "B", "C", "D"])
+
+    def test_duplicate_option_label_replaces_garbage(self) -> None:
+        q = {"id": "q-1", "options": []}
+        es._add_option(q, "A", "1", "p1-l1")
+        es._add_option(q, "B", "则 ()", "p1-l2")
+        es._add_option(q, "B", "2", "p1-l3")
+        es._add_option(q, "C", "3", "p1-l4")
+        es._add_option(q, "D", "4", "p1-l5")
+        self.assertEqual([o["label"] for o in q["options"]],
+                         ["A", "B", "C", "D"])
+        self.assertEqual(q["options"][1]["text"], "2")
+
+    def test_graphical_options_propagate_panels(self) -> None:
+        page = {
+            "page": 1, "width": 1000, "height": 800,
+            "lines": [
+                line("一、单选题", 50, 20),
+                line("1. 函数图象大致为（）", 50, 50),
+            ],
+            "figures": [
+                {"id": "p1-f1", "pt": [50, 70, 150, 150], "source": "pdf-vector"},
+                {"id": "p1-f2", "pt": [180, 70, 280, 150], "source": "pdf-vector"},
+                {"id": "p1-f3", "pt": [50, 180, 150, 260], "source": "pdf-vector"},
+                {"id": "p1-f4", "pt": [180, 180, 280, 260], "source": "pdf-vector"},
+            ],
+            "tables": [],
+        }
+        layout = {"document": {}, "pages": [page]}
+        exam = es.build_exam(layout)
+        q = exam["questions"][0]
+        self.assertEqual(q["option_mode"], "graphical")
+        self.assertEqual(len(q["figures"]), 4)
+        self.assertEqual(exam["unassigned"]["figures"], [])
+        quality = es.build_quality(layout, exam)
+        codes = [i["code"] for i in quality["issues"]]
+        self.assertIn("choice_options_graphical", codes)
+        self.assertNotIn("choice_options_incomplete", codes)
 
     def test_repair_plan_routes_safe_and_manual(self) -> None:
         from repair_plan import build_repair_plan

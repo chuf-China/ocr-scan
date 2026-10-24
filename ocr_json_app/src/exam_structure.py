@@ -43,7 +43,8 @@ SECTION_RE = re.compile(r"^\s*([一二三四五六七八九十]{1,3})\s*[、．.
 # otherwise be read as question 15 plus the text `2 18.8 ...`.
 QUESTION_RE = re.compile(r"^\s*(\d{1,3})\s*[.、．)）](?!\d)\s*(?=\S)")
 SUBQ_RE = re.compile(r"^\s*[（(]\s*(\d{1,2})\s*[)）]\s*(.*)$")
-OPTION_RE = re.compile(r"(?:^|(?<=\s))[（(]?\s*([A-D])\s*[)）．.]\s*")
+OPTION_RE = re.compile(
+    r"(?:^|(?<=\s))(?:(?:[（(]\s*([A-D])\s*[)）])|([A-D])\s*[.．])\s*")
 PAGE_NUMBER_RE = re.compile(r"^\s*(?:第\s*)?\d{1,4}\s*(?:页)?\s*$")
 PAGE_FOOTER_RE = re.compile(r"第\s*\d+\s*页|共\s*\d+\s*页")
 
@@ -137,8 +138,32 @@ def _split_options(text: str) -> list[tuple[str, str]]:
     out: list[tuple[str, str]] = []
     for i, m in enumerate(matches):
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        out.append((m.group(1), text[m.end():end].strip()))
+        out.append((m.group(1) or m.group(2),
+                    text[m.end():end].strip()))
     return out
+
+
+def _is_choice_title(title: str) -> bool:
+    return any(key in (title or "") for key in ("选择", "单选", "多选"))
+
+
+def _add_option(question: dict, label: str, body: str, ref: str) -> dict:
+    # 同一题出现第二个 (B) 通常是 OCR 把上一题/栏缝碎片带进来；
+    # 用后出现的完整选项覆盖，而不是留下两个 B 让选项数变成 5。
+    for opt in question["options"]:
+        if opt.get("label") == label:
+            opt["text"] = body
+            if ref not in (opt.get("refs") or []):
+                opt.setdefault("refs", []).append(ref)
+            return opt
+    opt = {
+        "id": f"{question['id']}-opt-{label}",
+        "label": label,
+        "text": body,
+        "refs": [ref],
+    }
+    question["options"].append(opt)
+    return opt
 
 
 def _section_from(text: str) -> tuple[str, str] | None:
@@ -208,6 +233,19 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
             ref = line_ids[id(line)]
             sec = _section_from(text)
             qm = QUESTION_RE.match(text)
+            if qm:
+                number = int(qm.group(1))
+                previous = int(questions[-1]["number"]) if questions else None
+                # OCR sometimes prefixes a continuation fragment with a bogus
+                # large number (`68. 则这个数列...`).  Real papers number
+                # monotonically with small gaps; a jump of more than 5 is
+                # treated as noise, and the prefix is dropped so the line can
+                # continue the current question instead of creating Q68.
+                plausible = (number <= 30 if previous is None
+                             else number <= previous or number - previous <= 5)
+                if not plausible:
+                    text = text[qm.end():].strip()
+                    qm = None
             if sec:
                 sec_seq += 1
                 current_section = {
@@ -232,10 +270,24 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                 if current_section is not None:
                     current_section["question_ids"].append(current_q["id"])
                 rest = text[qm.end():].strip()
-                if rest:
-                    _append_text(current_q["stem"], rest, page_no, ref)
-                attached_refs.add(ref)
                 current_option = None
+                if rest:
+                    in_choice = (current_section is None
+                                 or _is_choice_title(current_section["title"]))
+                    inline = _split_options(rest) if in_choice else []
+                    if inline:
+                        # 选项和题干同在一行：先保留 `(A)` 之前的题干，
+                        # 再逐项挂到 options，不能把整行当续行。
+                        first = OPTION_RE.search(rest)
+                        head = rest[:first.start()].strip() if first else ""
+                        if head:
+                            _append_text(current_q["stem"], head, page_no, ref)
+                        for label, body in inline:
+                            current_option = _add_option(
+                                current_q, label, body, ref)
+                    else:
+                        _append_text(current_q["stem"], rest, page_no, ref)
+                attached_refs.add(ref)
                 current_sub = None
                 continue
             if current_q is None:
@@ -250,17 +302,15 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
 
             if page_no not in current_q["pages"]:
                 current_q["pages"].append(page_no)
-            opts = _split_options(text)
+            in_choice_section = (current_section is None
+                                 or _is_choice_title(current_section["title"]))
+            # 解答题正文里的“交点为 D.”也会命中选项正则；非选择题不解析
+            # 选项，否则 Q19 的 D 会被当成一个选项，把 Q20/Q21 全吞进去。
+            opts = _split_options(text) if in_choice_section else []
             if opts:
                 for label, body in opts:
-                    opt = {
-                        "id": f"{current_q['id']}-opt-{label}",
-                        "label": label,
-                        "text": body,
-                        "refs": [ref],
-                    }
-                    current_q["options"].append(opt)
-                    current_option = opt
+                    current_option = _add_option(
+                        current_q, label, body, ref)
                 current_sub = None
                 attached_refs.add(ref)
                 continue
@@ -356,6 +406,42 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                 best[1]["figures"].append(item)
             else:
                 unassigned_figures.append(item)
+
+    # 图形选项常排成 2×2：第一行离题近，第二行与第一行只隔十几 pt。
+    # 直接从已归属图向上/向下传播，避免第二行被当成“无主图”。
+    def _adjacent_panel(a: dict, b: dict) -> bool:
+        if a.get("page") != b.get("page"):
+            return False
+        ax0, ay0, ax1, ay1 = (float(v) for v in a["bbox_pt"])
+        bx0, by0, bx1, by1 = (float(v) for v in b["bbox_pt"])
+        overlap = min(ax1, bx1) - max(ax0, bx0)
+        width = min(ax1 - ax0, bx1 - bx0)
+        if width <= 0 or overlap / width < 0.6:
+            return False
+        gap = by0 - ay1 if by0 >= ay1 else ay0 - by1
+        return -2.0 <= gap <= 30.0
+
+    for q in questions:
+        if not q["figures"]:
+            continue
+        for _ in range(8):
+            found = [item for item in unassigned_figures
+                     if item["page"] in q["pages"]
+                     and any(_adjacent_panel(item, owned) for owned in q["figures"])]
+            if not found:
+                break
+            q["figures"].extend(found)
+            for item in found:
+                unassigned_figures.remove(item)
+
+    section_titles = {s["id"]: s.get("title") or "" for s in sections}
+    for q in questions:
+        q["option_mode"] = (
+            "graphical"
+            if _is_choice_title(section_titles.get(q.get("section_id"), ""))
+            and not q["options"] and len(q["figures"]) >= 2
+            else "text"
+        )
 
     # Table cells already parsed by layout belong to the line that carried them.
     for page in pages:
@@ -473,7 +559,7 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
     }
 
 
-def _stem_truncation_reason(text: str) -> str | None:
+def _stem_truncation_reason(text: str, allow_fill_blank: bool = False) -> str | None:
     body = (text or "").strip()
     if not body:
         return "题干为空"
@@ -481,6 +567,9 @@ def _stem_truncation_reason(text: str) -> str | None:
         return f"以 {body[-1]!r} 结尾"
     for suffix in DANGLING_STEM_SUFFIXES:
         if body.endswith(suffix):
+            # 填空题的作答横线通常没有墨迹/字符，题干合法地停在“是/为”后面。
+            if allow_fill_blank and suffix in ("是", "为"):
+                continue
             return f"以“{suffix}”结尾"
     audit = audit_formulas([{"text": body}])
     if int(audit.get("broken") or 0):
@@ -526,10 +615,11 @@ def build_quality(layout: dict, exam: dict) -> dict:
         if not stem:
             issues.append(_issue("error", "empty_stem",
                                  f"第 {q.get('number')} 题没有题干", ref=q.get("id")))
-        elif "选择" not in title:
+        elif not _is_choice_title(title):
             # Choice stems legitimately end in "则"/"若" before their options;
             # only non-choice stems use the dangling-suffix heuristic.
-            reason = _stem_truncation_reason(stem)
+            # 填空题的作答横线通常没有墨迹，题干合法地停在“是/为”后面。
+            reason = _stem_truncation_reason(stem, allow_fill_blank="填空" in title)
             if reason:
                 truncated_stems += 1
                 truncated_samples.append({"number": q.get("number"),
@@ -539,8 +629,15 @@ def build_quality(layout: dict, exam: dict) -> dict:
                     "error", "question_content_truncated",
                     f"第 {q.get('number')} 题题干疑似截断：{reason}",
                     ref=q.get("id")))
-        if "选择" in title:
+        if _is_choice_title(title):
             options = q.get("options") or []
+            if q.get("option_mode") == "graphical":
+                issues.append(_issue(
+                    "warning", "choice_options_graphical",
+                    f"第 {q.get('number')} 题的选项是图形（已归属 "
+                    f"{len(q.get('figures') or [])} 张图），不做文字选项计数",
+                    ref=q.get("id")))
+                continue
             if len(options) < 4:
                 issues.append(_issue("error", "choice_options_incomplete",
                                      f"第 {q.get('number')} 题（{title}）只有 "

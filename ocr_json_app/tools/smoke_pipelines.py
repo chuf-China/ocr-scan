@@ -372,6 +372,23 @@ def test_layout_helpers() -> None:
     g2 = layout.detect_column_gutters(two, lines=boxes2)
     check("两栏卷检出一条中缝", len(g2) == 1, f"实得 {g2}")
 
+    # 真实栏缝比“栏内短行空隙”宽：2023 北京第 2 页左栏很短，按两侧字数
+    # 会把栏内 8–13px 的空隙选成中缝，丢掉左/中两栏。这里在三栏页的
+    # 文字盒里再切一条 10px 窄缝，锁死“取最宽”的判据。
+    gray4 = numpy.full((800, 1200), 255, dtype=numpy.uint8)
+    chars = []
+    for y in range(60, 560, 40):
+        gray4[y:y + 20, 40:340] = 0
+        gray4[y:y + 20, 400:700] = 0
+        gray4[y:y + 20, 760:1060] = 0
+        for x0, x1 in ((40, 250), (260, 340), (400, 610), (620, 700),
+                       (760, 1060)):
+            chars.append({"x0": (x0 + 4) / 2.0833, "x1": (x1 - 4) / 2.0833,
+                          "top": (y + 4) / 2.0833, "bottom": (y + 16) / 2.0833,
+                          "text": "字"})
+    g4 = layout.detect_column_gutters(gray4, chars=chars)
+    check("栏内窄空隙不抢真实栏缝", len(g4) == 2, f"实得 {g4}")
+
     portrait = numpy.full((1200, 800), 255, dtype=numpy.uint8)
     portrait[60:560, 100:700] = 0
     check("纵向单栏不误判", layout.detect_column_gutters(portrait) == [])

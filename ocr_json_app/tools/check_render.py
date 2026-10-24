@@ -50,6 +50,11 @@ def main() -> int:
             box = {"left": f["pt"][0], "top": f["pt"][1],
                    "right": f["pt"][2], "bottom": f["pt"][3]}
             for i, l in enumerate(lines):
+                # 表格行是裁片的语义占位（内容在 tables[] 里），不是正文；
+                # 否则每张原生表都会被误判成“插图压正文”。
+                if l.get("tables") and (l.get("content_type") == "table"
+                                        or l.get("text") in ("（表格）", "(表格)", "[表格]")):
+                    continue
                 a = overlap_area(box, l)
                 if a > 1.0:
                     fig_hits += 1

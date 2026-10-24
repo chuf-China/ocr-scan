@@ -88,8 +88,10 @@ def is_section_heading(text: str) -> bool:
     rest = m.group(2)
     if QUANTIFIER_RE.match(rest):       # 「一定」「三条」「十分」→ 是正文
         return False
-    # 标题通常很短，且带标题词；长句一律按正文处理
-    return len(text) <= 40 and bool(
+    # 标题通常很短，且带标题词；长句一律按正文处理。上限不能太小：
+    # 上海卷的 `一. 填空题（本大题共 12 题，…共 54 分）` 会超过 40 字，
+    # 一旦漏掉这条标题，前面 1–12 题就全被当成卷首说明丢掉。
+    return len(text) <= 60 and bool(
         re.search(r"题|填空|选择|解答|计算|证明|阅读|作文|卷|部分|须知|注意", text)
     )
 

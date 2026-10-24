@@ -68,6 +68,19 @@ def layout_artifacts() -> list[tuple[str, str]]:
     return out
 
 
+def _legacy_layout(path: str) -> bool:
+    """没有 schema_version 的是架构升级前的历史演示产物。
+
+    它们仍跑结构/渲染校验；内容门只作告警，不能拿旧 OCR 缺行去要求新解析器，
+    也不能让历史产物永远卡住回归。新产物（schema_version=1）必须硬失败。
+    """
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh).get("schema_version") is None
+    except (OSError, ValueError):
+        return False
+
+
 def run(label: str, cmd: list[str], capture: bool = False) -> tuple[bool, str]:
     """跑一条校验。capture=True 时实时透传输出，同时返回文本供解析。"""
     print(f"\n{'=' * 78}\n### {label}\n{'=' * 78}")
@@ -180,8 +193,9 @@ def main() -> int:
             [py, "tools/check_layout_json.py", path])
         add(f"[渲染] 裁片/叠字/越界 · {engine}",
             [py, "tools/check_render.py", path])
-        add(f"[内容] 试卷结构/质量门 · {engine}",
-            [py, "tools/check_exam_json.py", path])
+        legacy = _legacy_layout(path)
+        add(f"[内容] 试卷结构/质量门 · {engine}" + ("（历史产物仅告警）" if legacy else ""),
+            [py, "tools/check_exam_json.py", path] + (["--advisory"] if legacy else []))
 
     # 结构块产物也**发现式**：`paper.ocr.json` 与官方流程的
     # `paper.ocr.paddleocrvl16.json` 都该进回归，否则新产物又是"文件在、没人校验"。

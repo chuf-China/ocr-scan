@@ -2,7 +2,8 @@
 """check_exam_json.py —— 从版式 JSON 重建试卷结构并执行质量门。
 
 这不是“能渲染就算过”的检查：题号、选项、跨页/跨栏归属、图归属、
-重复题号、缺题都会在这里暴露。质量门 status=error 时退出 1，warn 只提示。
+重复题号、缺题都会在这里暴露。质量门 status=fail 时退出 1，warn 只提示。
+没有 schema_version 的历史演示产物可加 --advisory：仍打印 fail，但退出 0。
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 import exam_structure  # noqa: E402
 
 
-def main(path: str) -> int:
+def main(path: str, advisory: bool = False) -> int:
     with open(path, "r", encoding="utf-8") as fh:
         layout = json.load(fh)
     exam = exam_structure.build_exam(layout)
@@ -40,13 +41,17 @@ def main(path: str) -> int:
         print(f"  {issue['level'].upper()}: [{issue['code']}] {issue['message']}")
     repair = quality.get("repair") or {}
     rc = repair.get("counts") or {}
+    suffix = "；历史产物仅告警（无 schema_version）" if advisory and summary["status"] == "fail" else ""
     print(f"质量门：{summary['status']}（error={summary['errors']}, warn={summary['warnings']}）"
-          f"；修复队列 auto={rc.get('auto_candidate', 0)}, manual={rc.get('manual', 0)}")
-    return 0 if summary["status"] != "error" else 1
+          f"；修复队列 auto={rc.get('auto_candidate', 0)}, manual={rc.get('manual', 0)}{suffix}")
+    if summary["status"] in ("pass", "warn"):
+        return 0
+    return 0 if advisory else 1
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("用法: check_exam_json.py <layout.json>")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if len(args) != 1:
+        print("用法: check_exam_json.py <layout.json> [--advisory]")
         raise SystemExit(2)
-    raise SystemExit(main(sys.argv[1]))
+    raise SystemExit(main(args[0], advisory="--advisory" in sys.argv[1:]))

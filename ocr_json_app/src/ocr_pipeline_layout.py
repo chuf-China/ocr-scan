@@ -400,15 +400,16 @@ def drop_lines_inside_figures(page_lines: list[dict], figures: list[dict]) -> tu
     dropped = 0
     for line in page_lines:
         area = max(1e-6, (line["right"] - line["left"]) * (line["bottom"] - line["top"]))
-        inside = False
+        covered = 0.0
         for fig in figures:
             fx0, fy0, fx1, fy1 = fig["pt"]
             ix = min(line["right"], fx1) - max(line["left"], fx0)
             iy = min(line["bottom"], fy1) - max(line["top"], fy0)
-            if ix > 0 and iy > 0 and (ix * iy) / area >= 0.5:
-                inside = True
-                break
-        if inside:
+            if ix > 0 and iy > 0:
+                covered += ix * iy
+        # 同一行可以横跨两张并排插图（实测统计图下轴标签 `0.002 -- 指标`
+        # 同时压住两张图）。逐图都不到 50%，但并集达到 76%，仍是图内文字。
+        if covered / area >= 0.5:
             dropped += 1
         else:
             kept.append(line)
@@ -947,8 +948,14 @@ def _gutters_from_chars(chars: list[dict], scale: float,
     """
     h, w = gray_shape
     y0, y1 = int(h * 0.03), int(h * 0.86)
+    # 标点会被排到栏缝里（“A、B”的顿号实测伸进中缝 7 pt）。它只有一两个
+    # 像素宽，却足以让整条缝看起来“有字”。找栏缝时先忽略标点；正文渲染
+    # 仍保留它们。
+    punctuation = set("、，。；：！？,.;:!?·…—")
     boxes: list[tuple[int, int]] = []
     for c in chars:
+        if (c.get("text") or "").strip() in punctuation:
+            continue
         x0, x1 = int(c["x0"] * scale), int(c["x1"] * scale) + 1
         ty0, ty1 = int(c["top"] * scale), int(c["bottom"] * scale) + 1
         if x1 <= x0 or ty1 <= y0 or ty0 >= y1:
@@ -969,29 +976,53 @@ def _gutters_from_chars(chars: list[dict], scale: float,
     covered = np.zeros(w, dtype=bool)
     for x0, x1 in boxes:
         covered[x0:x1] = True
+    quiet = ~covered
 
     runs: list[tuple[int, int]] = []
     start = None
-    for i, has in enumerate(covered):
-        if not has and start is None:
+    for i, has in enumerate(quiet):
+        if has and start is None:
             start = i
-        elif has and start is not None:
+        elif not has and start is not None:
             runs.append((start, i - 1))
             start = None
     if start is not None:
         runs.append((start, w - 1))
 
-    min_width = max(12, int(w * 0.004))
-    gutters: list[int] = []
+    # 字符盒的左右留白不计入墨迹，三栏卷中间那道缝实测只有 4–5 pt；
+    # 用 12 px 会漏掉它，导致中栏与右栏被当成一栏合并。整页高度都没有字符
+    # 的窄缝仍然是结构缝，8 px（约 3.8 pt）足够排除字间空格。
+    min_width = max(8, int(w * 0.0025))
+    candidates: list[tuple[int, int, int, int]] = []
     for left, right in runs:
-        if right - left + 1 < min_width:
+        width = right - left + 1
+        if width < min_width:
             continue
         if left <= content_left + min_width or right >= content_right - min_width:
             continue
         left_chars = sum(1 for x0, x1 in boxes if x1 <= left)
         right_chars = sum(1 for x0, x1 in boxes if x0 >= right)
         if left_chars >= 5 and right_chars >= 5:
-            gutters.append((left + right) // 2)
+            candidates.append((left, right, min(left_chars, right_chars), width))
+    # 同一结构缝在文字稀疏的一侧会碎成多条窄缝（栏间 785pt 后 20pt 又有
+    # 一条）。按 80pt 聚类，取**最宽**的那条：真实栏缝是整列空白，宽度
+    # 通常 30–80pt；栏内短行形成的空隙只有 8–15pt。只看两侧字数会在
+    # “左栏很短、右栏很长”时把栏内空隙排到真缝前面（2023 北京第 2 页）。
+    merge_px = max(40, int(80 * scale))
+    clusters: list[list[tuple[int, int, int, int]]] = []
+    for cand in candidates:
+        if clusters and cand[0] - clusters[-1][-1][1] <= merge_px:
+            clusters[-1].append(cand)
+        else:
+            clusters.append([cand])
+    best = [max(cluster, key=lambda item: (item[3], item[2]))
+            for cluster in clusters]
+    threshold = max(8, int(len(boxes) * 0.01))
+    best = [cand for cand in best if cand[2] >= threshold]
+    # A3 数学卷实测最多 3 栏；留 2 条缝。页边距/稀疏区的假缝文字量远低于
+    # 真缝，按 min(左右字数) 取前两条，而不是把检测到的每条缝都切一刀。
+    best.sort(key=lambda item: (item[3], item[2]), reverse=True)
+    gutters = [((left + right) // 2) for left, right, _score, _width in best[:2]]
     return sorted(gutters)
 
 
@@ -1687,6 +1718,55 @@ def _norm_native_text(text: str) -> str:
     return re.sub(r"\s+", "", text or "")
 
 
+_QUESTION_PREFIX_RE = re.compile(r"^\s*(\d{1,3})\s*[.、．]")
+def _restore_question_prefix(text: str, native_text: str) -> str:
+    """OCR 把题号切掉时，用几何匹配到的原生行补回题号。
+
+    实测 2025 上海第 2 页第 20 题：原生行是 `20. 设椭圆 Γ:`，OCR 从公式中间
+    开始，输出 `设椭圆 ...`。题号丢失后会被当成上一题的续行，结构层只能报
+    “缺 20”，读者也看不出这里是新题。只在 OCR 文本不以题号/小问号开头、
+    且原生行明确以题号开头时补，正文一个字不改。
+    """
+    if not text or not native_text:
+        return text
+    stripped = text.lstrip()
+    if _QUESTION_PREFIX_RE.match(stripped) or stripped.startswith(("(", "（")):
+        return text
+    match = _QUESTION_PREFIX_RE.match(str(native_text).lstrip())
+    if not match:
+        return text
+    return f"{match.group(1)}. {stripped}"
+
+
+def _gutter_question_prefix(line: dict, chars: list[dict]) -> str | None:
+    """从栏缝里的原生字符补回被裁掉的题号。
+
+    题号常压在栏边界左侧（实测 2024 北京 Q20 的 `20.` 在 x=420，正文从
+    x=440 才开始）。逐栏裁图会把这个题号裁到上一栏，OCR 只剩正文，结构层
+    只能报缺号。这里只取紧贴行左边界、同一水平线上的 `数字 + 点`，不碰正文。
+    """
+    text = str(line.get("text") or "").lstrip()
+    if not text or _QUESTION_PREFIX_RE.match(text) or text.startswith(("(", "（")):
+        return None
+    # pdfplumber 的字符坐标已经是 pt，与行坐标同一坐标系，不能再乘 render scale。
+    left, top, bottom = float(line["left"]), float(line["top"]), float(line["bottom"])
+    x_lo, x_hi = left - 30, left
+    candidates: list[dict] = []
+    for c in chars or []:
+        if float(c.get("x1", 0)) < x_lo or float(c.get("x1", 0)) > x_hi:
+            continue
+        overlap = min(float(c.get("bottom", 0)), bottom) - max(float(c.get("top", 0)), top)
+        if overlap < max(1.0, (bottom - top) * 0.5):
+            continue
+        candidates.append(c)
+    if not candidates:
+        return None
+    candidates.sort(key=lambda c: float(c.get("x0", 0)))
+    token = "".join(str(c.get("text") or "") for c in candidates).strip()
+    match = re.match(r"^(\d{1,3})\s*[.、．]$", token)
+    return match.group(1) if match else None
+
+
 def annotate_native_text(ocr_lines: list[dict], native_lines: list[dict]) -> dict:
     """把原生行按几何匹配到 OCR 行，返回质量摘要并把候选挂回 OCR 行。"""
     used: set[int] = set()
@@ -1729,6 +1809,8 @@ def annotate_native_text(ocr_lines: list[dict], native_lines: list[dict]) -> dic
         if ocr_text and ntext:
             similarity = round(difflib.SequenceMatcher(None, ntext, ocr_text).ratio(), 4)
         ol["native_text"] = nl["text"]
+        ol["native_left"] = nl["left"]
+        ol["native_top"] = nl["top"]
         ol["native_quality"] = nl["quality"]
         ol["native_similarity"] = similarity
         matched += 1
@@ -1904,9 +1986,13 @@ def audit_page_coverage(gray: np.ndarray, lines: list[dict], figures: list[dict]
         px = fig.get("px") or []
         if len(px) != 4:
             continue
-        x0, y0, x1, y1 = (max(0, int(px[0])), max(0, int(px[1])),
-                          min(ink.shape[1], int(px[2])),
-                          min(ink.shape[0], int(px[3])))
+        # 图表坐标轴标题、柱顶标注常落在矢量框外几个点到二十几个点处
+        # （实测坐标轴“指标”和柱线都在框外）。覆盖率把插图外扩 28pt 当作
+        # 图的一部分，否则会把图内文字误报成漏行。
+        margin = int(round(28 * scale))
+        x0, y0, x1, y1 = (max(0, int(px[0]) - margin), max(0, int(px[1]) - margin),
+                          min(ink.shape[1], int(px[2]) + margin),
+                          min(ink.shape[0], int(px[3]) + margin))
         if x1 > x0 and y1 > y0:
             covered[y0:y1, x0:x1] = True
 
@@ -2116,8 +2202,15 @@ def build(args) -> dict:
             log(f"第 {pno} 页合并 {before - len(lines)} 条重复行（行投影与高块重切同时命中）")
         used = "raster-projection"
         sizes_hint = font_probe.char_boxes(pno) if font_probe is not None else None
-        native_lines = native_lines_from_chars(
-            sizes_hint or [], native_boxes if not args.no_figures else [])
+        native_lines = []
+        # 原生文字层也必须逐栏建行。整页建行会把同一水平线上的 Q20 与 Q21
+        # 拼成一行（实测 2024 北京第 2 页），题号 `21.` 因此被算到 Q20 的
+        # 原生前缀里，下一栏的 Q21 永远补不回题号。
+        for col_left, col_right in column_bounds:
+            col_chars = [c for c in (sizes_hint or [])
+                         if col_left / scale <= (c["x0"] + c["x1"]) / 2 < col_right / scale]
+            native_lines.extend(native_lines_from_chars(
+                col_chars, native_boxes if not args.no_figures else []))
 
         # 兜底：整页只有一条超长行时不硬拆，直接整页 OCR。
         # 注意 0 行不能走这里：空白页/纯图页没有行是正常分类，硬造一条整页行
@@ -2246,6 +2339,15 @@ def build(args) -> dict:
                 continue
             if not cleaned and tables:
                 cleaned = "（表格）"
+            if text_source == "ocr" and line.get("native_mismatch"):
+                native_left = line.get("native_left")
+                ocr_left = line.get("left")
+                # 原生行常跨栏合并：第 1 栏的 `1.` 与第 2 栏末尾的 OCR 行
+                # 几何上会匹配到同一条。只有原生行左边界就在 OCR 行附近，
+                # 题号才属于这一行。
+                if (native_left is not None and ocr_left is not None
+                        and abs(float(native_left) - float(ocr_left)) <= 24):
+                    cleaned = _restore_question_prefix(cleaned, line.get("native_text"))
             # 图形区幻觉（超长数字串、孤立字母标签、片段重复）不当作正文行
             if cleaned and _is_hallucination(cleaned):
                 dropped += 1
@@ -2299,6 +2401,16 @@ def build(args) -> dict:
             sizes_text = ", ".join("{:.0f}x{:.0f}pt".format(f["w_pt"], f["h_pt"])
                                    for f in figures)
             log(f"第 {pno} 页还原插图 {len(figures)} 张（{sizes_text}）")
+
+        restored_prefixes = 0
+        for line in page_lines:
+            prefix = _gutter_question_prefix(line, chars)
+            if prefix:
+                line["text"] = f"{prefix}. {line['text'].lstrip()}"
+                line["question_prefix_restored"] = True
+                restored_prefixes += 1
+        if restored_prefixes:
+            log(f"第 {pno} 页从栏缝补回 {restored_prefixes} 个题号")
 
         coverage = audit_page_coverage(gray, page_lines, figures, scale, typical_h_px)
         classification = classify_page(gray, page_lines, gutters, chars, pw, ph)
