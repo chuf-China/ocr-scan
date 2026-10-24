@@ -24,6 +24,7 @@ from typing import Any
 try:  # The module also runs from src/ directly in smoke tests.
     from ocr_pipeline_blocks import is_section_heading
     from formula_quality import audit_formulas
+    from repair_plan import build_repair_plan
 except Exception:  # pragma: no cover - fallback only when imported standalone
     def is_section_heading(text: str) -> bool:  # type: ignore
         return bool(re.match(r"^\s*[一二三四五六七八九十]{1,3}\s*[、．.]\s*\S", text))
@@ -31,6 +32,10 @@ except Exception:  # pragma: no cover - fallback only when imported standalone
     def audit_formulas(lines, engine=None, page_no=None):  # type: ignore
         return {"count": 0, "lines": 0, "broken": 0, "suspicious": 0,
                 "samples": [], "ok": True}
+
+    def build_repair_plan(issues):  # type: ignore
+        return {"actions": [], "counts": {"auto_candidate": 0, "manual": 0, "blocked": 0},
+                "total": 0, "auto_executed": False, "note": "fallback"}
 
 
 SECTION_RE = re.compile(r"^\s*([一二三四五六七八九十]{1,3})\s*[、．.]\s*(\S.*)$")
@@ -740,5 +745,6 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "page_coverage_ok": uncovered_total == 0,
             "formula_structure_ok": formula_broken == 0,
         },
+        "repair": build_repair_plan(issues),
         "issues": issues,
     }

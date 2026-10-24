@@ -38,7 +38,10 @@ def main(path: str) -> int:
           f"未归属行 {counts['unassigned_lines']}")
     for issue in quality["issues"]:
         print(f"  {issue['level'].upper()}: [{issue['code']}] {issue['message']}")
-    print(f"质量门：{summary['status']}（error={summary['errors']}, warn={summary['warnings']}）")
+    repair = quality.get("repair") or {}
+    rc = repair.get("counts") or {}
+    print(f"质量门：{summary['status']}（error={summary['errors']}, warn={summary['warnings']}）"
+          f"；修复队列 auto={rc.get('auto_candidate', 0)}, manual={rc.get('manual', 0)}")
     return 0 if summary["status"] != "error" else 1
 
 

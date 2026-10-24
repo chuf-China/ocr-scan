@@ -216,6 +216,11 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    `question_content_truncated` error；空大题写 `section_empty`。选择题题干允许以
    `则/若` 结尾（后面本来就跟选项），不要误报。检测到后不要自动补字，保留原样并让
    质量门失败。
+19. **修复队列只路由、不编造**：`src/repair_plan.py` 把 `quality.issues` 映射为
+   `auto_candidate` / `manual` / `blocked`。只有空表格单元格允许标记为
+   `reocr_table_cell`（幂等、可回退）；截断、缺选项、图表未归属、未覆盖墨迹、
+   原生字层不一致一律 `manual`。`auto_candidate` 不等于已修复，执行前必须保留
+   原 JSON；不得自动补题干/选项/表头/题号或改公式。
 
 ## 改哪里 / 怎么改
 

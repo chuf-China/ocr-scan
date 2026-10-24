@@ -7,6 +7,7 @@
 | `ocr_pipeline_blocks.py` | **结构块流水线**：heading/question/paragraph/table（供程序消费） |
 | `exam_structure.py` | **试卷语义层**：从 layout JSON 重建题号/选项/小问/图/表归属，输出 `exam.json` + `quality.json` |
 | `formula_quality.py` | **公式结构审计**：定界符、花括号、`\left`/`\right`、环境成对检查；不改写正文 |
+| `repair_plan.py` | **修复队列**：`quality.issues` → `auto_candidate` / `manual` / `blocked`，只路由不编造 |
 | `paths.py` | 项目根与所有默认路径（脚本不依赖当前工作目录） |
 
 层级是单向的：`paths` / `ocr_common` 不 import 任何流水线；两条流水线只依赖它们。

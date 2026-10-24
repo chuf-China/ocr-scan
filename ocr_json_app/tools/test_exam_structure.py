@@ -126,6 +126,18 @@ class ExamStructureTests(unittest.TestCase):
         self.assertIn("section_empty", codes)
         self.assertFalse(quality["checks"]["content_consistency_ok"])
 
+    def test_repair_plan_routes_safe_and_manual(self) -> None:
+        from repair_plan import build_repair_plan
+        plan = build_repair_plan([
+            {"code": "table_empty_cell", "message": "空单元格", "page": 1},
+            {"code": "question_content_truncated", "message": "截断", "ref": "q-001"},
+            {"code": "table_empty_cell", "message": "同一页同一格", "page": 1},
+        ])
+        self.assertEqual(plan["counts"], {"auto_candidate": 1, "manual": 1, "blocked": 0})
+        self.assertEqual(plan["actions"][0]["action"], "reocr_table_cell")
+        self.assertEqual(plan["actions"][1]["action"], "review_question_tail")
+        self.assertFalse(plan["auto_executed"])
+
     def test_native_table_ownership(self) -> None:
         page = {
             "page": 1, "width": 1000, "height": 800,

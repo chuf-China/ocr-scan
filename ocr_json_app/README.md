@@ -398,6 +398,21 @@ CLI 不要求手动传 `--prompt`。
 `empty_sections` 和 `checks.content_consistency_ok`。这是**检测**，不自动补字；被截断的
 题干仍保留原样，由人工或下一层修复。
 
+### 修复队列（S5）
+
+`src/repair_plan.py` 把 `quality.issues` 转成可执行的修复队列，写在 `quality.repair_plan`：
+
+| 类别 | 含义 | 例子 |
+|---|---|---|
+| `auto_candidate` | 幂等、可回退的机械重做 | 表格里的空单元格 `reocr_table_cell` |
+| `manual` | 需要看原卷/人工判断 | 题干截断、缺选项、图/表未归属、未覆盖墨迹、原生字层不一致 |
+| `blocked` | 没有可用修复动作 | 缺号、重号 |
+
+每个 item 带 `issue_code`、`severity`、`action`、`requires_review`、`source_refs`。
+只有 `auto_candidate` 能交给自动修复器，而且执行前必须保留原 JSON；截断、缺项、归属
+问题**不得**自动补字或改公式。`auto_candidate` 也不等于已修复。`check_exam_json.py`
+会打印 `修复队列 auto/manual/blocked`，非空队列不阻断布局校验，但必须出现在验收里。
+
 
 ### 试卷结构层（exam / quality）
 
