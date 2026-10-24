@@ -90,7 +90,7 @@ def _quality_summary(layout: dict, exam: dict, quality: dict) -> dict[str, Any]:
     # 判失败；图是否归属由 quality 的 choice_options_graphical 单独报告。
     text_choice = [q for q in choice if q.get("option_mode") != "graphical"]
     expected_options = 4 * len(text_choice)
-    actual_options = sum(len(q.get("options") or []) for q in choice)
+    actual_options = sum(len(q.get("options") or []) for q in text_choice)
     formula_count = int(quality["summary"].get("formula_count") or 0)
     formula_broken = int(quality["summary"].get("formula_broken") or 0)
     table_cells = table_filled = 0
@@ -143,7 +143,7 @@ def _judge(metrics: dict[str, Any], layout_rc: int, render_rc: int,
         failures.append("render_check")
     if exam_rc != 0:
         failures.append("exam_check")
-    if metrics["quality_status"] == "error":
+    if metrics["quality_status"] not in ("pass", "warn"):
         failures.append("quality_error")
     if metrics["coverage"] < thresholds["coverage"]:
         failures.append("coverage")

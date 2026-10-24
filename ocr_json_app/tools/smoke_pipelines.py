@@ -28,6 +28,7 @@ from __future__ import annotations
 import ast
 import glob
 import importlib.util
+import io
 import os
 import subprocess
 import sys
@@ -349,6 +350,13 @@ def test_layout_helpers() -> None:
     text_only = numpy.full((400, 600), 255, dtype=numpy.uint8)
     text_only[100:110, 100:500:4] = 0          # 断续的"文字"笔画，不是框线
     check("纯文字不误判成表", layout.detect_table_grids(text_only, 20.0) == [])
+
+    # 150dpi 小字行裁片必须放大；否则模型会把整行吐成乱码。
+    canvas = layout.Image.new("RGB", (300, 200), "white")
+    line = {"px_left": 80, "px_top": 50, "px_right": 220, "px_bottom": 90}
+    crop = layout.Image.open(io.BytesIO(layout.crop_line(canvas, line, extra_left=40)))
+    check("小字行裁片放大 2 倍", crop.height == 2 * (90 - 50 + 1 + 2 * 3),
+          f"实得 {crop.height}")
 
     # 横向 A3 卷：2/3 栏都必须按“整列空白 + 两侧有文字”检出中缝。
     # 历史事故：假设中缝在页面正中，三栏卷的第 2 条中缝漏掉，右栏文字

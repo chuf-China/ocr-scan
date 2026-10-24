@@ -454,6 +454,10 @@ python tools\run_exam_acceptance.py --reuse out\exams\*.layout.json
 **不等于**公式内容全对或表格 F1。20 套语料与已修正缺陷见
 [`docs/specs/s6-generalization.md`](docs/specs/s6-generalization.md)。
 
+逐行 OCR 裁片对 150dpi 小字行自动放大 2 倍；页顶栏首行再向左多带 40px，救回悬在
+栏缝外的题号（2025 全国 1 第 16 题）。栏中部行不能这样扩，否则左邻栏末字会混入，
+把 `三、填空题` 变成 `时三、填空题`。
+
 ### 为什么要投票
 
 引擎跑的是 `--temp 0`，但**不是确定性的**。实测同图同参 3 次全对，另一次整卷跑到第 3 页时，

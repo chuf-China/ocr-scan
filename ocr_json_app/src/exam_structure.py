@@ -246,6 +246,15 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                 if not plausible:
                     text = text[qm.end():].strip()
                     qm = None
+                # Same number immediately after the current question is also
+                # OCR noise, not a second Q3: real duplicate numbers are a
+                # quality error, but here the line is the continuation of the
+                # stem (`3. \overrightarrow{CB} = ...`).  Strip the prefix and
+                # let the normal continuation path append it.
+                if (qm is not None and current_q is not None
+                        and number == int(current_q["number"])):
+                    text = text[qm.end():].strip()
+                    qm = None
             if sec:
                 sec_seq += 1
                 current_section = {
@@ -436,10 +445,14 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
 
     section_titles = {s["id"]: s.get("title") or "" for s in sections}
     for q in questions:
+        title = section_titles.get(q.get("section_id"), "")
+        # 图形选项卷会把 A/B/C/D 标签和图分开 OCR：选项被解析出来但正文为空，
+        # 四个图各自挂在题上。此时不是“空选项”，而是图形选项。
+        has_option_text = any((o.get("text") or "").strip() for o in q["options"])
         q["option_mode"] = (
             "graphical"
-            if _is_choice_title(section_titles.get(q.get("section_id"), ""))
-            and not q["options"] and len(q["figures"]) >= 2
+            if _is_choice_title(title)
+            and not has_option_text and len(q["figures"]) >= 2
             else "text"
         )
 

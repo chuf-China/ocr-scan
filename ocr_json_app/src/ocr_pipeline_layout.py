@@ -43,6 +43,7 @@ import time
 import unicodedata
 
 import numpy as np
+from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import paths  # noqa: E402
@@ -1841,15 +1842,26 @@ def annotate_native_text(ocr_lines: list[dict], native_lines: list[dict]) -> dic
 
 # ---------------------------------------------------------------- 逐行 OCR
 
-def crop_line(pil, line: dict) -> bytes:
+def crop_line(pil, line: dict, extra_left: int = 0) -> bytes:
+    """裁一行给 OCR。
+
+    两处不是“随便加点边”：
+    - 栏首行的题号可能悬在栏缝左侧（实测 2025 全国 1 第 16 题 `16.` 比栏起点
+      左 12pt），逐栏切图时被切掉；栏首额外向左带 40px 空白，题号才回得来。
+    - 150dpi 下小字行只有 ~50px 高，模型会漏字/出乱码；低于 72px 时放大 2 倍
+      再送 OCR（300dpi 实测能把 `��֪����` 恢复成 `已知数列`）。
+    """
     box = (
-        max(0, line["px_left"] - X_PAD_PX),
+        max(0, line["px_left"] - X_PAD_PX - max(0, extra_left)),
         max(0, line["px_top"] - Y_PAD_PX),
         min(pil.width, line["px_right"] + 1 + X_PAD_PX),
         min(pil.height, line["px_bottom"] + 1 + Y_PAD_PX),
     )
+    crop = pil.crop(box)
+    if crop.height < 72:
+        crop = crop.resize((crop.width * 2, crop.height * 2), Image.LANCZOS)
     buf = io.BytesIO()
-    pil.crop(box).save(buf, "PNG", optimize=True)
+    crop.save(buf, "PNG", optimize=True)
     return buf.getvalue()
 
 
@@ -2222,7 +2234,17 @@ def build(args) -> dict:
             used = "whole-page-fallback"
             warnings.append(f"第 {pno} 页行检测只得到 1 行，退回整页 OCR")
 
-        task_png = [crop_line(pil, l) for l in lines]
+        # 页顶栏首行向左多带一点，救回悬在栏缝里的题号（2025 全国 1 第 16 题）。
+        # 只限页顶：栏中部的节标题若也带左邻栏文字，会变成 `时三、填空题`，
+        # 直接漏掉整节。
+        col_starts = [b[0] for b in column_bounds]
+        page_top_px = min((l["px_top"] for l in lines), default=0)
+        task_png = [
+            crop_line(pil, l, 40 if (
+                col_starts and l["px_top"] <= page_top_px + 8
+                and min(abs(l["px_left"] - s) for s in col_starts) <= 16) else 0)
+            for l in lines
+        ]
 
         results: list[dict | None] = [None] * len(lines)
 
