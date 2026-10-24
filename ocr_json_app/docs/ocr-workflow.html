@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>试卷 OCR → JSON → 原版式网页 · 工作流与架构</title>
-<meta name="description" content="试卷 PDF → 本地 VLM-OCR 逐行识别 → 带版面坐标的 JSON → 单文件原版式网页：ocr_json_app 的工作流、架构、数据契约与三层校验。">
+<meta name="description" content="试卷 PDF → 官方 PaddleOCR-VL 或 llama.cpp 逐行识别 → 带版面坐标的 JSON → 单文件原版式网页：ocr_json_app 的两条路线、架构、数据契约与四层校验。">
 <script>document.documentElement.classList.add('js');</script>
 <style>
   :root{
@@ -615,7 +615,7 @@
       <a href="#contract">数据契约</a>
       <a href="#checks">校验运行</a>
     </nav>
-    <span class="ver">LAYOUT PIPELINE · V0.1</span>
+    <span class="ver">TWO ROUTES · V0.1</span>
   </div>
 </header>
 
@@ -626,7 +626,7 @@
       <p class="eyebrow"><span class="pulse" aria-hidden="true"></span>LOCAL VLM-OCR · LAYOUT-FIRST</p>
       <h1 id="hero-heading">从试卷 PDF<br><span class="grad">到原版式网页</span></h1>
       <p class="lede">
-        扫描版、文字层损坏的试卷，用本地 VLM-OCR <strong>逐行识别</strong>，按 A4 原坐标重建为可检索、可对照的网页。行盒来自像素投影，公式交给 KaTeX，全程 <strong>127.0.0.1</strong>，文档不出机器。
+        扫描版、文字层损坏的试卷，用官方 <strong>PaddleOCR-VL 完整流程</strong>（PP-DocLayoutV3 + PaddleOCR-VL-1.6）或本地 llama.cpp 逐行 OCR，按 A4 原坐标重建为可检索、可对照的网页。公式交给 KaTeX，全程 <strong>127.0.0.1</strong>，文档不出机器。
       </p>
       <div class="hero-actions">
         <a class="btn primary" href="#architecture">
@@ -805,6 +805,7 @@
       <p class="section-kicker">01 / PIPELINE</p>
       <h2 id="pipeline-heading">逐行 OCR，把“版式”当成一等数据</h2>
       <p>整页 OCR 会把相邻的几行合成一段，再想还原原分行就只能靠猜。这里先用像素投影找出文本行盒，再逐行裁图识别；每一行天然带着原坐标、原字号与原换行。</p>
+      <p class="note">本节拆解的是 llama.cpp 路线；当前首选的官方 PaddleOCR-VL 流程见架构图“路线 A”，本机实战与坑见 <a href="paddleocr-vl-guide.md">paddleocr-vl-guide.md</a>。</p>
     </div>
 
     <div class="flow reveal" aria-label="流程概览">
@@ -988,8 +989,8 @@
     <div class="section">
       <div class="section-head reveal">
         <p class="section-kicker">03 / ARCHITECTURE</p>
-        <h2 id="architecture-heading">本地引擎、共用底层、两条流水线、一个单文件出口</h2>
-        <p>没有消息队列、对象存储或向量库——这是一套单机文档流水线。真正需要看清的是渲染、行盒、OCR、几何还原、JSON 与阅读器之间的边界。</p>
+        <h2 id="architecture-heading">官方 PaddleOCR-VL 为主、llama.cpp 为辅，共用一个单文件出口</h2>
+        <p>首选是 WSL2 里的官方完整流程：PP-DocLayoutV3 定版面与阅读顺序，PaddleOCR-VL-1.6 逐元素识别；Windows 上保留 llama.cpp 逐行路线。两条路线共用 <code>ocr_common</code>、<code>paths</code>、JSON 契约与阅读器模板，但产物按 engine 严格分开。</p>
       </div>
 
       <div class="diagram-shell reveal">
@@ -997,7 +998,7 @@
           <span class="win-dot r" aria-hidden="true"></span>
           <span class="win-dot y" aria-hidden="true"></span>
           <span class="win-dot g" aria-hidden="true"></span>
-          <span class="diagram-file">ocr_json_app / architecture.local</span>
+          <span class="diagram-file">ocr_json_app / architecture.routes</span>
           <div class="diagram-legend" aria-label="图例">
             <span><i class="lg" aria-hidden="true"></i>数据流</span>
             <span><i class="lg fb" aria-hidden="true"></i>校验反馈</span>
@@ -1006,9 +1007,9 @@
         </div>
 
         <div class="diagram-scroll">
-          <svg viewBox="0 0 1260 830" role="img" aria-labelledby="archTitle archDesc">
-            <title id="archTitle">试卷 OCR 到原版式网页的本地架构图</title>
-            <desc id="archDesc">四个部分：输入与本地 VLM 运行时；包含 ocr_common 与 paths 的共用底层；原版式与结构块两条流水线；layout JSON、结构块 JSON、单文件阅读器等产物。底部是结构、渲染、内容三层校验。</desc>
+          <svg viewBox="0 0 1260 990" role="img" aria-labelledby="archTitle archDesc">
+            <title id="archTitle">当前仓库：两条 OCR 路线、共用底层与四层校验</title>
+            <desc id="archDesc">四个部分：输入与运行环境，含官方 WSL2 与 Windows llama.cpp 两个入口；ocr_common、paths、阅读器模板等共用底层；官方 PaddleOCR-VL 流程与 llama.cpp 逐行路线；按 engine 分开的 layout / 结构块 / 高保真产物与单文件阅读器。底部是代码、结构、渲染、内容四层校验。</desc>
             <defs>
               <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
                 <path d="M0 0L10 5L0 10z" fill="#3b82f6"/>
@@ -1026,7 +1027,7 @@
             <g>
               <rect x="30" y="44" width="225" height="48" rx="12" fill="#0d1e36" stroke="#1f3a5e"/>
               <text x="46" y="74" class="arch-num">01</text>
-              <text x="72" y="74" class="arch-title">输入与运行时</text>
+              <text x="72" y="74" class="arch-title">输入与运行环境</text>
 
               <rect x="279" y="44" width="210" height="48" rx="12" fill="#0d1e36" stroke="#1f3a5e"/>
               <text x="295" y="74" class="arch-num">02</text>
@@ -1034,11 +1035,11 @@
 
               <rect x="513" y="44" width="330" height="48" rx="12" fill="#0d1e36" stroke="#1f3a5e"/>
               <text x="529" y="74" class="arch-num">03</text>
-              <text x="555" y="74" class="arch-title">两条流水线</text>
+              <text x="555" y="74" class="arch-title">两条路线</text>
 
               <rect x="867" y="44" width="363" height="48" rx="12" fill="#0d1e36" stroke="#1f3a5e"/>
               <text x="883" y="74" class="arch-num">04</text>
-              <text x="909" y="74" class="arch-title">产物与网页</text>
+              <text x="909" y="74" class="arch-title">产物与阅读器</text>
             </g>
 
             <line class="flow-line" x1="255" y1="68" x2="274" y2="68" marker-end="url(#arrowBlue)"/>
@@ -1049,193 +1050,222 @@
             <g class="arch-card">
               <rect class="card-bg" x="30" y="112" width="225" height="78" rx="12"/>
               <rect x="30" y="128" width="3" height="46" rx="1.5" fill="#60a5fa"/>
-              <text x="46" y="139" class="arch-title">源 PDF</text>
+              <text x="46" y="139" class="arch-title">源 PDF / 扫描件</text>
               <text x="46" y="160" class="arch-sub">data/静安区…数学试卷.pdf</text>
               <text x="46" y="176" class="arch-sub">6 页 · A4 595.3×841.9 pt</text>
             </g>
             <g class="arch-card">
               <rect class="card-bg" x="30" y="206" width="225" height="88" rx="12"/>
-              <rect x="30" y="222" width="3" height="56" rx="1.5" fill="#60a5fa"/>
-              <text x="46" y="233" class="arch-title">run_ocr.ps1</text>
-              <text x="46" y="254" class="arch-sub">起引擎 → OCR → 渲染</text>
-              <text x="46" y="270" class="arch-sub">唯一入口 · 一条命令跑完</text>
-              <text x="46" y="286" class="arch-sub">DPI 150 · Vote 3 · Workers 4</text>
+              <rect x="30" y="222" width="3" height="56" rx="1.5" fill="#22d3ee"/>
+              <text x="46" y="233" class="arch-title">路线 A · WSL2</text>
+              <text x="46" y="254" class="arch-sub">bash run_paddleocr_vl.sh</text>
+              <text x="46" y="270" class="arch-sub">PP-DocLayoutV3 + VLM</text>
+              <text x="46" y="286" class="arch-sub">Linux GPU · 文档不出机器</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="30" y="310" width="225" height="108" rx="12"/>
-              <rect x="30" y="326" width="3" height="74" rx="1.5" fill="#60a5fa"/>
-              <text x="46" y="337" class="arch-title">本地 VLM 引擎</text>
-              <text x="46" y="358" class="arch-sub">llama.cpp · 127.0.0.1</text>
-              <text x="46" y="374" class="arch-sub">OpenAI 兼容接口</text>
+              <rect class="card-bg" x="30" y="310" width="225" height="118" rx="12"/>
+              <rect x="30" y="326" width="3" height="86" rx="1.5" fill="#60a5fa"/>
+              <text x="46" y="337" class="arch-title">路线 B · Windows</text>
+              <text x="46" y="358" class="arch-sub">pwsh run_ocr.ps1</text>
+              <text x="46" y="374" class="arch-sub">llama.cpp · 127.0.0.1</text>
               <g>
-                <rect x="46" y="384" width="87" height="24" rx="6" fill="#172b49" stroke="#2a4a72"/>
-                <text x="89" y="400" text-anchor="middle" fill="#a5d8ff" font-size="9.5" font-family="ui-monospace,Consolas,monospace">:8080 Paddle</text>
-                <rect x="140" y="384" width="83" height="24" rx="6" fill="#172b49" stroke="#2a4a72"/>
-                <text x="181" y="400" text-anchor="middle" fill="#a5d8ff" font-size="9.5" font-family="ui-monospace,Consolas,monospace">:8081 Ovis</text>
+                <rect x="46" y="384" width="96" height="24" rx="6" fill="#172b49" stroke="#2a4a72"/>
+                <text x="94" y="400" text-anchor="middle" fill="#a5d8ff" font-size="9.5" font-family="ui-monospace,Consolas,monospace">:8080 Paddle</text>
+                <rect x="148" y="384" width="91" height="24" rx="6" fill="#172b49" stroke="#2a4a72"/>
+                <text x="193" y="400" text-anchor="middle" fill="#a5d8ff" font-size="9.5" font-family="ui-monospace,Consolas,monospace">:8081 Ovis</text>
               </g>
+              <text x="46" y="420" class="arch-sub">DPI 150 · Vote 3 · Workers 4</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="30" y="436" width="225" height="64" rx="12"/>
-              <rect x="30" y="452" width="3" height="32" rx="1.5" fill="#60a5fa"/>
-              <text x="46" y="461" class="arch-title">文档不出机器</text>
-              <text x="46" y="481" class="arch-sub">无云端上传 · 无外部 API</text>
+              <rect class="card-bg" x="30" y="448" width="225" height="64" rx="12"/>
+              <rect x="30" y="464" width="3" height="32" rx="1.5" fill="#60a5fa"/>
+              <text x="46" y="473" class="arch-title">本地边界</text>
+              <text x="46" y="493" class="arch-sub">127.0.0.1 ONLY · 无云端上传</text>
             </g>
 
             <!-- column 2 -->
             <g class="arch-card">
               <rect class="card-bg" x="279" y="112" width="210" height="108" rx="12"/>
-              <rect x="279" y="128" width="3" height="74" rx="1.5" fill="#22d3ee"/>
+              <rect x="279" y="128" width="3" height="74" rx="1.5" fill="#a78bfa"/>
               <text x="295" y="139" class="arch-title">ocr_common.py</text>
               <text x="295" y="160" class="arch-sub">PDF 渲染 / OCR 调用</text>
-              <text x="295" y="176" class="arch-sub">health 检查 / 本地服务</text>
+              <text x="295" y="176" class="arch-sub">health 检查 / 本地网页服务</text>
               <text x="295" y="192" class="arch-sub">OpenAI 兼容 /v1/chat</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="279" y="236" width="210" height="78" rx="12"/>
-              <rect x="279" y="252" width="3" height="46" rx="1.5" fill="#22d3ee"/>
+              <rect class="card-bg" x="279" y="236" width="210" height="88" rx="12"/>
+              <rect x="279" y="252" width="3" height="56" rx="1.5" fill="#a78bfa"/>
               <text x="295" y="263" class="arch-title">paths.py</text>
               <text x="295" y="284" class="arch-sub">项目根由文件位置推导</text>
-              <text x="295" y="300" class="arch-sub">脚本不依赖当前目录</text>
+              <text x="295" y="300" class="arch-sub">两条路线产物严格分名</text>
+              <text x="295" y="316" class="arch-sub">默认路径不依赖 cwd</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="279" y="330" width="210" height="96" rx="12"/>
-              <rect x="279" y="346" width="3" height="64" rx="1.5" fill="#22d3ee"/>
-              <text x="295" y="357" class="arch-title">Prompt 策略</text>
-              <text x="295" y="378" class="arch-sub">Paddle → “OCR:”</text>
-              <text x="295" y="394" class="arch-sub">Ovis → Markdown 指令</text>
-              <text x="295" y="410" class="arch-sub">按模型固定，不混用</text>
+              <rect class="card-bg" x="279" y="340" width="210" height="104" rx="12"/>
+              <rect x="279" y="356" width="3" height="72" rx="1.5" fill="#a78bfa"/>
+              <text x="295" y="367" class="arch-title">viewer_template.html</text>
+              <text x="295" y="388" class="arch-sub">JSON 内嵌 · A4 绝对定位</text>
+              <text x="295" y="404" class="arch-sub">KaTeX 同步加载</text>
+              <text x="295" y="420" class="arch-sub">两种公式定界符都支持</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="279" y="442" width="210" height="58" rx="12"/>
-              <rect x="279" y="458" width="3" height="28" rx="1.5" fill="#22d3ee"/>
-              <text x="295" y="467" class="arch-title">pypdfium2 / Pillow</text>
-              <text x="295" y="487" class="arch-sub">150 dpi 栅格化</text>
+              <rect class="card-bg" x="279" y="460" width="210" height="64" rx="12"/>
+              <rect x="279" y="476" width="3" height="32" rx="1.5" fill="#a78bfa"/>
+              <text x="295" y="485" class="arch-title">pypdfium2 / Pillow</text>
+              <text x="295" y="505" class="arch-sub">150 dpi 栅格化 · Python 3.9+</text>
             </g>
 
             <!-- column 3 -->
             <g>
-              <rect x="513" y="112" width="330" height="30" rx="8" fill="#12294a" stroke="#2b4f7d"/>
-              <text x="529" y="132" fill="#bfdbfe" class="arch-lane-title">原版式 · layout（首选）</text>
-              <text x="827" y="132" text-anchor="end" fill="#67e8f9" font-size="9.5" font-family="ui-monospace,Consolas,monospace">ocr_pipeline_layout.py</text>
+              <rect x="513" y="112" width="330" height="30" rx="8" fill="#0e2a3a" stroke="#1f4a56"/>
+              <text x="529" y="132" fill="#bdf3f7" class="arch-lane-title">路线 A · 官方 PaddleOCR-VL（首选）</text>
+              <text x="827" y="132" text-anchor="end" fill="#67e8f9" font-size="9.5" font-family="ui-monospace,Consolas,monospace">run_paddleocr_vl.sh</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="513" y="152" width="330" height="52" rx="10"/>
-              <text x="529" y="174" class="arch-title-sm">渲染 150 dpi 灰度图</text>
-              <text x="529" y="194" class="arch-sub">A4 样例 1241×1754 px · 渲染串行</text>
+              <rect class="card-bg" x="513" y="152" width="330" height="50" rx="10"/>
+              <text x="529" y="174" class="arch-title-sm">① 预渲染 150 dpi PNG</text>
+              <text x="529" y="194" class="arch-sub">pypdfium2 · PDF 不直喂 doc_parser</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="513" y="214" width="330" height="52" rx="10"/>
-              <text x="529" y="236" class="arch-title-sm">墨迹投影 → 文本行盒</text>
-              <text x="529" y="256" class="arch-sub">并下划线 / 去噪 / 行序显式排序</text>
+              <rect class="card-bg" x="513" y="212" width="330" height="58" rx="10"/>
+              <text x="529" y="234" class="arch-title-sm">② PP-DocLayoutV3 版面分析</text>
+              <text x="529" y="254" class="arch-sub">元素检测 · 定阅读顺序 · 裁子图</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="513" y="276" width="330" height="52" rx="10"/>
-              <text x="529" y="298" class="arch-title-sm">逐行裁图 → 4 并发 × 3 投票</text>
-              <text x="529" y="318" class="arch-sub">0.1–0.3 s/行 · 记录 disagreement</text>
+              <rect class="card-bg" x="513" y="280" width="330" height="58" rx="10"/>
+              <text x="529" y="302" class="arch-title-sm">③ PaddleOCR-VL-1.6 逐元素识别</text>
+              <text x="529" y="322" class="arch-sub">Markdown / LaTeX / HTML 表格</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="513" y="338" width="330" height="72" rx="10"/>
-              <text x="529" y="360" class="arch-title-sm">几何还原：插图 / 表格 / 零交叠</text>
-              <text x="529" y="380" class="arch-sub">文字蒙版墨迹比 0.20 · 框线游程</text>
-              <text x="529" y="396" class="arch-sub">裁片不压正文 · 行内裁片丢弃</text>
+              <rect class="card-bg" x="513" y="348" width="330" height="58" rx="10"/>
+              <text x="529" y="370" class="arch-title-sm">④ 合并 → pageNN_res.json / .md</text>
+              <text x="529" y="390" class="arch-sub">官方结果 · 6 页约 4 分钟（GPU）</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="513" y="420" width="330" height="52" rx="10"/>
-              <text x="529" y="442" class="arch-title-sm">像素坐标 → PDF pt → layout JSON</text>
-              <text x="529" y="462" class="arch-sub">页图 JPEG + 裁片 PNG 一起内嵌</text>
+              <rect class="card-bg" x="513" y="416" width="330" height="58" rx="10"/>
+              <text x="529" y="438" class="arch-title-sm">⑤ import_paddleocr_json.py</text>
+              <text x="529" y="458" class="arch-sub">坐标换算 + block_label 映射 → JSON</text>
             </g>
 
-            <line x1="513" y1="486" x2="843" y2="486" stroke="#203a5c" stroke-dasharray="4 4"/>
+            <line x1="513" y1="492" x2="843" y2="492" stroke="#203a5c" stroke-dasharray="4 4"/>
             <g>
-              <rect x="513" y="498" width="330" height="30" rx="8" fill="#1c2434" stroke="#3d4b63"/>
-              <text x="529" y="518" fill="#e2e8f0" class="arch-lane-title">结构块 · blocks（可选）</text>
-              <text x="827" y="518" text-anchor="end" fill="#94a3b8" font-size="9.5" font-family="ui-monospace,Consolas,monospace">ocr_pipeline_blocks.py</text>
+              <rect x="513" y="504" width="330" height="30" rx="8" fill="#12294a" stroke="#2b4f7d"/>
+              <text x="529" y="524" fill="#bfdbfe" class="arch-lane-title">路线 B · llama.cpp 逐行（Windows）</text>
+              <text x="827" y="524" text-anchor="end" fill="#93c5fd" font-size="9.5" font-family="ui-monospace,Consolas,monospace">run_ocr.ps1</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="513" y="538" width="330" height="74" rx="10"/>
-              <text x="529" y="560" class="arch-title-sm">整页 OCR → Markdown → 结构块</text>
-              <text x="529" y="580" class="arch-sub">heading / question / paragraph / table</text>
-              <text x="529" y="596" class="arch-sub">供程序消费：题号、题型、题库</text>
+              <rect class="card-bg" x="513" y="544" width="330" height="52" rx="10"/>
+              <text x="529" y="566" class="arch-title-sm">渲染灰度图 → 墨迹投影行盒</text>
+              <text x="529" y="586" class="arch-sub">150 dpi · 行盒显式排序</text>
             </g>
-            <text x="513" y="638" class="arch-note">共享 ocr_common 与 paths；两条流水线可独立运行。</text>
+            <g class="arch-card">
+              <rect class="card-bg" x="513" y="606" width="330" height="56" rx="10"/>
+              <text x="529" y="628" class="arch-title-sm">逐行裁图 → 4 并发 × 3 投票</text>
+              <text x="529" y="648" class="arch-sub">0.1–0.3 s/行 · 记录 disagreement</text>
+            </g>
+            <g class="arch-card">
+              <rect class="card-bg" x="513" y="672" width="330" height="72" rx="10"/>
+              <text x="529" y="694" class="arch-title-sm">几何还原：插图 / 表格 / 零交叠</text>
+              <text x="529" y="714" class="arch-sub">文字蒙版墨迹比 0.20 · 框线游程</text>
+              <text x="529" y="730" class="arch-sub">裁片压正文 = 红线</text>
+            </g>
+            <text x="513" y="764" class="arch-note">两条路线共用 ocr_common / paths；产物按 engine 严格分开。</text>
 
             <!-- column 4 -->
             <g class="arch-card">
-              <rect class="card-bg" x="867" y="112" width="363" height="86" rx="12"/>
-              <rect x="867" y="128" width="3" height="54" rx="1.5" fill="#fbbf24"/>
-              <text x="883" y="139" class="arch-title-sm">paper.layout.paddle.json</text>
-              <text x="883" y="160" class="arch-sub">6 页 · 77 行 · 51 行含公式 · 5 图</text>
-              <text x="883" y="176" class="arch-sub">首选引擎产物 · 3 行投票分歧</text>
+              <rect class="card-bg" x="867" y="112" width="363" height="92" rx="12"/>
+              <rect x="867" y="128" width="3" height="60" rx="1.5" fill="#fbbf24"/>
+              <text x="883" y="139" class="arch-title-sm">paper.layout.paddleocrvl16.json</text>
+              <text x="883" y="160" class="arch-sub">官方 layout · block_order / block_label</text>
+              <text x="883" y="176" class="arch-sub">6 页 · 坐标统一为 PDF pt</text>
+              <text x="883" y="192" class="arch-sub">HTML 表格 / 公式 / 插图保留</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="867" y="206" width="363" height="66" rx="12"/>
-              <rect x="867" y="222" width="3" height="34" rx="1.5" fill="#fbbf24"/>
-              <text x="883" y="231" class="arch-title-sm">paper.layout.json</text>
-              <text x="883" y="251" class="arch-sub">Ovis 产物 · 69 行 · 46 行含公式</text>
+              <rect class="card-bg" x="867" y="220" width="363" height="86" rx="12"/>
+              <rect x="867" y="236" width="3" height="54" rx="1.5" fill="#fbbf24"/>
+              <text x="883" y="247" class="arch-title-sm">paper.exact.* / paper.chars.*</text>
+              <text x="883" y="268" class="arch-sub">高保真重建链：原字体 + 字符位置</text>
+              <text x="883" y="284" class="arch-sub">paper.layout.lines.* · out/render/ 截图</text>
+              <text x="883" y="300" class="arch-sub">run_acceptance.py 三项口径验收</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="867" y="280" width="363" height="66" rx="12"/>
-              <rect x="867" y="296" width="3" height="34" rx="1.5" fill="#fbbf24"/>
-              <text x="883" y="305" class="arch-title-sm">paper.ocr.json</text>
-              <text x="883" y="325" class="arch-sub">62 blocks · 21 questions · 结构块管线</text>
+              <rect class="card-bg" x="867" y="322" width="363" height="74" rx="12"/>
+              <rect x="867" y="338" width="3" height="42" rx="1.5" fill="#fbbf24"/>
+              <text x="883" y="349" class="arch-title-sm">paper.ocr.paddleocrvl16.json</text>
+              <text x="883" y="370" class="arch-sub">结构块：heading / question / table</text>
+              <text x="883" y="386" class="arch-sub">import_paddleocr_blocks.py 转换</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="867" y="354" width="363" height="112" rx="12"/>
-              <rect x="867" y="370" width="3" height="80" rx="1.5" fill="#34d399"/>
-              <text x="883" y="381" class="arch-title-sm">单文件阅读器</text>
-              <text x="883" y="402" class="arch-sub">viewer_layout_paddleocrvl.html</text>
-              <text x="883" y="418" class="arch-sub">数据内嵌 · KaTeX · A4 绝对定位</text>
+              <rect class="card-bg" x="867" y="412" width="363" height="104" rx="12"/>
+              <rect x="867" y="428" width="3" height="72" rx="1.5" fill="#34d399"/>
+              <text x="883" y="439" class="arch-title-sm">viewer_layout_paddleocrvl16.html</text>
+              <text x="883" y="460" class="arch-sub">官方阅读器 · HTML 表格 / 公式 / 插图</text>
+              <text x="883" y="476" class="arch-sub">文本层 / 原始扫描 / 搜索</text>
               <g>
-                <rect x="883" y="430" width="72" height="24" rx="6" fill="#102b2a" stroke="#1d4d45"/>
-                <text x="919" y="446" text-anchor="middle" fill="#6ee7b7" font-size="9" font-family="ui-monospace,Consolas,monospace">OCR 文本层</text>
-                <rect x="961" y="430" width="66" height="24" rx="6" fill="#102b2a" stroke="#1d4d45"/>
-                <text x="994" y="446" text-anchor="middle" fill="#6ee7b7" font-size="9" font-family="ui-monospace,Consolas,monospace">原始扫描</text>
-                <rect x="1033" y="430" width="50" height="24" rx="6" fill="#102b2a" stroke="#1d4d45"/>
-                <text x="1058" y="446" text-anchor="middle" fill="#6ee7b7" font-size="9" font-family="ui-monospace,Consolas,monospace">搜索</text>
+                <rect x="883" y="484" width="76" height="22" rx="6" fill="#102b2a" stroke="#1d4d45"/>
+                <text x="921" y="499" text-anchor="middle" fill="#6ee7b7" font-size="9" font-family="ui-monospace,Consolas,monospace">单文件</text>
+                <rect x="969" y="484" width="92" height="22" rx="6" fill="#102b2a" stroke="#1d4d45"/>
+                <text x="1015" y="499" text-anchor="middle" fill="#6ee7b7" font-size="9" font-family="ui-monospace,Consolas,monospace">file:// 双击</text>
+                <rect x="1071" y="484" width="86" height="22" rx="6" fill="#102b2a" stroke="#1d4d45"/>
+                <text x="1114" y="499" text-anchor="middle" fill="#6ee7b7" font-size="9" font-family="ui-monospace,Consolas,monospace">离线 KaTeX</text>
               </g>
             </g>
+
+            <text x="867" y="540" class="arch-note">路线 B 产物</text>
             <g class="arch-card">
-              <rect class="card-bg" x="867" y="478" width="363" height="62" rx="12"/>
-              <rect x="867" y="494" width="3" height="30" rx="1.5" fill="#34d399"/>
-              <text x="883" y="503" class="arch-title-sm">对比页 / 结构块页</text>
-              <text x="883" y="523" class="arch-sub">compare.html · viewer.html</text>
+              <rect class="card-bg" x="867" y="552" width="363" height="80" rx="12"/>
+              <rect x="867" y="568" width="3" height="48" rx="1.5" fill="#60a5fa"/>
+              <text x="883" y="579" class="arch-title-sm">paper.layout.paddle.json / paper.layout.json</text>
+              <text x="883" y="600" class="arch-sub">llama layout · vote 与 disagreement</text>
+              <text x="883" y="616" class="arch-sub">样例 77 行 · 3 行分歧</text>
+            </g>
+            <g class="arch-card">
+              <rect class="card-bg" x="867" y="648" width="363" height="76" rx="12"/>
+              <rect x="867" y="664" width="3" height="44" rx="1.5" fill="#60a5fa"/>
+              <text x="883" y="675" class="arch-title-sm">paper.ocr.json · viewer.html</text>
+              <text x="883" y="696" class="arch-sub">结构块 62 · 题号 21 · 块级卡片流</text>
+              <text x="883" y="712" class="arch-sub">compare.html 需 --serve-only 打开</text>
             </g>
 
             <!-- validation -->
-            <path class="feedback-line" d="M1048 660 L1048 544" marker-end="url(#arrowAmber)"/>
-            <text x="1060" y="612" class="arch-feedback">校验 / 定位</text>
+            <path class="feedback-line" d="M1120 790 L1120 724" marker-end="url(#arrowAmber)"/>
+            <text x="1132" y="760" class="arch-feedback">校验 / 定位</text>
 
-            <rect x="30" y="660" width="1196" height="112" rx="16" fill="url(#bandFill)" stroke="#1d3a5c"/>
-            <text x="54" y="686" class="arch-band-title">三层校验</text>
-            <text x="1202" y="686" text-anchor="end" class="arch-note">只读产物 · 失败时定位到具体页 / 行 / 裁片</text>
+            <rect x="30" y="790" width="1196" height="160" rx="16" fill="url(#bandFill)" stroke="#1d3a5c"/>
+            <text x="54" y="816" class="arch-band-title">四层校验</text>
+            <text x="1202" y="816" text-anchor="end" class="arch-note">只读产物 · 失败时定位到具体页 / 行 / 裁片</text>
 
             <g class="arch-card">
-              <rect class="card-bg" x="54" y="700" width="370" height="36" rx="8"/>
-              <text x="68" y="722" class="arch-title-sm">① 结构 · check_layout_json / check_ocr_json</text>
+              <rect class="card-bg" x="54" y="830" width="568" height="42" rx="8"/>
+              <text x="68" y="856" class="arch-title-sm">⓪ 代码 · smoke_pipelines.py</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="440" y="700" width="370" height="36" rx="8"/>
-              <text x="454" y="722" class="arch-title-sm">② 渲染 · check_render / cdp_probe</text>
+              <rect class="card-bg" x="640" y="830" width="562" height="42" rx="8"/>
+              <text x="654" y="856" class="arch-title-sm">① 结构 · check_layout_json / check_ocr_json</text>
             </g>
             <g class="arch-card">
-              <rect class="card-bg" x="826" y="700" width="376" height="36" rx="8"/>
-              <text x="840" y="722" class="arch-title-sm">③ 内容 · verify_math / verify_frontend</text>
+              <rect class="card-bg" x="54" y="882" width="568" height="42" rx="8"/>
+              <text x="68" y="908" class="arch-title-sm">② 渲染 · check_render / cdp_probe</text>
             </g>
-            <text x="54" y="756" class="arch-note">run_all_checks.py 一键跑完三层；--fast 跳过真浏览器检查。</text>
+            <g class="arch-card">
+              <rect class="card-bg" x="640" y="882" width="562" height="42" rx="8"/>
+              <text x="654" y="908" class="arch-title-sm">③ 内容 · verify_math / verify_frontend</text>
+            </g>
+            <text x="54" y="942" class="arch-note">run_all_checks.py 一键跑四层 · 完整 17/17（含真浏览器）· --fast 14/14</text>
 
             <!-- legend -->
-            <line x1="30" y1="804" x2="62" y2="804" stroke="#3b82f6" stroke-width="2"/>
-            <text x="70" y="808" class="arch-note">数据流</text>
-            <line x1="146" y1="804" x2="178" y2="804" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 4"/>
-            <text x="186" y="808" class="arch-note">校验反馈</text>
-            <text x="1230" y="808" text-anchor="end" class="arch-note">逻辑视图 · 单机本地运行，无外部依赖</text>
+            <line x1="30" y1="978" x2="62" y2="978" stroke="#3b82f6" stroke-width="2"/>
+            <text x="70" y="982" class="arch-note">数据流</text>
+            <line x1="146" y1="978" x2="178" y2="978" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 4"/>
+            <text x="186" y="982" class="arch-note">校验反馈</text>
+            <text x="1230" y="982" text-anchor="end" class="arch-note">逻辑视图 · 单机本地运行，无外部依赖</text>
           </svg>
         </div>
       </div>
 
       <p class="diagram-hint">← 横向滑动查看完整架构图 →</p>
       <div class="diagram-caption reveal">
-        <span><strong>读图：</strong>输入与引擎在左，共用底层支撑两条流水线；产物进入单文件阅读器，底部三层校验只读产物。</span>
+        <span><strong>读图：</strong>左列是 WSL2 官方流程与 Windows llama.cpp 两个入口，共用底层支撑；中列是两条路线，右列产物按 engine 分开，底部四层校验只读产物。</span>
         <span>所有路径由 <code>paths.py</code> 锚定项目根。</span>
       </div>
     </div>
@@ -1307,8 +1337,8 @@
               <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>
             </svg>
           </div>
-          <h3>三层校验，别只看统计量</h3>
-          <p>结构、渲染、内容三层分开跑。插图压住题干时，JSON 与公式校验都能通过、行重叠统计仍为 0，只有渲染层抓得到。</p>
+          <h3>四层校验，别只看统计量</h3>
+          <p>代码冒烟先保证两条流水线真能 import、3.9 语法与纯函数判据没坏；结构、渲染、内容再依次查产物。插图压住题干时，JSON 与公式校验都能通过、行重叠统计仍为 0，只有渲染层抓得到。</p>
         </article>
       </div>
     </div>
@@ -1398,14 +1428,14 @@ el.style.fontSize = (ln.size_pt * k).toFixed(<span class="tok-num">2</span>) + <
     <div class="section">
       <div class="section-head reveal">
         <p class="section-kicker">06 / CHECKS &amp; RUN</p>
-        <h2 id="checks-heading">三层校验，专门抓统计量看不到的问题</h2>
-        <p>“JSON 合法、公式能编译”不代表页面对；裁片压住题干时，行与行的重叠统计仍然可能是 0。三层校验必须分开跑。</p>
+        <h2 id="checks-heading">四层校验，专门抓统计量看不到的问题</h2>
+        <p>“JSON 合法、公式能编译”不代表页面对；裁片压住题干时，行与行的重叠统计仍然可能是 0。代码冒烟、结构、渲染、内容四层必须分开跑。</p>
       </div>
 
       <div class="slo-grid reveal">
         <div class="slo"><strong>77</strong><span>行 / 当前样例 · 6 页</span></div>
         <div class="slo"><strong>3</strong><span>票 / 行 · 记录 disagreement</span></div>
-        <div class="slo"><strong>83 s</strong><span>6 页 / 本机 Paddle 样例</span></div>
+        <div class="slo"><strong>83 s</strong><span>6 页 / llama 路线样例</span></div>
         <div class="slo"><strong>0 / 0</strong><span>叠字 / 越界（当前样例）</span></div>
       </div>
 
@@ -1415,6 +1445,7 @@ el.style.fontSize = (ln.size_pt * k).toFixed(<span class="tok-num">2</span>) + <
             <tr><th scope="col">层</th><th scope="col">抓什么</th><th scope="col">工具</th></tr>
           </thead>
           <tbody>
+            <tr><td>⓪ 代码</td><td>两条流水线真 import、纯函数判据、3.9 语法解析</td><td><code class="inline-code">smoke_pipelines.py</code></td></tr>
             <tr><td>① 结构</td><td>JSON 合法、页序、坐标是否在页内、题号连续性、幻觉残留</td><td><code class="inline-code">check_layout_json.py</code> · <code class="inline-code">check_ocr_json.py</code></td></tr>
             <tr><td>② 渲染</td><td>裁片是否压正文、行是否叠字、是否越界、真浏览器 DOM 节点数</td><td><code class="inline-code">check_render.py</code> · <code class="inline-code">cdp_probe.mjs</code></td></tr>
             <tr><td>③ 内容</td><td>公式能否被 KaTeX 真正编译、前端渲染断言</td><td><code class="inline-code">verify_math.mjs</code> · <code class="inline-code">verify_frontend.mjs</code></td></tr>
@@ -1425,17 +1456,19 @@ el.style.fontSize = (ln.size_pt * k).toFixed(<span class="tok-num">2</span>) + <
 
       <div class="cmd-grid reveal">
         <div class="cmd-card">
-          <div class="cmd-head"><span>跑完整链路</span><span class="cmd-tag">PowerShell</span></div>
+          <div class="cmd-head"><span>跑完整链路</span><span class="cmd-tag">WSL2 / PowerShell</span></div>
           <pre><code>cd ocr_json_app
-pwsh -NoProfile -File run_ocr.ps1
 
-<span class="tok-cmt"># 备选引擎</span>
-pwsh -NoProfile -File run_ocr.ps1 -Engine ovisocr2</code></pre>
+<span class="tok-cmt"># 官方流程（WSL2）</span>
+bash run_paddleocr_vl.sh
+
+<span class="tok-cmt"># llama.cpp 路线（Windows）</span>
+pwsh -NoProfile -File run_ocr.ps1</code></pre>
         </div>
         <div class="cmd-card">
-          <div class="cmd-head"><span>三层校验</span><span class="cmd-tag">CI 入口</span></div>
-          <pre><code>python tools\run_all_checks.py
-python tools\run_all_checks.py --fast
+          <div class="cmd-head"><span>四层校验</span><span class="cmd-tag">CI 入口</span></div>
+          <pre><code>python tools\run_all_checks.py        <span class="tok-cmt"># 17/17</span>
+python tools\run_all_checks.py --fast <span class="tok-cmt"># 14/14</span>
 
 <span class="tok-cmt"># 打开单文件阅读器</span>
 start out\viewer_layout_paddleocrvl.html</code></pre>
@@ -1445,8 +1478,8 @@ start out\viewer_layout_paddleocrvl.html</code></pre>
       <div class="limit-box reveal">
         <h3>已知限制</h3>
         <ul>
-          <li><strong>表格在首选引擎下是裁片</strong>，不可选中/搜索；需要可检索表格时用 Ovis 的 <code class="inline-code">viewer_layout.html</code>。</li>
-          <li><strong>插图/表格检测依赖文字层</strong>；纯扫描件没有文字蒙版，会退回“全部当正文”。</li>
+          <li><strong>官方流程的表格是 HTML 文本</strong>，可选中/搜索；llama.cpp 路线的表格仍是裁片，需要可检索表格时走官方流程。</li>
+          <li><strong>llama 路线的插图/表格检测依赖文字层</strong>；纯扫描件没有文字蒙版，会退回“全部当正文”。</li>
           <li><strong>字体回退</strong>：原卷字体本机未安装时会回退到 SimSun，字宽略有差异；公式与关键数字建议对照原始扫描。</li>
           <li><strong>OCR 仍是模型转录</strong>，个位错字难免；阅读器保留「原始扫描」切换，就是为了让复核回到原图。</li>
         </ul>
@@ -1458,7 +1491,7 @@ start out\viewer_layout_paddleocrvl.html</code></pre>
 <footer class="footer">
   <div class="footer-inner">
     <p class="footer-quote">逐行 OCR 的意义，是让每个字都能回到它在纸上的位置。</p>
-    <p class="footer-meta">OCR / JSON / VIEWER · LAYOUT PIPELINE V0.1<br>详见 <a href="../README.md">README.md</a> · 本地运行 · 无外部依赖</p>
+    <p class="footer-meta">OCR / JSON / VIEWER · TWO ROUTES · V0.1<br>详见 <a href="../README.md">README.md</a> · 本地运行 · 无外部依赖</p>
   </div>
 </footer>
 
