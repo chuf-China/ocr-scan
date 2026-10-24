@@ -102,7 +102,7 @@ def find_python311() -> str | None:
 
 
 def test_low_version_syntax() -> None:
-    print("[1/6] 低版本解释器语法（只允许 3.9 / 3.11 能编译的写法）")
+    print("[1/7] 低版本解释器语法（只允许 3.9 / 3.11 能编译的写法）")
     files = sorted(glob.glob(os.path.join(BOOT, "*.py")))
     # 先用当前解释器确认全部可解析
     for path in files:
@@ -183,7 +183,7 @@ def _free_names_in_functions(tree: ast.Module) -> dict[str, set[str]]:
 
 
 def test_undefined_names() -> None:
-    print("[2/6] 未定义名（函数体引用了模块级没有的名字）")
+    print("[2/7] 未定义名（函数体引用了模块级没有的名字）")
     for path in sorted(glob.glob(os.path.join(BOOT, "*.py"))):
         fn = os.path.basename(path)
         tree = ast.parse(open(path, encoding="utf-8").read(), fn)
@@ -194,7 +194,7 @@ def test_undefined_names() -> None:
 
 # ---------------------------------------------------------------- ③ 结构块流水线
 def test_blocks_pipeline() -> None:
-    print("[3/6] ocr_pipeline_blocks 纯函数")
+    print("[3/7] ocr_pipeline_blocks 纯函数")
     try:
         blocks = load_module("ocr_pipeline_blocks.py")
     except Exception as exc:  # noqa: BLE001
@@ -256,7 +256,7 @@ def test_table_shape_guard() -> None:
     实测模型会吐 100 列表头（1..100）和整表 1,000.00 的财务表；没有这道闸门，
     页面上会出现一张看起来像原文的假表——比乱码更危险（乱码一眼可辨）。
     """
-    print("[4/6] 表格形状闸门（ocr_pipeline_layout._table_shape_ok）")
+    print("[4/7] 表格形状闸门（ocr_pipeline_layout._table_shape_ok）")
     try:
         import numpy  # noqa: F401
     except ImportError:
@@ -284,7 +284,7 @@ def test_table_shape_guard() -> None:
 
 # ---------------------------------------------------------------- ⑤ 版式纯函数
 def test_layout_helpers() -> None:
-    print("[5/6] ocr_pipeline_layout 纯函数（投票 / 幻觉 / 行合并 / 框线）")
+    print("[5/7] ocr_pipeline_layout 纯函数（投票 / 幻觉 / 行合并 / 框线）")
     try:
         import numpy
     except ImportError:
@@ -351,6 +351,121 @@ def test_layout_helpers() -> None:
     check("纯文字不误判成表", layout.detect_table_grids(text_only, 20.0) == [])
 
 
+def test_native_figures() -> None:
+    """原生图形资源 → 掩膜 → 高分辨率裁片，全部用合成页面锁定几何行为。
+
+    历史事故：Q11 曲线图 / Q17 四棱锥的墨迹被投影进正文行，整行撑成 141.6pt，
+    渲染时压到下一节标题。像素掩膜只能按"文字少"猜图形，混排图必然漏；这里用
+    PDF 自己的 image / curve / line / rect 资源，并用表格与装饰图反例锁死过滤。
+    """
+    print("[6/7] ocr_pipeline_layout 原生图形（图片 / 矢量簇 / 掩膜 / 300dpi 裁片）")
+    try:
+        import numpy
+        from PIL import Image
+    except ImportError:
+        skip("原生图形测试依赖 numpy / Pillow，未安装 → 跳过")
+        return
+    layout = load_module("ocr_pipeline_layout.py")
+
+    class FakePage:
+        width = 595.0
+        height = 842.0
+
+        def __init__(self, images=(), curves=(), lines=(), rects=(), chars=()):
+            self.images = list(images)
+            self.curves = list(curves)
+            self.lines = list(lines)
+            self.rects = list(rects)
+            self.chars = list(chars)
+
+    # 1) 图片：Q11 那种 85x133pt 的图必须检出；12x8pt 的装饰图必须忽略。
+    page = FakePage(images=[{"x0": 448.0, "top": 370.0, "x1": 533.0, "bottom": 503.0}])
+    boxes = layout._native_figure_boxes(page)
+    check("原生图片检出", len(boxes) == 1 and boxes[0]["sources"] == ["pdf-image"],
+          f"实得 {boxes}")
+    page = FakePage(images=[{"x0": 10.0, "top": 10.0, "x1": 22.0, "bottom": 18.0}])
+    check("装饰小图被忽略", layout._native_figure_boxes(page) == [])
+
+    # 2) 矢量图：坐标轴/曲线/刻度分成多个 path，按邻近关系并成一个框。
+    curves = [
+        {"x0": 100, "top": 100, "x1": 200, "bottom": 220},
+        {"x0": 120, "top": 90, "x1": 122, "bottom": 230},
+        {"x0": 80, "top": 150, "x1": 220, "bottom": 152},
+    ]
+    page = FakePage(curves=curves)
+    boxes = layout._native_figure_boxes(page)
+    check("矢量簇并成一个图", len(boxes) == 1 and boxes[0]["sources"] == ["pdf-vector"],
+          f"实得 {boxes}")
+    if boxes:
+        check("矢量簇 bbox 取并集", boxes[0]["pt"][:2] == [80.0, 90.0]
+              and boxes[0]["pt"][2:] == [220.0, 230.0], f"实得 {boxes[0]['pt']}")
+
+    # 3) 表格反例：长直线 + 格内大量字符，不能被当成矢量图。
+    table_lines = [
+        {"x0": 100, "top": 100, "x1": 400, "bottom": 100},
+        {"x0": 100, "top": 100, "x1": 100, "bottom": 300},
+        {"x0": 100, "top": 300, "x1": 400, "bottom": 300},
+    ]
+    table_chars = [{"x0": 110 + i * 8, "top": 120 + i * 5,
+                    "x1": 114 + i * 8, "bottom": 126 + i * 5} for i in range(20)]
+    page = FakePage(lines=table_lines, chars=table_chars)
+    check("表格不被当成矢量图", layout._native_figure_boxes(page) == [])
+
+    # 4) 占页大半的边框也必须拒绝。
+    page = FakePage(rects=[{"x0": 10, "top": 10, "x1": 590, "bottom": 830}])
+    check("近整页边框被拒绝", layout._native_figure_boxes(page) == [])
+
+    # 5) 图片与矢量簇重叠时只保留一个，来源合并。
+    page = FakePage(
+        images=[{"x0": 448.0, "top": 370.0, "x1": 533.0, "bottom": 503.0}],
+        curves=[{"x0": 450.0, "top": 372.0, "x1": 531.0, "bottom": 501.0}],
+    )
+    boxes = layout._native_figure_boxes(page)
+    check("图片与矢量重叠合并", len(boxes) == 1
+          and set(boxes[0]["sources"]) == {"pdf-image", "pdf-vector"}, f"实得 {boxes}")
+
+    # 6) 掩膜：只有图形区域变白，边缘 margin 生效，图外像素不动。
+    gray = numpy.full((100, 100), 7, dtype=numpy.uint8)
+    masked = layout._mask_figure_areas(
+        gray, [{"pt": [10.0, 10.0, 20.0, 20.0], "sources": ["pdf-image"]}],
+        scale=1.0, margin_pt=2.0)
+    check("图形区涂白", int(masked[10:21, 10:21].min()) == 255)
+    check("掩膜外不动", int(masked[0, 0]) == 7 and int(masked[50, 50]) == 7)
+
+    # 7) 300dpi 裁片：page_obj.render(scale) 返回高分辨率页图，裁片按 pt 映射。
+    class FakeHi:
+        def __init__(self, image):
+            self._image = image
+
+        def to_pil(self):
+            return self._image
+
+    class FakeRenderPage(FakePage):
+        def render(self, scale=1.0):
+            return FakeHi(Image.new("RGB", (420, 600), "white"))
+
+    page_obj = FakeRenderPage()
+    native = [{"pt": [10.0, 10.0, 50.0, 50.0], "sources": ["pdf-image"]}]
+    entries = layout.crop_native_figures(page_obj, native, 100.0, 150.0, 150, True)
+    check("300dpi 原生裁片生成", len(entries) == 1 and "png_base64" in entries[0])
+    if entries:
+        check("裁片 pt→px 基准正确",
+              entries[0]["px"] == [21, 21, 104, 104], f"实得 {entries[0]['px']}")
+        import base64
+        import io
+        with Image.open(io.BytesIO(base64.b64decode(entries[0]["png_base64"]))) as im:
+            check("裁片按 300dpi 实际像素生成", im.size == (168, 160),
+                  f"实得 {im.size}")
+
+    # 8) 原生图与像素图重叠：原生优先，不叠两张半截图。
+    pixel = [{"pt": [10.0, 10.0, 50.0, 50.0], "png_base64": "pixel", "index": 0}]
+    native = [{"pt": [10.0, 10.0, 50.0, 50.0], "png_base64": "native",
+               "source": "pdf-image"}]
+    merged = layout.merge_native_figures(pixel, native)
+    check("同位置只保留原生图", len(merged) == 1
+          and merged[0]["png_base64"] == "native", f"实得 {merged}")
+
+
 def test_output_path_collision() -> None:
     """认不出的引擎必须单独命名，不能覆盖 OvisOCR2 的产物。
 
@@ -359,7 +474,7 @@ def test_output_path_collision() -> None:
     产物换成了另一个引擎的结果，而 `run_all_checks.py` 还在校验那份文件，
     校验照旧"通过"。这类覆盖没有任何报错，只能靠断言锁住。
     """
-    print("[6/6] 产物路径：不同引擎不得互相覆盖")
+    print("[7/7] 产物路径：不同引擎不得互相覆盖")
     import paths
 
     reserved = {
@@ -398,6 +513,7 @@ def main() -> int:
     test_blocks_pipeline()
     test_table_shape_guard()
     test_layout_helpers()
+    test_native_figures()
     test_output_path_collision()
     print(f"\n{PASSED} 个通过 / {len(FAILED)} 个失败"
           f"{f' / {len(SKIPPED)} 个跳过' if SKIPPED else ''}")

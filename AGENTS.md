@@ -119,7 +119,7 @@ python tools\run_all_checks.py --fast    # 跳过浏览器；当前基线 14/14
 |---|---|---|
 | ⓪ 代码 | 真 import 两条流水线跑纯函数：未定义名、3.9 语法、投票/幻觉/框线判据 | `smoke_pipelines.py` |
 | ① 结构 | JSON 合法、页序、坐标、行序、幻觉残留 | `check_layout_json` / `check_ocr_json` |
-| ② 渲染 | **裁片是否压正文**、叠字、越界、浏览器实渲 | `check_render` / `cdp_probe` |
+| ② 渲染 | **裁片是否压正文**、叠字、越界、浏览器实渲；浏览器叠字/越界是 llama 产物的硬门 | `check_render` / `cdp_probe` / `run_all_checks` |
 | ③ 内容 | 公式能否被 KaTeX 编译、前端断言 | `verify_math` / `verify_frontend` |
 
 单独跑：
@@ -161,8 +161,12 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
 7. **pypdfium2 渲染必须串行**（原生库多线程会 access violation），只有 HTTP OCR 可以并发。
 8. **一次只起一个 `llama-server`**；跑完停掉。不要 `Stop-Process` 与本项目无关的 GPU 进程；
    `run_ocr.ps1` 会先杀掉所有 `llama-server`，别人也在用时先确认。
-9. **插图/表格不信任模型坐标**：几何由像素判定（墨迹比例 / 框线游程）。插图裁片与正文行的
-   交叠必须为 **0**（`check_render` 在 > 1 pt² 时即报错），这是红线。
+9. **插图/表格不信任模型坐标**：优先取 PDF 原生图形资源（`pdfplumber` 的 `images` /
+   `curves+lines+rects` 并集），**在行投影前把原生图区涂掉**，避免图里的曲线把相邻文字行粘成
+   一个超高的合并行；没有原生资源时再退回墨迹比例 / 框线游程。裁片按原生 bbox 以 300 dpi
+   出图，插图裁片与正文行的交叠必须为 **0**（`check_render` 在 > 1 pt² 时即报错），这是红线。
+   浏览器实渲的“叠字/越界”也已是 llama 产物的硬门（`run_all_checks` 解析 `__OCR_DIAG__`，
+   非 0 即失败）；官方 line-only 产物只告警。
 10. **公式定界符两种都要支持**：官方流程输出 `$...$`，llama 时代的 Paddle 输出 `\(...\)`；
     `_delims_for()` 现在两种都给。不要为某个引擎退回“只认一种”，否则整页公式会退化成源码。
 11. **提交前只添加真正改动的文件**（不要 `git add -A`）：`out/` 样例产物、`data/` 输入、

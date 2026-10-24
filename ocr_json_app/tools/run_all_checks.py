@@ -94,6 +94,46 @@ SKIP_RE = re.compile(r"^\s*skip\s+(.*)$")
 SUMMARY_RE = re.compile(r"(\d+)\s*个通过\s*/\s*(\d+)\s*个失败(?:\s*/\s*(\d+)\s*个跳过)?")
 
 
+def parse_browser_stats(output: str) -> dict | None:
+    """从 cdp_probe 的输出里取出 --eval 的 JSON 结果。
+
+    浏览器检查以前只看退出码；`overlap:1` 时 cdp_probe 仍然正常退出，门禁于是全绿。
+    把 eval 结果解析出来，叠字/越界才真正能让 CI 失败。
+    """
+    m = re.search(r"(\{[\s\S]*\})\s*$", output)
+    if not m:
+        return None
+    try:
+        value = json.loads(m.group(1))
+    except ValueError:
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def run_browser(label: str, cmd: list[str]) -> tuple[bool, str]:
+    ok, output = run(label, cmd, capture=True)
+    stats = parse_browser_stats(output)
+    if not stats:
+        return False, "未取得浏览器几何数据"
+    note_parts = []
+    overlap = int(stats.get("overlap") or 0)
+    overflow = int(stats.get("overflow") or 0)
+    if overlap:
+        note_parts.append(f"浏览器叠字 {overlap} 行")
+    if overflow:
+        note_parts.append(f"浏览器越界 {overflow} 行")
+    if note_parts:
+        # 官方 v0.1 的 line-only 产物（paddleocr-vl-1.6）不是本仓库的版式切分结果，
+        # 其行盒高度由上游固定；这里记录警告，但不把上游既有瑕疵算进本仓库门禁。
+        # llama.cpp 两条路线（本仓库输出）仍必须为 0，绝不放过。
+        official_lines = str(stats.get("engine") or "").endswith("paddleocr-vl-1.6")
+        if official_lines:
+            note_parts.append("官方 line-only 产物，仅告警")
+        else:
+            ok = False
+    return ok, "；".join(note_parts)
+
+
 def run_smoke(py: str) -> tuple[bool, str]:
     """跑 ⓪ 层，并把"跳过了几项"摘要出来。
 
@@ -178,7 +218,7 @@ def main() -> int:
             continue
         if args.fast:
             continue
-        add(f"[渲染] 浏览器实渲 · {base}",
+        ok, note = run_browser(f"[渲染] 浏览器实渲 · {base}",
             [NODE, "tools/cdp_probe.mjs", html, "--width", "1000",
              "--settle", "3000", "--eval",
              "({pages:document.querySelectorAll('.page').length,"
@@ -186,8 +226,10 @@ def main() -> int:
              "lines:document.querySelectorAll('.ln').length,"
              "figs:document.querySelectorAll('img.fig').length,"
              "katex:document.querySelectorAll('.katex').length,"
+             "engine:DOC.document.engine,"
              "overlap:window.__OCR_DIAG__.overlapping_lines,"
              "overflow:window.__OCR_DIAG__.overflowing_lines})"])
+        results.append((f"[渲染] 浏览器实渲 · {base}", ok, note))
 
     print(f"\n{'=' * 78}\n### 汇总\n{'=' * 78}")
     for label, ok, note in results:

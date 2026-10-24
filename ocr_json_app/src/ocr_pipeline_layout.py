@@ -97,7 +97,8 @@ def text_coverage_mask(chars: list[dict], gray_shape: tuple[int, int],
     kept = 0
     for c in chars:
         ch = c.get("text") or ""
-        cp = ord(ch) if ch else 0
+        # pdfplumber 可能把一个字形报成多字符（连字）；蒙版只取首个码点。
+        cp = ord(ch[0]) if ch else 0
         good = (0x4E00 <= cp <= 0x9FFF or 0x3000 <= cp <= 0x303F
                 or 0xFF00 <= cp <= 0xFFEF or ch.isdigit() or ch.isalpha())
         if not good:
@@ -986,6 +987,241 @@ def _is_noise(line: dict) -> bool:
 
 # ---------------------------------------------------------------- 字号（可选增强）
 
+NATIVE_FIGURE_DPI = 300
+NATIVE_FIGURE_GAP_PT = 6.0
+NATIVE_FIGURE_MIN_PT = 40.0
+NATIVE_FIGURE_MIN_AREA_PT = 1600.0
+
+
+def _cluster_rects(rects: list[tuple[float, float, float, float]],
+                   gap: float) -> list[list[float]]:
+    """把互相靠近的矢量对象并成簇，返回 [x0, top, x1, bottom]。
+
+    坐标轴、曲线、刻度线常常各自是一个独立 path，必须按邻近关系合并，否则每根线都是
+    一个"太窄"的框。零宽/零高直线（坐标轴、表格线）先补 0.5pt，避免在过滤和相交测试里
+    被当成空对象丢掉。
+    """
+    boxes: list[list[float]] = []
+    for x0, top, x1, bottom in rects:
+        x0, x1 = sorted((float(x0), float(x1)))
+        top, bottom = sorted((float(top), float(bottom)))
+        if x1 - x0 < 0.1:
+            x0 -= 0.5
+            x1 += 0.5
+        if bottom - top < 0.1:
+            top -= 0.5
+            bottom += 0.5
+        boxes.append([x0, top, x1, bottom])
+    if not boxes:
+        return []
+
+    parent = list(range(len(boxes)))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def union(i: int, j: int) -> None:
+        ri, rj = find(i), find(j)
+        if ri != rj:
+            parent[rj] = ri
+
+    for i in range(len(boxes)):
+        for j in range(i):
+            a, b = boxes[i], boxes[j]
+            if not (a[2] + gap < b[0] or b[2] + gap < a[0]
+                    or a[3] + gap < b[1] or b[3] + gap < a[1]):
+                union(i, j)
+
+    groups: dict[int, list[list[float]]] = {}
+    for i, box in enumerate(boxes):
+        groups.setdefault(find(i), []).append(box)
+    clustered: list[list[float]] = []
+    for group in groups.values():
+        clustered.append([min(b[0] for b in group), min(b[1] for b in group),
+                          max(b[2] for b in group), max(b[3] for b in group)])
+    return clustered
+
+
+def _merge_native_boxes(boxes: list[dict]) -> list[dict]:
+    """合并原生图片与矢量簇里互相重叠的框，保留来源信息。"""
+    merged: list[dict] = []
+    for box in boxes:
+        x0, top, x1, bottom = box["pt"]
+        target = None
+        for old in merged:
+            ox0, otop, ox1, obottom = old["pt"]
+            ix = min(x1, ox1) - max(x0, ox0)
+            iy = min(bottom, obottom) - max(top, otop)
+            if ix <= 0 or iy <= 0:
+                continue
+            inter = ix * iy
+            small = max(1e-6, min((x1 - x0) * (bottom - top),
+                                  (ox1 - ox0) * (obottom - otop)))
+            if inter / small >= 0.5:
+                target = old
+                break
+        if target is None:
+            merged.append({"pt": list(box["pt"]), "sources": [box["source"]]})
+            continue
+        tx0, ttop, tx1, tbottom = target["pt"]
+        target["pt"] = [min(tx0, x0), min(ttop, top),
+                        max(tx1, x1), max(tbottom, bottom)]
+        if box["source"] not in target["sources"]:
+            target["sources"].append(box["source"])
+    return merged
+
+
+def _native_figure_boxes(page) -> list[dict]:
+    """从 pdfplumber 页面里找真正的图形资源：嵌入图片、矢量图簇。
+
+    为什么先做这一步：像素掩膜只能靠"这一块文字很少"猜图形，遇到"图 + 文字"混排
+    （本卷 Q11 的曲线图、Q17 的四棱锥）就完全失效——图被并进正文行，最终整块变成
+    一个 141.6pt 高的行盒，渲染时文字被撑开、压到下一节标题。PDF 自己知道哪里是
+    `image`、哪里是 `curve/line/rect`，直接用这些资源比猜可靠得多。
+
+    过滤掉装饰性小图（题号旁的图标 12x8pt）和表格（长直线多、格内字符多）。
+    """
+    width, height = page.width, page.height
+    boxes: list[dict] = []
+
+    for image in page.images:
+        x0, top = float(image["x0"]), float(image["top"])
+        x1, bottom = float(image["x1"]), float(image["bottom"])
+        w, h = x1 - x0, bottom - top
+        if w < 24 or h < 24 or w * h < NATIVE_FIGURE_MIN_AREA_PT:
+            continue
+        boxes.append({"pt": [x0, top, x1, bottom], "source": "pdf-image"})
+
+    vector_rects = []
+    for obj in list(page.curves) + list(page.lines) + list(page.rects):
+        vector_rects.append((obj["x0"], obj["top"], obj["x1"], obj["bottom"]))
+
+    chars = page.chars
+    for x0, top, x1, bottom in _cluster_rects(vector_rects, NATIVE_FIGURE_GAP_PT):
+        w, h = x1 - x0, bottom - top
+        if w < NATIVE_FIGURE_MIN_PT or h < NATIVE_FIGURE_MIN_PT:
+            continue
+        if w * h < NATIVE_FIGURE_MIN_AREA_PT:
+            continue
+        if w > width * 0.92 and h > height * 0.60:
+            continue
+
+        # 表格也由直线组成，但格子里有大量字符；坐标图只有 x/y/F 等少量标注。
+        inside_chars = 0
+        for ch in chars:
+            cx = (ch["x0"] + ch["x1"]) / 2
+            cy = (ch["top"] + ch["bottom"]) / 2
+            if x0 <= cx <= x1 and top <= cy <= bottom:
+                inside_chars += 1
+        long_lines = 0
+        for line in page.lines:
+            lw = abs(line["x1"] - line["x0"])
+            lh = abs(line["bottom"] - line["top"])
+            if max(lw, lh) >= 60:
+                lx = (line["x0"] + line["x1"]) / 2
+                ly = (line["top"] + line["bottom"]) / 2
+                if x0 <= lx <= x1 and top <= ly <= bottom:
+                    long_lines += 1
+        if inside_chars >= 12 and long_lines >= 3:
+            continue
+
+        boxes.append({"pt": [x0, top, x1, bottom], "source": "pdf-vector"})
+
+    return _merge_native_boxes(boxes)
+
+
+def _mask_figure_areas(gray, boxes: list[dict], scale: float,
+                       margin_pt: float = 2.0):
+    """把原生图形区涂白后再做行投影。
+
+    这是修复"图把文字行撑高"的关键：图形墨迹不再参与行投影，Q11 那段文字会恢复成
+    5 条独立行，Q17 也会恢复成 4 条；图形本身用原生资源单独裁回来。
+    """
+    if not boxes:
+        return gray
+    out = gray.copy()
+    h, w = out.shape[:2]
+    margin = max(1, int(round(margin_pt * scale)))
+    for box in boxes:
+        x0, top, x1, bottom = box["pt"]
+        l = max(0, int(round(x0 * scale)) - margin)
+        t = max(0, int(round(top * scale)) - margin)
+        r = min(w, int(round(x1 * scale)) + margin)
+        b = min(h, int(round(bottom * scale)) + margin)
+        if r > l and b > t:
+            out[t:b, l:r] = 255
+    return out
+
+
+def crop_native_figures(page_obj, boxes: list[dict], page_w: float, page_h: float,
+                        base_dpi: int, keep_images: bool) -> list[dict]:
+    """按原生 bbox 以 300 dpi 裁图，避免把 150 dpi 的整页图放大后糊掉。"""
+    if not boxes:
+        return []
+    entries: list[dict] = []
+    kb = base_dpi / 72.0
+    for box in boxes:
+        x0, top, x1, bottom = box["pt"]
+        entries.append({
+            "pt": [round(x0, 2), round(top, 2), round(x1, 2), round(bottom, 2)],
+            "px": [max(0, int(round(x0 * kb))), max(0, int(round(top * kb))),
+                   int(round(x1 * kb)), int(round(bottom * kb))],
+            "w_pt": round(x1 - x0, 2),
+            "h_pt": round(bottom - top, 2),
+            "source": "+".join(box["sources"]),
+        })
+    if not keep_images:
+        return entries
+
+    try:
+        scale = NATIVE_FIGURE_DPI / 72.0
+        hi = page_obj.render(scale=scale).to_pil().convert("RGB")
+        kx, ky = hi.width / page_w, hi.height / page_h
+        for entry in entries:
+            x0, top, x1, bottom = entry["pt"]
+            px_box = [max(0, int(round(x0 * kx))), max(0, int(round(top * ky))),
+                      min(hi.width, int(round(x1 * kx))),
+                      min(hi.height, int(round(bottom * ky)))]
+            if px_box[2] - px_box[0] < 24 or px_box[3] - px_box[1] < 24:
+                continue
+            buf = io.BytesIO()
+            hi.crop(tuple(px_box)).save(buf, "PNG", optimize=True)
+            entry["png_base64"] = base64.b64encode(buf.getvalue()).decode("ascii")
+    except Exception as exc:  # noqa: BLE001
+        log(f"原生图形裁片失败，退回像素裁片（{exc}）")
+        return []
+    return [e for e in entries if "png_base64" in e]
+
+
+def merge_native_figures(figures: list[dict], native: list[dict]) -> list[dict]:
+    """原生图形优先；与像素检测重叠时只保留一张，避免页面上叠两张半截图。"""
+    for nf in native:
+        nx0, ntop, nx1, nbottom = nf["pt"]
+        n_area = max(1e-6, (nx1 - nx0) * (nbottom - ntop))
+        hit = None
+        for i, fig in enumerate(figures):
+            fx0, ftop, fx1, fbottom = fig["pt"]
+            ix = min(nx1, fx1) - max(nx0, fx0)
+            iy = min(nbottom, fbottom) - max(ntop, ftop)
+            if ix > 0 and iy > 0 and ix * iy >= 800:
+                hit = i
+                break
+        if hit is None:
+            figures.append(nf)
+            continue
+        old = figures[hit]
+        ox0, otop, ox1, obottom = old["pt"]
+        o_area = max(1e-6, (ox1 - ox0) * (obottom - otop))
+        if n_area >= o_area * 0.6:
+            figures[hit] = nf
+    for i, fig in enumerate(figures):
+        fig["index"] = i
+    return figures
+
+
 class PdfFontProbe:
     """用 pdfplumber 读 PDF 文字层的字号。
 
@@ -1007,6 +1243,18 @@ class PdfFontProbe:
         if not self.pages or page_no > len(self.pages):
             return []
         return self.pages[page_no - 1].chars
+
+    def figure_boxes(self, page_no: int) -> list[dict]:
+        """返回该页原生图形框（图片 / 矢量簇），没有 pdfplumber 时返回空。"""
+        if not self.pages or page_no > len(self.pages):
+            return []
+        try:
+            return _native_figure_boxes(self.pages[page_no - 1])
+        except Exception as exc:  # noqa: BLE001
+            if not getattr(self, "_figure_warned", False):
+                log(f"原生图形提取不可用，退回像素检测（{exc}）")
+                self._figure_warned = True
+            return []
 
     def close(self) -> None:
         if self.pages:
@@ -1119,7 +1367,13 @@ def build(args) -> dict:
             gray = np.asarray(pil.convert("L"))
             pw, ph = page_obj.get_size()
 
-        raw_lines, typical_h_px = detect_lines(gray)
+        native_boxes = (font_probe.figure_boxes(pno)
+                        if font_probe is not None and not args.no_figures else [])
+        gray_for_lines = _mask_figure_areas(gray, native_boxes, scale)
+        if native_boxes:
+            log(f"第 {pno} 页原生图形资源 {len(native_boxes)} 个，已从行投影中剔除")
+
+        raw_lines, typical_h_px = detect_lines(gray_for_lines)
 
         # 异常高的内容块：按 PDF 文字层字符数拆成「正文行组」与「插图区」。
         # 没有文字层时 has_pdf_text 返回 -1，block 一律判正文（与旧版一致）。
@@ -1127,12 +1381,12 @@ def build(args) -> dict:
             extra_lines, figure_regions = [], []
         else:
             chars = font_probe.char_boxes(pno) if font_probe is not None else []
-            mask = text_coverage_mask(chars, gray.shape, scale)
+            mask = text_coverage_mask(chars, gray_for_lines.shape, scale)
             extra_lines, figure_regions = split_and_classify_regions(
-                gray, typical_h_px, mask)
+                gray_for_lines, typical_h_px, mask)
             # 表格：PaddleOCR-VL 会把表格压成逐格换行文本、结构不可恢复，
             # 所以按"长直线游程"识别表格区域，把整块当图裁出来（内容与结构都保真）。
-            table_regions = detect_table_grids(gray, typical_h_px)
+            table_regions = detect_table_grids(gray_for_lines, typical_h_px)
             for tr in table_regions:
                 figure_regions.append(tr)
             if table_regions:
@@ -1244,6 +1498,13 @@ def build(args) -> dict:
         # 插图：像素检测出的图形区 → 裁片 → 原位贴回前端
         figures = collect_figures(pil, figure_regions, pw, ph,
                                   keep_images=not args.no_images) if figure_regions else []
+        if native_boxes:
+            native_figures = crop_native_figures(
+                page_obj, native_boxes, pw, ph, args.dpi,
+                keep_images=not args.no_images)
+            figures = merge_native_figures(figures, native_figures)
+            if len(figures) != len(native_figures):
+                log(f"第 {pno} 页原生图形与像素检测合并后共 {len(figures)} 张")
         if figures:
             page_lines, in_fig = drop_lines_inside_figures(page_lines, figures)
             if in_fig:

@@ -3,7 +3,7 @@
 | 模块 | 职责 |
 |---|---|
 | `ocr_common.py` | **共用底层**：PDF 渲染、OCR 引擎调用、本地网页服务、提示词选择 |
-| `ocr_pipeline_layout.py` | **原版式流水线**：逐行坐标 + 插图裁片 + 表格裁片 → 单文件网页 |
+| `ocr_pipeline_layout.py` | **原版式流水线**：原生图形资源 + 逐行坐标 + 插图/表格裁片 → 单文件网页 |
 | `ocr_pipeline_blocks.py` | **结构块流水线**：heading/question/paragraph/table（供程序消费） |
 | `paths.py` | 项目根与所有默认路径（脚本不依赖当前工作目录） |
 

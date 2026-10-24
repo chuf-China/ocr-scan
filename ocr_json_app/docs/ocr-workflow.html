@@ -883,15 +883,15 @@
         <div class="stage-body">
           <div class="stage-head">
             <h3>几何还原：插图、表格、零交叠</h3>
-            <span class="stage-time">0.20 阈值</span>
+            <span class="stage-time">原生 bbox 优先</span>
           </div>
-          <p>插图用“墨迹落在文字蒙版上的比例”判定（阈值 0.20），表格用长直线游程找框线带；两者都从页面像素裁片，不采信模型给的 bbox。裁片不得压住任何正文行。</p>
+          <p>先取 PDF 原生图形资源（嵌入图 + 矢量线/曲线/矩形并集），在行投影前把图区涂掉，再按原生 bbox 以 300 dpi 裁片；取不到原生资源时才退回“墨迹落在文字蒙版上的比例”（阈值 0.20）。表格用长直线游程找框线带。两者都不采信模型给的 bbox，裁片也不得压住任何正文行。</p>
           <div class="io">
-            <span class="io-label">In</span><span class="io-chip">页面图</span><span class="io-chip">文字蒙版</span>
+            <span class="io-label">In</span><span class="io-chip">页面图</span><span class="io-chip">原生图形资源</span><span class="io-chip">文字蒙版</span>
             <span class="io-arrow" aria-hidden="true">→</span>
             <span class="io-label">Out</span><span class="io-chip">pt 区域盒</span><span class="io-chip">PNG 裁片</span>
           </div>
-          <p class="note">模型曾对一页连发 11 个相同占位符，也把整页当插图；几何检测是唯一稳定的来源。</p>
+          <p class="note">模型曾对一页连发 11 个相同占位符，也把整页当插图；原生几何 + 像素检测才是稳定来源。涂掉图区后，Q11 这类“图在右、文字在左”的行不会再被曲线粘成 141pt 的合并行。</p>
         </div>
       </article>
 
@@ -1166,7 +1166,7 @@
             <g class="arch-card">
               <rect class="card-bg" x="513" y="672" width="330" height="72" rx="10"/>
               <text x="529" y="694" class="arch-title-sm">几何还原：插图 / 表格 / 零交叠</text>
-              <text x="529" y="714" class="arch-sub">文字蒙版墨迹比 0.20 · 框线游程</text>
+              <text x="529" y="714" class="arch-sub">原生 bbox 优先 · 蒙版 0.20 · 框线游程</text>
               <text x="529" y="730" class="arch-sub">裁片压正文 = 红线</text>
             </g>
             <text x="513" y="764" class="arch-note">两条路线共用 ocr_common / paths；产物按 engine 严格分开。</text>
@@ -1298,7 +1298,7 @@
             </svg>
           </div>
           <h3>几何优先，不信模型 bbox</h3>
-          <p>模型会把整页当插图、连发相同占位符；插图与表格改由文字蒙版墨迹比、框线游程判定，和 OCR 引擎解耦。</p>
+          <p>模型会把整页当插图、连发相同占位符；插图优先取 PDF 原生图形资源，取不到时再退回文字蒙版墨迹比，表格用框线游程，和 OCR 引擎解耦。</p>
         </article>
 
         <article class="mech reveal" data-delay="2">
@@ -1479,7 +1479,7 @@ start out\viewer_layout_paddleocrvl.html</code></pre>
         <h3>已知限制</h3>
         <ul>
           <li><strong>官方流程的表格是 HTML 文本</strong>，可选中/搜索；llama.cpp 路线的表格仍是裁片，需要可检索表格时走官方流程。</li>
-          <li><strong>llama 路线的插图/表格检测依赖文字层</strong>；纯扫描件没有文字蒙版，会退回“全部当正文”。</li>
+          <li><strong>没有原生图形资源的纯扫描件仍会漏图</strong>；原生矢量/嵌入图可直接取 bbox，取不到时才依赖文字蒙版，纯扫描件会退回“全部当正文”。</li>
           <li><strong>字体回退</strong>：原卷字体本机未安装时会回退到 SimSun，字宽略有差异；公式与关键数字建议对照原始扫描。</li>
           <li><strong>OCR 仍是模型转录</strong>，个位错字难免；阅读器保留「原始扫描」切换，就是为了让复核回到原图。</li>
         </ul>
