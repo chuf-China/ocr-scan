@@ -102,7 +102,7 @@ def find_python311() -> str | None:
 
 
 def test_low_version_syntax() -> None:
-    print("[1/7] 低版本解释器语法（只允许 3.9 / 3.11 能编译的写法）")
+    print("[1/8] 低版本解释器语法（只允许 3.9 / 3.11 能编译的写法）")
     files = sorted(glob.glob(os.path.join(BOOT, "*.py")))
     # 先用当前解释器确认全部可解析
     for path in files:
@@ -183,7 +183,7 @@ def _free_names_in_functions(tree: ast.Module) -> dict[str, set[str]]:
 
 
 def test_undefined_names() -> None:
-    print("[2/7] 未定义名（函数体引用了模块级没有的名字）")
+    print("[2/8] 未定义名（函数体引用了模块级没有的名字）")
     for path in sorted(glob.glob(os.path.join(BOOT, "*.py"))):
         fn = os.path.basename(path)
         tree = ast.parse(open(path, encoding="utf-8").read(), fn)
@@ -194,7 +194,7 @@ def test_undefined_names() -> None:
 
 # ---------------------------------------------------------------- ③ 结构块流水线
 def test_blocks_pipeline() -> None:
-    print("[3/7] ocr_pipeline_blocks 纯函数")
+    print("[3/8] ocr_pipeline_blocks 纯函数")
     try:
         blocks = load_module("ocr_pipeline_blocks.py")
     except Exception as exc:  # noqa: BLE001
@@ -256,7 +256,7 @@ def test_table_shape_guard() -> None:
     实测模型会吐 100 列表头（1..100）和整表 1,000.00 的财务表；没有这道闸门，
     页面上会出现一张看起来像原文的假表——比乱码更危险（乱码一眼可辨）。
     """
-    print("[4/7] 表格形状闸门（ocr_pipeline_layout._table_shape_ok）")
+    print("[4/8] 表格形状闸门（ocr_pipeline_layout._table_shape_ok）")
     try:
         import numpy  # noqa: F401
     except ImportError:
@@ -284,7 +284,7 @@ def test_table_shape_guard() -> None:
 
 # ---------------------------------------------------------------- ⑤ 版式纯函数
 def test_layout_helpers() -> None:
-    print("[5/7] ocr_pipeline_layout 纯函数（投票 / 幻觉 / 行合并 / 框线）")
+    print("[5/8] ocr_pipeline_layout 纯函数（投票 / 幻觉 / 行合并 / 框线）")
     try:
         import numpy
     except ImportError:
@@ -358,7 +358,7 @@ def test_native_figures() -> None:
     渲染时压到下一节标题。像素掩膜只能按"文字少"猜图形，混排图必然漏；这里用
     PDF 自己的 image / curve / line / rect 资源，并用表格与装饰图反例锁死过滤。
     """
-    print("[6/7] ocr_pipeline_layout 原生图形（图片 / 矢量簇 / 掩膜 / 300dpi 裁片）")
+    print("[6/8] ocr_pipeline_layout 原生图形（图片 / 矢量簇 / 掩膜 / 300dpi 裁片）")
     try:
         import numpy
         from PIL import Image
@@ -385,6 +385,10 @@ def test_native_figures() -> None:
           f"实得 {boxes}")
     page = FakePage(images=[{"x0": 10.0, "top": 10.0, "x1": 22.0, "bottom": 18.0}])
     check("装饰小图被忽略", layout._native_figure_boxes(page) == [])
+    # 纯扫描 PDF：整页是一张位图，它是页面背景，不是插图；误当图会涂掉整页正文。
+    page = FakePage(images=[{"x0": 0.0, "top": 0.0, "x1": 595.0, "bottom": 842.0}])
+    check("整页扫描图不被当成插图", layout._native_figure_boxes(page) == [],
+          f"实得 {layout._native_figure_boxes(page)}")
 
     # 2) 矢量图：坐标轴/曲线/刻度分成多个 path，按邻近关系并成一个框。
     curves = [
@@ -466,6 +470,55 @@ def test_native_figures() -> None:
           and merged[0]["png_base64"] == "native", f"实得 {merged}")
 
 
+def test_native_text() -> None:
+    """原生文字层：质量标记、字符聚行、与 OCR 行匹配。"""
+    print("[7/8] ocr_pipeline_layout 原生文字层（质量 / 聚行 / 匹配）")
+    layout = load_module("ocr_pipeline_layout.py")
+
+    quality, score = layout.native_text_quality("2024 年普通高等学校招生全国统一考试")
+    check("原生正文判为 text", quality == "text" and score >= 0.9,
+          f"实得 {(quality, score)}")
+    quality, _ = layout.native_text_quality("\ue000\ue001\ue002")
+    check("私有字库字符判为 math", quality == "math", f"实得 {quality}")
+    quality, _ = layout.native_text_quality("若 α+β=π，则 cos α=−1")
+    check("希腊字母/数学符号判为 math", quality == "math", f"实得 {quality}")
+    check("空原生行判为 empty", layout.native_text_quality("  ")[0] == "empty")
+
+    chars = [
+        {"text": "已", "x0": 10.0, "x1": 22.0, "top": 10.0, "bottom": 24.0, "size": 12.0},
+        {"text": "知", "x0": 23.0, "x1": 35.0, "top": 10.5, "bottom": 24.5, "size": 12.0},
+        {"text": "集", "x0": 36.0, "x1": 48.0, "top": 11.0, "bottom": 25.0, "size": 12.0},
+        {"text": "合", "x0": 10.0, "x1": 22.0, "top": 34.0, "bottom": 48.0, "size": 12.0},
+    ]
+    lines = layout.native_lines_from_chars(chars)
+    check("相邻字符聚成同一行", len(lines) == 2, f"实得 {len(lines)} 行")
+    check("原生行按 y 排序并拼字", lines and lines[0]["text"] == "已知集"
+          and lines[1]["text"] == "合", f"实得 {[l['text'] for l in lines]}")
+    check("图形区内字符被排除",
+          layout.native_lines_from_chars(chars, [{"pt": [0, 0, 60, 60]}]) == [])
+
+    ocr = [{"top": 8.0, "bottom": 26.0, "left": 8.0, "right": 60.0,
+            "_ocr": {"text": "已知集合"}}]
+    native = [{"text": "已知集合", "top": 10.0, "bottom": 25.0,
+               "left": 10.0, "right": 48.0, "quality": "text"}]
+    info = layout.annotate_native_text(ocr, native)
+    check("原生行匹配到 OCR 行", info["matched"] == 1 and info["mismatched"] == 0,
+          f"实得 {info}")
+    check("匹配结果挂回 OCR 行", ocr[0].get("native_text") == "已知集合"
+          and ocr[0].get("native_quality") == "text")
+
+    ocr = [{"top": 8.0, "bottom": 26.0, "left": 8.0, "right": 60.0,
+            "_ocr": {"text": "完全不同的一句话"}}]
+    info = layout.annotate_native_text(ocr, native)
+    check("可靠原生行与 OCR 明显不同 → mismatch",
+          info["mismatched"] == 1 and ocr[0].get("native_mismatch") is True,
+          f"实得 {info}")
+    check("mismatch 保留诊断样本",
+          len(info.get("mismatch_samples") or []) == 1
+          and info["mismatch_samples"][0]["native"] == "已知集合",
+          f"实得 {info.get('mismatch_samples')}")
+
+
 def test_output_path_collision() -> None:
     """认不出的引擎必须单独命名，不能覆盖 OvisOCR2 的产物。
 
@@ -474,7 +527,7 @@ def test_output_path_collision() -> None:
     产物换成了另一个引擎的结果，而 `run_all_checks.py` 还在校验那份文件，
     校验照旧"通过"。这类覆盖没有任何报错，只能靠断言锁住。
     """
-    print("[7/7] 产物路径：不同引擎不得互相覆盖")
+    print("[8/8] 产物路径：不同引擎不得互相覆盖")
     import paths
 
     reserved = {
@@ -514,6 +567,7 @@ def main() -> int:
     test_table_shape_guard()
     test_layout_helpers()
     test_native_figures()
+    test_native_text()
     test_output_path_collision()
     print(f"\n{PASSED} 个通过 / {len(FAILED)} 个失败"
           f"{f' / {len(SKIPPED)} 个跳过' if SKIPPED else ''}")

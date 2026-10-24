@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import base64
 import concurrent.futures
+import difflib
 import html as html_lib
 import io
 import json
@@ -39,6 +40,7 @@ import statistics
 import sys
 import threading
 import time
+import unicodedata
 
 import numpy as np
 
@@ -1074,6 +1076,13 @@ def _merge_native_boxes(boxes: list[dict]) -> list[dict]:
     return merged
 
 
+def _is_page_background(box: tuple[float, float, float, float],
+                        page_w: float, page_h: float) -> bool:
+    """整页扫描图/页边框不是插图，不能当图区涂掉。"""
+    x0, y0, x1, y1 = box
+    return ((x1 - x0) >= page_w * 0.85 and (y1 - y0) >= page_h * 0.85)
+
+
 def _native_figure_boxes(page) -> list[dict]:
     """从 pdfplumber 页面里找真正的图形资源：嵌入图片、矢量图簇。
 
@@ -1093,6 +1102,9 @@ def _native_figure_boxes(page) -> list[dict]:
         w, h = x1 - x0, bottom - top
         if w < 24 or h < 24 or w * h < NATIVE_FIGURE_MIN_AREA_PT:
             continue
+        if _is_page_background((x0, top, x1, bottom), width, height):
+            # 整页扫描图只是页面的像素背景，不是插图；涂白它会把整页正文都抹掉。
+            continue
         boxes.append({"pt": [x0, top, x1, bottom], "source": "pdf-image"})
 
     vector_rects = []
@@ -1105,6 +1117,8 @@ def _native_figure_boxes(page) -> list[dict]:
         if w < NATIVE_FIGURE_MIN_PT or h < NATIVE_FIGURE_MIN_PT:
             continue
         if w * h < NATIVE_FIGURE_MIN_AREA_PT:
+            continue
+        if _is_page_background((x0, top, x1, bottom), width, height):
             continue
         if w > width * 0.92 and h > height * 0.60:
             continue
@@ -1305,6 +1319,254 @@ def clamp_sizes(lines: list[dict]) -> None:
             line["size_clamped"] = True
 
 
+# ---------------------------------------------------------------- 原生文字层
+#
+# 这一层不替代 OCR，只把 pdfplumber 的字符坐标变成「行」和「质量标记」：
+# - 原生字符可靠 → 记录成候选，OCR 空行时补位；
+# - 原生字符是私有字库/乱码 → 标记为 math，不碰 OCR 结果；
+# - 两种来源的坐标互相校验，原生有行而像素没有、或反过来，都留证据。
+# 纯扫描件没有字符，这一层自动退化为空，不影响主流程。
+
+NATIVE_TEXT_MIN_RATIO = 0.85
+NATIVE_TEXT_GOOD_PUNCT = set(
+    "，。；：、！？（）《》“”‘’【】—…·,.;:!?()[]{}<>/\\-+*=<>%$#@&_|~^`'\""
+)
+
+
+def _is_private_char(ch: str) -> bool:
+    cp = ord(ch)
+    return (0xE000 <= cp <= 0xF8FF or 0xF0000 <= cp <= 0x10FFFF
+            or cp == 0xFFFD or (cp < 32 and ch not in "\n\t\r"))
+
+
+_MATH_SYMBOLS = set(
+    "×÷±≤≥≠≈∞∑∏∫√∠⊥∥°′″∪∩∈∉⊂⊃⊆⊇→←↔⇒⇔∀∃∂∇∼≅≡≪≫"
+    "−⊕⊗○△□"
+)
+
+
+def _looks_math_text(text: str) -> bool:
+    """原生行里出现数学符号（含希腊字母/上下标）时不能当作普通正文。
+
+    PDF 原生文字层会把公式拆成普通字符，``x2``、``y0`` 正是上下标丢失后的样子；
+    只靠 PUA 判断会把整行误标成可安全采用的正文。
+    """
+    for ch in text:
+        if ch in _MATH_SYMBOLS:
+            return True
+        cp = ord(ch)
+        if 0x0370 <= cp <= 0x03FF:      # 希腊字母
+            return True
+        if 0x2070 <= cp <= 0x209F:      # 上标/下标
+            return True
+        if 0x2200 <= cp <= 0x22FF:      # 数学运算符
+            return True
+        if 0x2A00 <= cp <= 0x2AFF:      # 补充数学运算符（⩽ ⩾ 等）
+            return True
+        if cp in (0x00B2, 0x00B3, 0x00B9):  # ² ³ ¹
+            return True
+    return False
+
+
+def native_text_quality(text: str) -> tuple[str, float]:
+    """给一行原生文字打质量标记：``text`` / ``mixed`` / ``math`` / ``empty``。
+
+    数学卷的公式字符常来自私有字库：``ord(ch)`` 落在 PUA，或直接是乱码。
+    这类行不能拿来替换 OCR；但普通中文/数字/字母可以。
+    """
+    chars = [ch for ch in text if not ch.isspace()]
+    if not chars:
+        return "empty", 0.0
+    good = bad = 0
+    for ch in chars:
+        if _is_private_char(ch):
+            bad += 1
+        elif "\u4e00" <= ch <= "\u9fff":
+            good += 1
+        elif ch.isascii():
+            if ch.isalnum() or ch in NATIVE_TEXT_GOOD_PUNCT:
+                good += 1
+            else:
+                bad += 1
+        elif ch in NATIVE_TEXT_GOOD_PUNCT:
+            good += 1
+        elif unicodedata.category(ch)[0] in "LN":
+            good += 1
+        else:
+            bad += 1
+    ratio = good / max(1, good + bad)
+    if _looks_math_text(text):
+        return "math", round(ratio, 4)
+    if ratio >= NATIVE_TEXT_MIN_RATIO:
+        return "text", round(ratio, 4)
+    if ratio < 0.55:
+        return "math", round(ratio, 4)
+    return "mixed", round(ratio, 4)
+
+
+def _same_text_line(a: dict, b: dict) -> bool:
+    """两个字符是否属于同一文本行（允许上下标造成的基线偏移）。"""
+    ah, bh = a["bottom"] - a["top"], b["bottom"] - b["top"]
+    if ah <= 0 or bh <= 0:
+        return False
+    overlap = min(a["bottom"], b["bottom"]) - max(a["top"], b["top"])
+    min_h = min(ah, bh)
+    if overlap / min_h < 0.28:
+        return False
+    ac, bc = (a["top"] + a["bottom"]) / 2, (b["top"] + b["bottom"]) / 2
+    return abs(ac - bc) <= max(a.get("size", 0), b.get("size", 0)) * 0.75
+
+
+def native_lines_from_chars(chars: list[dict],
+                            exclude_boxes: list[dict] | None = None) -> list[dict]:
+    """把字符级坐标聚成原生文本行；图形区里的标注不参与。
+
+    只做"行"粒度，不做列切分：这些卷子是单栏，选项也常在同一视觉行；
+    后续按行盒和 OCR 行做重叠匹配即可。
+    """
+    boxes = [b["pt"] for b in (exclude_boxes or []) if b.get("pt")]
+    items: list[dict] = []
+    for ch in chars:
+        text = (ch.get("text") or "").strip()
+        if not text:
+            continue
+        try:
+            top, bottom = float(ch["top"]), float(ch["bottom"])
+            left, right = float(ch["x0"]), float(ch["x1"])
+            size = float(ch.get("size") or 0)
+        except (KeyError, TypeError, ValueError):
+            continue
+        if bottom - top <= 0 or size <= 0:
+            continue
+        cx, cy = (left + right) / 2, (top + bottom) / 2
+        if any(x0 <= cx <= x1 and top <= cy <= bottom
+               for x0, top, x1, bottom in boxes):
+            continue
+        items.append({"text": text, "top": top, "bottom": bottom,
+                      "x0": left, "x1": right, "size": size})
+
+    items.sort(key=lambda c: (c["top"], c["x0"]))
+    groups: list[list[dict]] = []
+    for item in items:
+        target = None
+        for group in groups:
+            probe = {"top": group[0]["top"], "bottom": group[0]["bottom"],
+                     "size": group[0]["size"]}
+            if _same_text_line(item, probe):
+                target = group
+                break
+        if target is None:
+            groups.append([item])
+        else:
+            target.append(item)
+
+    lines: list[dict] = []
+    for group in groups:
+        group.sort(key=lambda c: c["x0"])
+        size = statistics.median([c["size"] for c in group])
+        parts: list[str] = []
+        prev = None
+        for c in group:
+            if prev is not None:
+                gap = c["x0"] - prev["x1"]
+                # 中文之间不插空格（会改变字面），字母/数字之间按字宽补空格。
+                if (gap > size * 0.35 and
+                        (prev["text"].isascii() or c["text"].isascii())):
+                    parts.append(" ")
+            parts.append(c["text"])
+            prev = c
+        text = "".join(parts).strip()
+        if not text:
+            continue
+        quality, score = native_text_quality(text)
+        lines.append({
+            "text": text,
+            "top": round(min(c["top"] for c in group), 2),
+            "bottom": round(max(c["bottom"] for c in group), 2),
+            "left": round(min(c["x0"] for c in group), 2),
+            "right": round(max(c["x1"] for c in group), 2),
+            "size_pt": round(size, 2),
+            "quality": quality,
+            "quality_score": score,
+        })
+    lines.sort(key=lambda l: (l["top"], l["left"]))
+    return lines
+
+
+def _norm_native_text(text: str) -> str:
+    return re.sub(r"\s+", "", text or "")
+
+
+def annotate_native_text(ocr_lines: list[dict], native_lines: list[dict]) -> dict:
+    """把原生行按几何匹配到 OCR 行，返回质量摘要并把候选挂回 OCR 行。"""
+    used: set[int] = set()
+    matched = mismatched = 0
+    native_only: list[dict] = []
+    mismatch_samples: list[dict] = []
+    for nl in native_lines:
+        best_idx, best_score = None, 0.0
+        ncy = (nl["top"] + nl["bottom"]) / 2
+        nh = max(0.1, nl["bottom"] - nl["top"])
+        for idx, ol in enumerate(ocr_lines):
+            if idx in used:
+                continue
+            otop, obottom = float(ol.get("top") or 0), float(ol.get("bottom") or 0)
+            oh = max(0.1, obottom - otop)
+            v = min(nl["bottom"], obottom) - max(nl["top"], otop)
+            if v / min(nh, oh) < 0.30:
+                continue
+            ocy = (otop + obottom) / 2
+            if abs(ncy - ocy) > max(nh, oh) * 0.75:
+                continue
+            left = max(nl["left"], float(ol.get("left") or 0))
+            right = min(nl["right"], float(ol.get("right") or 0))
+            h = max(0.0, right - left)
+            if h / max(1.0, min(nl["right"] - nl["left"],
+                                float(ol.get("right") or 0) - float(ol.get("left") or 0))) < 0.10:
+                continue
+            score = v / min(nh, oh) + h / max(1.0, nl["right"] - nl["left"])
+            if score > best_score:
+                best_idx, best_score = idx, score
+        if best_idx is None:
+            native_only.append({"text": nl["text"], "top": nl["top"],
+                                "quality": nl["quality"]})
+            continue
+        used.add(best_idx)
+        ol = ocr_lines[best_idx]
+        ocr_text = (_norm_native_text(ol.get("_ocr", {}).get("text", "")))
+        ntext = _norm_native_text(nl["text"])
+        similarity = None
+        if ocr_text and ntext:
+            similarity = round(difflib.SequenceMatcher(None, ntext, ocr_text).ratio(), 4)
+        ol["native_text"] = nl["text"]
+        ol["native_quality"] = nl["quality"]
+        ol["native_similarity"] = similarity
+        matched += 1
+        if (nl["quality"] == "text" and similarity is not None
+                and similarity < 0.55 and len(ntext) >= 4 and len(ocr_text) >= 4):
+            mismatched += 1
+            ol["native_mismatch"] = True
+            if len(mismatch_samples) < 5:
+                mismatch_samples.append({
+                    "ocr": str(ol.get("_ocr", {}).get("text", ""))[:80],
+                    "native": nl["text"][:80],
+                    "similarity": similarity,
+                })
+
+    ocr_only = [idx for idx in range(len(ocr_lines)) if idx not in used]
+    return {
+        "available": True,
+        "lines": len(native_lines),
+        "reliable_lines": sum(1 for nl in native_lines if nl["quality"] == "text"),
+        "matched": matched,
+        "mismatched": mismatched,
+        "native_only": len(native_only),
+        "ocr_only": len(ocr_only),
+        "native_only_samples": native_only[:8],
+        "mismatch_samples": mismatch_samples,
+    }
+
+
 # ---------------------------------------------------------------- 逐行 OCR
 
 def crop_line(pil, line: dict) -> bytes:
@@ -1354,6 +1616,9 @@ def build(args) -> dict:
 
     out_pages: list[dict] = []
     warnings: list[str] = []
+    native_total = {"chars": 0, "lines": 0, "reliable": 0, "matched": 0,
+                    "mismatched": 0, "native_only": 0, "ocr_only": 0,
+                    "fallbacks": 0}
     t_start = time.time()
 
     # pypdfium2 是原生库，多线程渲染会 access violation → 渲染串行，OCR 并发
@@ -1402,6 +1667,8 @@ def build(args) -> dict:
             log(f"第 {pno} 页合并 {before - len(lines)} 条重复行（行投影与高块重切同时命中）")
         used = "raster-projection"
         sizes_hint = font_probe.char_boxes(pno) if font_probe is not None else None
+        native_lines = native_lines_from_chars(
+            sizes_hint or [], native_boxes if not args.no_figures else [])
 
         # 兜底：整页只有一条超长行时不硬拆，直接整页 OCR
         if args.single_line_fallback and len(lines) <= 1:
@@ -1458,6 +1725,19 @@ def build(args) -> dict:
                 line["size_source"] = "estimated"
         clamp_sizes(lines)
 
+        native_info = (annotate_native_text(lines, native_lines) if native_lines
+                       else {"available": bool(sizes_hint), "lines": 0,
+                             "reliable_lines": 0, "matched": 0, "mismatched": 0,
+                             "native_only": 0, "ocr_only": 0,
+                             "native_only_samples": []})
+        native_info["chars"] = len(sizes_hint or [])
+        if native_info["available"]:
+            log(f"第 {pno} 页原生文字 {native_info['lines']} 行"
+                f"（可靠 {native_info['reliable_lines']}），匹配 OCR "
+                f"{native_info['matched']} 行，原生独有 {native_info['native_only']}，"
+                f"OCR 独有 {native_info['ocr_only']}")
+        native_fallbacks = 0
+
         page_lines = []
         dropped = 0
         raw_texts = [line["_ocr"]["text"] for line in lines]
@@ -1465,6 +1745,15 @@ def build(args) -> dict:
             res = line.pop("_ocr")
             # 表格单独成结构（不能让它被压成一行文本）
             tables, cleaned = extract_tables(clean_ocr_text(res["text"]), res["text"])
+            text_source = "ocr"
+            if (not cleaned and not tables
+                    and line.get("native_quality") == "text"
+                    and line.get("native_text")):
+                native_cleaned = clean_ocr_text(line["native_text"])
+                if native_cleaned and not _is_hallucination(native_cleaned):
+                    cleaned = native_cleaned
+                    text_source = "native-text"
+                    native_fallbacks += 1
             if not cleaned and not tables:
                 continue
             if not cleaned and tables:
@@ -1486,6 +1775,11 @@ def build(args) -> dict:
                 "multiline": bool(line.get("typical_h")
                                   and line["px_height"] > line["typical_h"] * 1.25),
                 "text": cleaned,
+                "text_source": text_source,
+                "native_text": line.get("native_text"),
+                "native_quality": line.get("native_quality"),
+                "native_similarity": line.get("native_similarity"),
+                "native_mismatch": line.get("native_mismatch", False),
                 "tables": tables,
                 "finish_reason": res["finish_reason"],
                 "votes": res.get("votes"),
@@ -1542,7 +1836,16 @@ def build(args) -> dict:
             "figures": figures,
             "markdown": "\n".join(l["text"] for l in page_lines),
             "elapsed_s": round(time.time() - t_page, 2),
+            "native_text": native_info,
         }
+        native_total["chars"] += native_info.get("chars", 0)
+        native_total["lines"] += native_info.get("lines", 0)
+        native_total["reliable"] += native_info.get("reliable_lines", 0)
+        native_total["matched"] += native_info.get("matched", 0)
+        native_total["mismatched"] += native_info.get("mismatched", 0)
+        native_total["native_only"] += native_info.get("native_only", 0)
+        native_total["ocr_only"] += native_info.get("ocr_only", 0)
+        native_total["fallbacks"] += native_fallbacks
         if not args.no_images:
             buf = io.BytesIO()
             pil.save(buf, "JPEG", quality=72, optimize=True)
@@ -1571,6 +1874,17 @@ def build(args) -> dict:
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
             "elapsed_s": round(time.time() - t_start, 2),
             "warnings": warnings,
+            "native_text": {
+                "available": native_total["chars"] > 0,
+                "chars": native_total["chars"],
+                "lines": native_total["lines"],
+                "reliable_lines": native_total["reliable"],
+                "matched_lines": native_total["matched"],
+                "mismatched_lines": native_total["mismatched"],
+                "native_only_lines": native_total["native_only"],
+                "ocr_only_lines": native_total["ocr_only"],
+                "fallbacks": native_total["fallbacks"],
+            },
         },
         "stats": {
             "pages": len(out_pages),
@@ -1581,6 +1895,10 @@ def build(args) -> dict:
             "disagreed_lines": sum(1 for l in all_lines if l.get("disagreement")),
             "size_from_text_layer": sum(1 for l in all_lines
                                         if l.get("size_source") == "pdf-text-layer"),
+            "native_text_lines": native_total["lines"],
+            "native_text_matched": native_total["matched"],
+            "native_text_mismatched": native_total["mismatched"],
+            "native_text_fallbacks": native_total["fallbacks"],
         },
         "pages": out_pages,
     }

@@ -303,9 +303,15 @@ CLI 不要求手动传 `--prompt`。
 {
   "document": { "title", "source_pdf", "mode": "layout", "dpi": 150,
                 "engine": "llama.cpp/paddleocr-vl", "page_size_pt": [595.3, 841.9],
-                "elapsed_s", "warnings": [] },
+                "elapsed_s", "warnings": [],
+                "native_text": { "available": true, "chars": 2417, "lines": 118,
+                                 "reliable_lines": 78, "matched_lines": 90,
+                                 "mismatched_lines": 5, "native_only_lines": 28,
+                                 "ocr_only_lines": 0, "fallbacks": 0 } },
   "stats": { "pages": 6, "lines": 77, "lines_with_math": 51, "figures": 5,
-             "vote": 3, "disagreed_lines": 0 },
+             "vote": 3, "disagreed_lines": 0,
+             "native_text_lines": 118, "native_text_matched": 90,
+             "native_text_mismatched": 5, "native_text_fallbacks": 0 },
   "pages": [ {
       "page": 3, "width": 595.3, "height": 841.9,     // pt，A4
       "render_px": [1240, 1754], "line_source": "raster-projection",
@@ -315,6 +321,10 @@ CLI 不要求手动传 `--prompt`。
           "size_pt": 10.45, "size_source": "pdf-text-layer", "size_clamped": false,
           "multiline": false, "typical_h_pt": 19.4,
           "text": "17. 为开展社区与学校教育共建活动…",
+          "text_source": "ocr",                            // 或 native-text
+          "native_text": "17. 为开展社区与学校教育共建活动…",
+          "native_quality": "text",                        // text / mixed / math / empty
+          "native_similarity": 0.98, "native_mismatch": false,
           "tables": [ { "headers": [...], "rows": [[...]], "source": "html-table" } ],
           "votes": 3, "disagreement": false
       } ],
@@ -329,6 +339,10 @@ CLI 不要求手动传 `--prompt`。
   } ]
 }
 ```
+
+有文字层的 PDF 会额外产出 `native_text` 旁路（`pdfplumber` chars 聚行 + 与 OCR 行比对）：
+`native_quality` 是 `text` / `mixed` / `math` / `empty`，只有 OCR 行为空时才用 `native-text` 兜底；
+公式行仍以 OCR 为准。数学卷的原生字层常把公式拆成 `x2`/`y0` 或私有字库，不能直接替换。
 
 网页顶部可切换 **「OCR 文本层」/「原始扫描」**：前者是重建版式（可选中、可搜索，KaTeX 排版公式），
 后者是原始页图。插图与表格裁片在两个视图下都在原位。

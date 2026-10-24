@@ -163,8 +163,10 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    `run_ocr.ps1` 会先杀掉所有 `llama-server`，别人也在用时先确认。
 9. **插图/表格不信任模型坐标**：优先取 PDF 原生图形资源（`pdfplumber` 的 `images` /
    `curves+lines+rects` 并集），**在行投影前把原生图区涂掉**，避免图里的曲线把相邻文字行粘成
-   一个超高的合并行；没有原生资源时再退回墨迹比例 / 框线游程。裁片按原生 bbox 以 300 dpi
-   出图，插图裁片与正文行的交叠必须为 **0**（`check_render` 在 > 1 pt² 时即报错），这是红线。
+   一个超高的合并行；没有原生资源时再退回墨迹比例 / 框线游程。整页扫描位图是页面背景，
+   不能当插图涂白（否则整页正文全没），`_is_page_background()` 会跳过它。裁片按原生 bbox
+   以 300 dpi 出图，插图裁片与正文行的交叠必须为 **0**（`check_render` 在 > 1 pt² 时即报错），
+   这是红线。
    浏览器实渲的“叠字/越界”也已是 llama 产物的硬门（`run_all_checks` 解析 `__OCR_DIAG__`，
    非 0 即失败）；官方 line-only 产物只告警。
 10. **公式定界符两种都要支持**：官方流程输出 `$...$`，llama 时代的 Paddle 输出 `\(...\)`；
@@ -172,6 +174,11 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
 11. **提交前只添加真正改动的文件**（不要 `git add -A`）：`out/` 样例产物、`data/` 输入、
     `vendor/` 是刻意跟踪的；`__pycache__/` 与 `*.pyc` 已被 `.gitignore` 忽略。工作区里仓库外的
     `ocr_json_app.rar` 不要提交，也不要解压进仓库。
+12. **原生文字层只做旁路，不覆盖 OCR 公式**：PDF 有 text layer 时，`pdfplumber` 的 chars 会按
+    行聚合并与 OCR 行做几何/文本比对，结果写在 `native_text`、`native_quality`、
+    `native_similarity`、`native_mismatch` 与页/文档 `native_text` 统计里。只有 OCR 行为空时才用
+    `native-text` 兜底；数学卷的原生字层常把公式拆成 `x2`/`y0` 或私有字库，不能拿它替换 OCR。
+    不要为了“多用原生字”放宽这条——公式正确性优先。
 
 ## 改哪里 / 怎么改
 

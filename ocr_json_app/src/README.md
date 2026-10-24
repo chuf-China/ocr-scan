@@ -18,3 +18,17 @@ python src\ocr_pipeline_layout.py --serve-only --out out\paper.layout.paddle.jso
 ```
 
 两者都提供了 `main()`，可直接当脚本跑。详细设计取舍见 ../README.md。
+
+## 原生文字层（layout 流水线）
+
+PDF 本身有文字层时，`ocr_pipeline_layout.py` 会从 `pdfplumber` 的 chars 取原生字符，按 y
+聚成行，和 OCR 行做几何 + 文本比对；结果只作为**旁路**，不直接覆盖 OCR：
+
+- `native_text` / `native_quality` / `native_similarity` / `native_mismatch`：每行的候选原生文字、
+  质量（`text` / `mixed` / `math` / `empty`）、匹配相似度、是否明显不一致；
+- 页和文档的 `native_text` 统计：`chars`、`lines`、`matched_lines`、`mismatched_lines`、
+  `native_only_lines`、`fallbacks`；
+- 只有 OCR 行文字为空、且原生行质量是 `text` 时才用 `native-text` 兜底；公式行仍走 OCR。
+
+数学卷的原生字层常把公式拆成 `x2`/`y0`，或使用私有字库；原生文字只用于质量诊断和
+“OCR 缺字”兜底，不能拿它替换公式。
