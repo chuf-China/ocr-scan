@@ -165,10 +165,12 @@ python tools\import_paddleocr_json.py out\paddleocr_raw --out out\paper.layout.p
 
 ```
 ocr_json_app/
-├─ run_ocr.ps1                  唯一入口：起引擎 → OCR → 渲染 → 对比页
+├─ run_ocr.ps1                  llama.cpp 路线入口（Windows）
+├─ run_paddleocr_vl.sh          官方 PaddleOCR-VL 流程入口（WSL2）
 ├─ README.md
-├─ docs/                        手写说明：工作流与架构可视化
-│  ├─ ocr-workflow.html
+├─ docs/                        手写说明与官方流程指南
+│  ├─ paddleocr-vl-guide.md     官方流程实战（安装 / 参数 / 坑）
+│  ├─ ocr-workflow.html         工作流与架构可视化
 │  └─ ocr-workflow-preview.png
 │
 ├─ src/                         库与流水线

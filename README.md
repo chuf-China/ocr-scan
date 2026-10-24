@@ -7,7 +7,8 @@
 （架构、数据流、设计取舍、JSON 结构、校验分层、已知限制、排障，全在里面。）
 
 > 给编码代理的仓库约定见 [`AGENTS.md`](AGENTS.md)；可视化工作流见
-> [`ocr_json_app/docs/ocr-workflow.html`](ocr_json_app/docs/ocr-workflow.html)。
+> [`ocr_json_app/docs/ocr-workflow.html`](ocr_json_app/docs/ocr-workflow.html)，
+> 官方流程实战见 [`ocr_json_app/docs/paddleocr-vl-guide.md`](ocr_json_app/docs/paddleocr-vl-guide.md)。
 
 ```powershell
 cd ocr_json_app
