@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import concurrent.futures
 import html
 import io
@@ -38,6 +39,13 @@ from ocr_common import (  # noqa: E402
 
 # ---------------------------------------------------------------- Markdown → 结构块
 
+def ensure_python_version(min_version: tuple[int, int] = (3, 9)) -> None:
+    """解释器太老时给一条能读懂的提示，而不是让人对着 SyntaxError 猜。"""
+    if sys.version_info < min_version:
+        die(f"需要 Python {min_version[0]}.{min_version[1]}+，"
+            f"当前是 {sys.version.split()[0]}（{sys.executable}）", 2)
+
+
 def strip_md(text: str) -> str:
     """去掉行内/块级 Markdown 标记，保留 LaTeX 与纯文本。"""
     text = re.sub(r"^\s{0,3}#{1,6}\s*", "", text)
@@ -55,6 +63,35 @@ REPEATED_PUNCT_RE = re.compile(r"([。，、；：])\1+")
 
 def normalize_punct(text: str) -> str:
     return REPEATED_PUNCT_RE.sub(r"\1", text)
+
+
+# 卷面小节的编号：`一、填空题` / `二．选择题` / `三. 解答题`。
+# ⚠️ 必须排除中文量词开头（`一定`、`三条`、`十分`…）：模型经常把题干末尾的散句单独
+#    成段，用「数词 + 顿号」一概而论会把半句话当成标题，页面上就多出一个小节标题。
+CN_NUM = "一二三四五六七八九十"
+SECTION_MARK = "、．.，,"
+SECTION_RE = re.compile(
+    rf"^\s*([{CN_NUM}]{{1,3}})\s*[{SECTION_MARK}]\s*(\S.*)$")
+QUANTIFIER_RE = re.compile(rf"^[{CN_NUM}](?:位|个|条|种|项|名|次|张|块|本|辆|只|件|点|分|年|月|日|周|小时|分钟)")
+
+# 题目编号：`1. ` / `12、` / `7．` / `3)  `。**行首**才能算题号，
+# 否则价格、坐标这类行内数字会被误判成题号。
+# ⚠️ 不能用 `\d{1,2}`：真实试卷出现过三位题号，限制宽度会静默漏题。
+QUESTION_RE = re.compile(r"^\s*(\d{1,3})\s*[.、．)）]\s*(?=\S)")
+
+
+def is_section_heading(text: str) -> bool:
+    """判断某一行是否是「一、填空题」这类小节标题，而不是以中文数词开头的正常句子。"""
+    m = SECTION_RE.match(text)
+    if not m:
+        return False
+    rest = m.group(2)
+    if QUANTIFIER_RE.match(rest):       # 「一定」「三条」「十分」→ 是正文
+        return False
+    # 标题通常很短，且带标题词；长句一律按正文处理
+    return len(text) <= 40 and bool(
+        re.search(r"题|填空|选择|解答|计算|证明|阅读|作文|卷|部分|须知|注意", text)
+    )
 
 
 def split_table_html(s: str) -> list[str]:
@@ -106,7 +143,7 @@ def blocks_from_text(text: str, page_no: int) -> list[dict]:
                 blocks.extend(blocks_from_text(rest, page_no))
             continue
         section = SECTION_RE.match(first)
-        if section and len(first) < 120:
+        if section and is_section_heading(first):
             blocks.append({
                 "page": page_no, "type": "heading", "level": 2,
                 "text": f"{section.group(1)}. {strip_md(section.group(2))}",
@@ -430,6 +467,7 @@ def main() -> int:
             stream.reconfigure(encoding="utf-8", errors="replace")
         except (AttributeError, ValueError):
             pass
+    ensure_python_version()
 
     ap = argparse.ArgumentParser(description="本地 OCR PDF → JSON → 网页")
     ap.add_argument("--pdf", help="输入 PDF（--serve-only 时可省略）")

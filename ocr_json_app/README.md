@@ -15,6 +15,8 @@
 
 ## 快速开始
 
+> **先看前提**：本仓库不含运行时依赖与模型权重（见下方「环境前提」），换机器要先补齐。
+
 ```powershell
 cd ocr_json_app
 
@@ -43,6 +45,119 @@ Get-Process llama-server | Stop-Process      # 用完释放显存
 
 ---
 
+## 环境前提
+
+仓库**只存代码与产物**，模型权重、第三方依赖、引擎启动脚本都在机器上，不随 git 走。
+换机器直接 `run_ocr.ps1` 会失败——按下面补齐。缺什么、报什么错、怎么办：
+
+| 依赖 | 用途 | 缺失时的表现 | 处理 |
+|---|---|---|---|
+| Python **3.9+** | 两个流水线 | 明确提示 + 退出码 2 | 见下 |
+| `pypdfium2` | PDF 渲染（**必需**） | `缺少 pypdfium2（PDF 渲染库）` | `python -m pip install pypdfium2` |
+| `numpy` | 像素投影 / 图形区判定（**必需**） | `ModuleNotFoundError: numpy` | `python -m pip install numpy` |
+| `Pillow` | 裁片 / 页图编码（**必需**） | `ModuleNotFoundError: PIL` | `python -m pip install Pillow` |
+| `pdfplumber` | 从文字层读字号（**可选**） | 自动降级为按行高估算，不报错 | `python -m pip install pdfplumber` |
+| 本地 llama.cpp OCR 引擎 | 逐行识别 | `连不上 OCR 服务 http://127.0.0.1:8080` | 启动脚本见上，必须 `-Ctx 16384` |
+| Chromium 内核浏览器 | 仅 `cdp_probe.mjs` 真浏览器校验 | 提示用 `--chrome` 指定 | 见下 |
+
+```powershell
+python -m pip install pypdfium2 Pillow numpy
+python -m pip install pdfplumber        # 可选
+```
+
+**解释器版本**：代码要求 **3.9+**，已在 **3.11 / 3.12 / 3.14** 上实测通过；版本过老时
+`ensure_python_version()` 会打印一行明确提示并以退出码 2 结束。
+（历史上这个文件用过 3.12 才支持的嵌套同引号 f-string，在 3.11 下报的是
+`SyntaxError: f-string: unmatched '['`，指向一行完全看不懂的代码——所以才加了这层守卫。）
+⚠️ **3.9 / 3.10 属于"声称支持但未实测"**：本机没有这两个解释器，只有
+`ast.parse(feature_version=(3,9))` 全过 + 3.11 全过作为间接证据。要在 3.9 上跑，先自测。
+
+**⚠️ 关于"能不能跑通"的边界**：本仓库的自动校验（`run_all_checks.py`）能证明**代码层**与
+**已有产物**是好的，但**不能**证明端到端可用——`src/` 的两个流水线在本机从未被完整执行过，
+因为它们都在 `import_pdfium` / `connect engine` 处停下（缺 `pypdfium2` 与 OCR 引擎）。
+`out/` 里的产物是更早的机器上生成的。所以**首次在真机跑通一遍 `run_ocr.ps1` 仍属未验证步骤**，
+这也是 `tools/smoke_pipelines.py`（代码层）不能替代的东西。
+
+**校验用的浏览器**：`tools/cdp_probe.mjs` 自动按序探测
+`--chrome` 参数 → `CHROME_PATH` → 系统 Chrome → 系统 Edge → playwright 的 chromium
+（取最新版本目录）。全都找不到时会说明怎么指定，而不是丢一个 `ENOENT`。
+
+> 真实引擎只在 `127.0.0.1` 上对话，文档不出机器。这一点的前提是**你自己起的本地
+> llama.cpp**；若该端口上跑的是别的转发服务，就不再满足这个前提——先用
+> `curl http://127.0.0.1:8080/health` 确认它就是你的 OCR 引擎。
+
+---
+
+## 用官方 PaddleOCR-VL 流程（首选）
+
+### 为什么换掉 llama.cpp
+
+llama.cpp 那条路**只跑了 PaddleOCR-VL 两个阶段中的一个**。官方文档对此有明确警告：
+
+> **若需使用 PaddleOCR-VL 的完整能力，必须采用版面分析与 VLM 识别协同的完整流程，
+> 而不能仅单独使用 VLM。**……直接通过 Transformers 执行 0.9B、或直接请求推理服务，
+> **都不等同于运行完整的 PaddleOCR-VL 流程**。出现大量幻觉文本时，先确认用的是完整流程。
+
+| 阶段 | 模型 | llama.cpp 路线 | 官方流程 |
+|---|---|---|---|
+| 版面分析 | PP-DocLayoutV3：检测 `doc_title/text/table/formula/image`、**定阅读顺序**、裁子图 | ❌ 用像素投影猜行 | ✅ |
+| VLM 识别 | PaddleOCR-VL-1.6-0.9B | ✅ 仅此一段 | ✅ |
+
+丢掉的不只是"结构"，还有：原生 **HTML 表格**（不再裁成图）、独立公式识别、
+图表/印章识别、文档方向分类、文本图像矫正、异形框（quad/poly）。
+
+### 硬件前提（必须对号入座）
+
+RTX 50 系是 **Blackwell（sm_120）**，官方要求读专用文档，并且：
+
+- **驱动支持 CUDA ≥ 12.9**
+- 官方 Docker 镜像标签必须带 `-nvidia-gpu-sm120`（普通 `-nvidia-gpu` 在 sm_120 上不可用）
+
+官方镜像约 10GB。若本机到百度 CCR registry 握手超时、或带宽只有 ~0.9MB/s，
+Docker 路线会变成数小时级别——那种情况走下面的手动安装。
+
+### 手动安装（Linux 侧，Windows 装不了）
+
+飞桨 GPU 版**只发 Linux wheel**：Windows 上 `paddlepaddle-gpu` 直接
+`No matching distribution found`。所以在 WSL2 里建环境：
+
+```bash
+uv venv --python 3.12 ~/.venv_paddleocr
+. ~/.venv_paddleocr/bin/activate
+uv pip install "paddlepaddle-gpu==3.2.1" -i https://www.paddlepaddle.org.cn/packages/stable/cu129/
+uv pip install -U "paddleocr[doc-parser]"
+python -c "import paddle; print(paddle.is_compiled_with_cuda(), paddle.device.cuda.device_count())"
+```
+
+跑整条链路（**先渲染成 PNG 再喂目录**，原因见下）：
+
+```bash
+bash run_paddleocr_vl.sh
+```
+
+### ⚠️ 三个实测踩到的坑
+
+1. **不要把 PDF 直接喂给 `doc_parser`**：实测卡在 PDF→图像转换——CPU 100%、GPU 8%、
+   **4 小时零输出**。先 `pypdfium2` 渲染成 PNG（6 页 0.5 秒）再按目录输入，
+   GPU 立刻打满 99%，6 页约 4 分钟跑完。
+2. **两个引擎的产物名不能混**：官方流程 engine 是 `paddleocr-vl-1.6`，名字里也带
+   "paddle"，早先 `paths.layout_json_for()` 会把它映射到 `paper.layout.paddle.json`，
+   **覆盖 llama.cpp 那版**。现已严格匹配，官方流程单独落 `paper.layout.paddleocrvl16.json`。
+3. **定界符不是 `\(...\)`**：官方流程输出 `$...$`。阅读器原先按 "paddle" 关键字给
+   `\(...\)`，会把整页公式显示成源码——现已改为两种都给（实测旧产物里 0 个孤立 `$`，
+   所以对旧产物无损）。
+
+### 转换器
+
+```powershell
+python tools\import_paddleocr_json.py out\paddleocr_raw --out out\paper.layout.paddleocrvl16.json --viewer-base viewer_layout_paddleocrvl16
+```
+
+它只做坐标换算与标签映射，**不再做任何结构猜测**：`block_label` 直接映射成标题/表格/图，
+`block_order` 就是阅读顺序，字号从 PDF 文字层读（与本项目 `enrich_size` 同判据）。
+
+---
+
 ## 架构
 
 目标是把四件事分开：**共用底层** / **两条流水线** / **工具** / **校验**。
@@ -63,6 +178,7 @@ ocr_json_app/
 │  └─ paths.py                  项目根、默认 PDF、两份产物的路径映射
 │
 ├─ tools/                       命令行工具
+│  ├─ smoke_pipelines.py        ★ 代码层冒烟：真 import 两个流水线跑纯函数
 │  ├─ build_viewers.py          为每份 JSON 生成单文件渲染
 │  ├─ build_compare.py          生成两引擎并排对比页
 │  ├─ check_layout_json.py      JSON 结构/坐标/行序/幻觉残留
@@ -219,22 +335,31 @@ python tools\run_all_checks.py          # 一键全部（含真浏览器渲染�
 python tools\run_all_checks.py --fast   # 跳过浏览器
 
 # 单独用
+python tools\smoke_pipelines.py         # ⓪ 代码层：真 import 流水线跑纯函数
 python tools\check_layout_json.py out\paper.layout.paddle.json   # 结构/坐标/行序/幻觉残留
 python tools\check_render.py      out\paper.layout.paddle.json   # 裁片压正文 / 叠字 / 越界
 node   tools\cdp_probe.mjs out\viewer_layout_paddleocrvl.html --shot shot.png
 python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 裁块放大看清局部
 ```
 
-校验分三层，越靠下越接近用户看到的东西：
+校验分四层，越靠下越接近用户看到的东西：
 
 | 层 | 抓什么 |
 |---|---|
+| ⓪ 代码 | 未定义名、低版本语法、投票/幻觉/框线判据（真的 import 流水线跑） |
 | ① 结构 | JSON 自身是否合法、页序、题号、幻觉残留 |
 | ② 渲染 | **裁片是否压正文**、行是否叠字、是否越界、浏览器实渲节点数 |
 | ③ 内容 | 公式能否被 KaTeX 编译、前端断言 |
 
-**为什么必须分三层**：实测"插图裁片盖住题干"时，①通过、③通过、行与行的重叠统计也还是 0
-——裁片不是 `.ln`，不在那个统计口径里。只有 ② 的 `check_render` 抓得到。
+**为什么必须分四层**：① ② ③ **全部只看已经生成好的产物**，从不 import `src/` 里的代码，
+也不喂合成输入。实测漏过一次：`ocr_pipeline_blocks.py` 里 `SECTION_RE` 从未定义，而它是
+`blocks_from_text()` 的**第一个**判断 → 任何非表格文本块都 `NameError`，整条结构块流水线
+不可用（同文件 `base64` 也没 import）。当时 `run_all_checks.py` 的 **9 项里有 7 项通过**，
+而且这 7 项全是"产物校验"——另外 2 项浏览器校验还因为硬编码的 Chrome 路径失效而失败，
+**没有任何一项 import 过流水线代码**。⓪ 就是补这个洞的。
+
+另外"插图裁片盖住题干"那次：①通过、③通过、行与行的重叠统计也还是 0——裁片不是 `.ln`，
+不在那个统计口径里。只有 ② 的 `check_render` 抓得到。
 
 两条验证纪律（都吃过亏）：
 
@@ -246,6 +371,16 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 裁块放大�
 
 ## 已知限制
 
+- **官方流程产物的版式保真度：越界为 0，叠字剩 1 处（已知取舍）**。官方
+  `parsing_res_list` 给的是**块框**（一个块可能含 5 行文字），阅读器要的是**逐行框**。
+  转换器现在做三件事把块展开成视觉行：① 用**像素投影**取块内行盒；② 用**文字层的
+  汉字/ASCII 字符**数真实行数并量真实字号（数学坏字形不参与）；③ 在"行数上限 × 可用宽度"
+  下**迭代求解整块统一字号**，并把 `$...$` 当原子（不再把公式从中间断开）。
+  结果：**105~106 行 / 水平越界 0 / 叠字 1**，字号可读（8.9~15.1pt）。
+  剩下那 1 处是 `8. 已知函数 $f(x)=\begin{cases}…` 这一行：`cases` 在**行内**渲染时
+  实际高度（44.8px）远超任何行盒高度，而它下方的空白本来就只有 25.6pt。
+  消除它的唯一办法是把整块字号压到约 5.9pt——**不可读**，所以选择保留这处叠字。
+  要彻底解决需要按"渲染后高度"反算行盒（即先渲染、再回填坐标），那是另一层工作。
 - **表格在首选引擎下是图片裁片**，不是可选中/可搜索的表格文本。需要可检索表格请用
   `out/viewer_layout.html`（OvisOCR2，输出真 HTML 表）。
 - **插图是裁片，不是矢量还原**：按原位置贴回原稿裁出的图，图像精确但不参与排版。
@@ -254,6 +389,23 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 裁块放大�
 - **字体回退**：原卷中文是 `HYShuSongErKW`（本机未安装），会回退到 SimSun，字宽略有差异；
   实测行宽仍在本行盒内，未造成溢出。
 - **OCR 是模型转录**，个位错字难免；关键数字与题号请对照「原始扫描」视图或原图复核。
+- **结构块的标题/题号判据有固有歧义**：行首"数字 + `.`"一律当题号，所以 `1.5 倍于原数`
+  这种行内数字会被判成第 1 题（`（1）` 这类括号编号则不会）。判据偏向**不漏题**
+  （题号宽度放宽到三位）。真正需要精确题号时，请用 `out/paper.ocr.json` 的
+  `stats.question_numbers` 人工核对。
+- **结构块流水线不校验表格形状**：版式流水线有 `_table_shape_ok` 挡模型编出来的假表
+  （100 列表头、1,000.00 财务表），结构块流水线**没有**这道闸门——模型吐什么 `<table>`
+  就收录什么。用 `paper.ocr.json` 建题库前建议先看一遍表格块。
+- **Python 3.9 / 3.10 是"声称支持但未实测"**：代码里 `ensure_python_version` 的下限是 3.9，
+  实测只在 3.11 / 3.12 / 3.14 上跑过；3.9 只有 `ast.parse(feature_version=(3,9))` 全过这种
+  间接证据。要在 3.9 上部署，请先自己跑一遍 `tools/smoke_pipelines.py` 与一次真 PDF。
+- **端到端从未在本环境跑通**：`out/` 里的产物是更早的机器上生成的；本环境缺 `pypdfium2`
+  与 OCR 引擎，两个流水线都停在 `import_pdfium`。`run_all_checks.py` 的 ⓪ 层只能证明
+  **代码层**与**已有产物**是好的，替代不了"真机跑通一次 `run_ocr.ps1`"。
+- **仓库里混进过 tracked 的字节码**：`src/__pycache__/paths.cpython-312.pyc` 被提交过。
+  已加 `.gitignore`，并且 `tools/run_all_checks.py` 与 `tools/smoke_pipelines.py` 都设了
+  `sys.dont_write_bytecode = True`（校验工具不该顺手改工作区状态），所以它不会再被生成；
+  但索引里那一条还在，提交时记得带上它的删除：`git rm -r --cached ocr_json_app/src/__pycache__`。
 
 ---
 
@@ -262,7 +414,12 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 裁块放大�
 | 现象 | 处理 |
 |---|---|
 | `连不上 OCR 服务` | 引擎没起。跑 `run_ocr.ps1`，或手动起（见上文） |
+| `缺少 pypdfium2` | 依赖没装（仓库不含依赖）：`python -m pip install pypdfium2 Pillow numpy` |
+| `需要 Python 3.9+，当前是 3.x` | 解释器太老，换 3.9+ 的 `python`；见「环境前提」 |
+| `找不到 Chromium 内核浏览器` | `cdp_probe.mjs` 需要浏览器：装 Chrome/Edge，或 `--chrome <路径>`、`CHROME_PATH` |
 | 整页只出 3 行 | 引擎 `-c` 太小。长页图会占满上下文，必须 `-Ctx 16384` |
 | 公式显示成源码 | 阅读器定界符与引擎不匹配（Paddle 是 `\(...\)`，Ovis 是 `$...$`）。用 `tools/build_viewers.py` 重新生成，它会按 `document.engine` 自动选定界符 |
 | 页面只渲染出一半 | 打开控制台看异常。历史上出现过 `esc is not defined` 让部分页面静默失败——`tools/cdp_probe.mjs` 会数 DOM 节点，能抓到 |
 | 需要复现某页异常 | `python tools\crop_png.py <整页截图> crop.png x y w h 2.2` 放大看；再看 `check_render.py` 的输出定位是哪张裁片 |
+| 校验全绿但功能明显坏了 | 先看 ⓪ 层有没有跑（`python tools\smoke_pipelines.py`）。只校验产物时，代码坏了它发现不了 |
+| 汇总里 ⓪ 层显示"跳过" | 说明当前解释器缺 `numpy`，版式流水线那两组（22 项）没执行。汇总里的明细会写出来——**跳过不等于通过** |

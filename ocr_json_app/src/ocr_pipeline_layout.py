@@ -780,6 +780,18 @@ def die(msg: str, code: int) -> None:
     raise SystemExit(code)
 
 
+def ensure_python_version(min_version: tuple[int, int] = (3, 9)) -> None:
+    """把"解释器太老"变成一条能读懂的提示。
+
+    历史上这个文件用过 PEP 701 的嵌套同引号 f-string（3.12+ 才支持），在 3.11 下直接
+    `SyntaxError`，报错指向一行看不懂的 f-string，排查成本很高。现在语法已经降到 3.9+，
+    这层守卫只是防止以后又不小心引入高版本语法。
+    """
+    if sys.version_info < min_version:
+        die(f"需要 Python {min_version[0]}.{min_version[1]}+，"
+            f"当前是 {sys.version.split()[0]}（{sys.executable}）", 2)
+
+
 # ---------------------------------------------------------------- 行检测
 
 def _runs_from_projection(ink_rows: np.ndarray) -> list[list[int]]:
@@ -1124,8 +1136,9 @@ def build(args) -> dict:
             for tr in table_regions:
                 figure_regions.append(tr)
             if table_regions:
-                log(f"第 {pno} 页识别到 {len(table_regions)} 个表格候选区"
-                    + f"（{', '.join(f'{t['rows']}x{t['cols']}格' for t in table_regions)}）")
+                cells = ", ".join("{}x{}格".format(t["rows"], t["cols"])
+                                  for t in table_regions)
+                log(f"第 {pno} 页识别到 {len(table_regions)} 个表格候选区（{cells}）")
 
         noise = [l for l in raw_lines if _is_noise(l)]
         lines = [l for l in raw_lines if not _is_noise(l)] + extra_lines
@@ -1240,8 +1253,9 @@ def build(args) -> dict:
             clipped = clip_figures_to_avoid_text(pil, figures, page_lines, pw, ph)
             if clipped:
                 log(f"第 {pno} 页收缩 {clipped} 张裁片边界（避免压住题干）")
-            log(f"第 {pno} 页还原插图 {len(figures)} 张"
-                f"（{', '.join(f'{f['w_pt']:.0f}x{f['h_pt']:.0f}pt' for f in figures)}）")
+            sizes_text = ", ".join("{:.0f}x{:.0f}pt".format(f["w_pt"], f["h_pt"])
+                                   for f in figures)
+            log(f"第 {pno} 页还原插图 {len(figures)} 张（{sizes_text}）")
 
         # 行序 = 页面自上而下。检测是按行墨迹投影出的行程顺序，理论上已是自上而下，
         # 但并叠下划线、过滤空行之后仍可能错序（渲染时表现为第 4 题跑到第 2 题上面）。
@@ -1318,20 +1332,25 @@ LAYOUT_VIEWER = "viewer_layout.html"     # 生成的阅读器文件名（各引�
 def _delims_for(engine: str) -> list[dict]:
     """按引擎选公式定界符。
 
-    OvisOCR2 输出 `$...$` / `$$...$$`；PaddleOCR-VL 输出 `\\(...\\)` / `\\[...\\]`。
-    实测把 Paddle 的产物拿去用只认 `$` 的阅读器打开，"含公式"计数是 **0**、整页都是源码。
+    OvisOCR2 输出 `$...$` / `$$...$$`；llama.cpp 时代的 PaddleOCR-VL 输出 `\\(...\\)`。
+
+    ⚠️ 但**官方 PaddleOCR-VL 流程**（PP-DocLayoutV3 + PaddleOCR-VL-1.6，见
+    `tools/import_paddleocr_json.py`）输出的也是 `$...$`——它的 engine 名里同样带
+    "paddle"。单靠名字已经分不出这两者，而选错的后果是**整页公式退化成 LaTeX 源码**
+    （README 排障表里那条"公式显示成源码"）。所以这里改成：名字里带 paddle 时**两种
+    都给**，顺序上先长后短（`$$` 在 `$` 前）。KaTeX 的 auto-render 按顺序匹配，
+    多给一组不影响正确性，只把误判的代价消掉。
     """
-    if "paddle" in (engine or "").lower():
-        return [
-            {"left": "\\[", "right": "\\]", "display": True},
-            {"left": "\\(", "right": "\\)", "display": False},
-        ]
-    return [
+    all_delims = [
         {"left": "$$", "right": "$$", "display": True},
         {"left": "$", "right": "$", "display": False},
         {"left": "\\[", "right": "\\]", "display": True},
         {"left": "\\(", "right": "\\)", "display": False},
     ]
+    if "paddle" in (engine or "").lower():
+        # 美元符优先（官方流程的产物），`\(` 兜底（llama.cpp 时代的产物）
+        return all_delims
+    return all_delims
 
 
 def materialize_viewer(target_dir: str, payload: dict, data_name: str,
@@ -1397,6 +1416,7 @@ def main() -> int:
             stream.reconfigure(encoding="utf-8", errors="replace")
         except (AttributeError, ValueError):
             pass
+    ensure_python_version()
 
     ap = argparse.ArgumentParser(description="逐行 OCR → 带版式坐标的 JSON → 原格式网页")
     ap.add_argument("--pdf")
