@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 """check_layout_json.py —— 校验「原版式」JSON：页面/行结构、坐标合法性、幻觉残留。
 
-与 `check_ocr_json.py`（块结构）互补，本脚本针对 `ocr_pdf_layout.py` 的输出。
+与 `check_ocr_json.py`（块结构）互补，本脚本针对 `src/ocr_pipeline_layout.py` 的输出。
 
 用法：
-    python check_layout_json.py out/paper.layout.json
-    python check_layout_json.py out/paper.layout.json --expect-lines 1-40
+    python tools/check_layout_json.py out/paper.layout.json
+    python tools/check_layout_json.py out/paper.layout.json --expect-pages 1-2
+    python tools/check_layout_json.py out/paper.layout.json --max-lines 120
 
 退出码：0 通过；1 有错误。
 """
@@ -25,8 +26,10 @@ DIGIT_RUN_RE = re.compile(r"\d{20,}")
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("json_path")
-    ap.add_argument("--expect-pages", default="1-6")
-    ap.add_argument("--max-lines", type=int, default=60, help="单页行数上限（防炸裂）")
+    ap.add_argument("--expect-pages", default=None,
+                    help="默认按实际页数校验；需要固定范围时写 1-6")
+    ap.add_argument("--max-lines", type=int, default=120,
+                    help="单页行数上限（A3 三栏数学卷实测 79 行）")
     args = ap.parse_args()
 
     with open(args.json_path, encoding="utf-8") as fh:
@@ -46,7 +49,7 @@ def main() -> int:
     if not pages:
         errors.append("pages 为空")
 
-    m = re.fullmatch(r"(\d+)-(\d+)", args.expect_pages)
+    m = re.fullmatch(r"(\d+)-(\d+)", args.expect_pages or "")
     lo, hi = (int(m.group(1)), int(m.group(2))) if m else (1, len(pages))
     got = [p.get("page") for p in pages]
     if got != sorted(got):

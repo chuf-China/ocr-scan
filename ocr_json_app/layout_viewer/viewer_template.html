@@ -346,7 +346,8 @@ loadDoc().then(d => {
         const a = lnodes[i - 1].r, b = lnodes[i].r;
         if (b.top > a.top + 2) {
           const inter = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
-          if (inter > 0 && inter > Math.min(a.height, b.height) * 0.6) lap++;
+          const ix = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+          if (inter > 0 && ix > 0 && inter > Math.min(a.height, b.height) * 0.6) lap++;
         }
       }
       out.overflowing_lines += over;

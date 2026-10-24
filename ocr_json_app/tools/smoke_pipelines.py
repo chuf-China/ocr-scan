@@ -350,6 +350,32 @@ def test_layout_helpers() -> None:
     text_only[100:110, 100:500:4] = 0          # 断续的"文字"笔画，不是框线
     check("纯文字不误判成表", layout.detect_table_grids(text_only, 20.0) == [])
 
+    # 横向 A3 卷：2/3 栏都必须按“整列空白 + 两侧有文字”检出中缝。
+    # 历史事故：假设中缝在页面正中，三栏卷的第 2 条中缝漏掉，右栏文字
+    # 被并进中栏；这里用合成三栏页锁死“不假设栏数和居中”。
+    def column_page(width=1200, height=800, spans=((40, 340), (400, 700), (760, 1060))):
+        gray = numpy.full((height, width), 255, dtype=numpy.uint8)
+        boxes = []
+        for x0, x1 in spans:
+            for y in range(60, 560, 24):
+                gray[y:y + 12, x0:x1] = 0
+                boxes.append({"px_left": x0, "px_right": x1,
+                              "px_top": y, "px_bottom": y + 12,
+                              "px_height": 12, "ink": (x1 - x0) * 12})
+        return gray, boxes
+
+    three, boxes3 = column_page()
+    g3 = layout.detect_column_gutters(three, lines=boxes3)
+    check("三栏卷检出两条中缝", len(g3) == 2, f"实得 {g3}")
+
+    two, boxes2 = column_page(width=1000, spans=((40, 430), (520, 910)))
+    g2 = layout.detect_column_gutters(two, lines=boxes2)
+    check("两栏卷检出一条中缝", len(g2) == 1, f"实得 {g2}")
+
+    portrait = numpy.full((1200, 800), 255, dtype=numpy.uint8)
+    portrait[60:560, 100:700] = 0
+    check("纵向单栏不误判", layout.detect_column_gutters(portrait) == [])
+
 
 def test_native_figures() -> None:
     """原生图形资源 → 掩膜 → 高分辨率裁片，全部用合成页面锁定几何行为。

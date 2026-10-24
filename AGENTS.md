@@ -179,6 +179,13 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
     `native_similarity`、`native_mismatch` 与页/文档 `native_text` 统计里。只有 OCR 行为空时才用
     `native-text` 兜底；数学卷的原生字层常把公式拆成 `x2`/`y0` 或私有字库，不能拿它替换 OCR。
     不要为了“多用原生字”放宽这条——公式正确性优先。
+13. **横向 A3 卷的多栏必须逐栏检测**：只在 `width >= height * 1.18` 的页启用
+    `detect_column_gutters()`；有 PDF 文字层时用字符盒找整列空白（过滤文字层里
+    图像上无墨的离群字符），没有时退回像素投影。找到中缝后**先按栏切图，再在
+    每栏内部做行投影/图形/表格检测**；不要整页检测完再 `split_lines_by_column`，
+    否则另一栏的文字会填满行间空白，把多行粘成超高行（实测吞过整道 Q20）。
+    不假设栏数，也不假设中缝居中。行序仍按 `top/left` 自上而下排序，
+    `check_layout_json` 只接受这个口径；阅读器的绝对定位不依赖行序。
 
 ## 改哪里 / 怎么改
 

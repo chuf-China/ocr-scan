@@ -57,12 +57,15 @@ def main() -> int:
                         f"第 {pno} 页 插图 {f['index']} 压住正文行 {i}（交叠 {a:.0f}pt²）："
                         f"{l['text'][:34]}")
 
-        # ② 行与行垂直重叠
+        # ② 行与行重叠：必须同时满足纵向和横向相交。
+        # 双栏/三栏页里左右栏的行天然在同一 y 上，只看纵向重叠会把每一对
+        # 不同栏的行都误报成叠字（实测 A3 数学卷 29~45 条假错误）。
         ordered = sorted(lines, key=lambda l: l["top"])
         for prev, cur in zip(ordered, ordered[1:]):
             ov = prev["bottom"] - cur["top"]
+            ix = min(prev["right"], cur["right"]) - max(prev["left"], cur["left"])
             hmin = min(prev["bottom"] - prev["top"], cur["bottom"] - cur["top"])
-            if ov > 0 and hmin > 0 and ov / hmin > args.overlap_ratio:
+            if ov > 0 and ix > 0 and hmin > 0 and ov / hmin > args.overlap_ratio:
                 errors.append(f"第 {pno} 页 行叠字 {ov:.1f}pt：{prev['text'][:24]} / {cur['text'][:24]}")
 
         # ③ 越界

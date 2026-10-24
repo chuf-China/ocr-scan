@@ -923,6 +923,138 @@ def _row_cols(ink: np.ndarray, top: int, bottom: int) -> tuple[int, int] | None:
     return int(cols[0]), int(cols[-1])
 
 
+def _gutters_from_chars(chars: list[dict], scale: float,
+                        gray_shape: tuple[int, int],
+                        ink: np.ndarray) -> list[int]:
+    """用 PDF 文字层的字符盒直接找栏间中缝。
+
+    只保留**图像上真的有墨**的字符：这份卷子的文字层里还混着不可见的离群
+    字符（x 到页面最右但图像上空白），它们会把版心撑大，必须先过滤。
+    """
+    h, w = gray_shape
+    y0, y1 = int(h * 0.03), int(h * 0.86)
+    boxes: list[tuple[int, int]] = []
+    for c in chars:
+        x0, x1 = int(c["x0"] * scale), int(c["x1"] * scale) + 1
+        ty0, ty1 = int(c["top"] * scale), int(c["bottom"] * scale) + 1
+        if x1 <= x0 or ty1 <= y0 or ty0 >= y1:
+            continue
+        x0, x1 = max(0, x0), min(w, x1)
+        ty0, ty1 = max(0, ty0), min(h, ty1)
+        if x1 <= x0 or ty1 <= ty0:
+            continue
+        if ink[ty0:ty1, x0:x1].sum() == 0:
+            continue
+        boxes.append((x0, x1))
+    if len(boxes) < 20:
+        return []
+    content_left = min(b[0] for b in boxes)
+    content_right = max(b[1] for b in boxes)
+    if content_right - content_left < w * 0.20:
+        return []
+    covered = np.zeros(w, dtype=bool)
+    for x0, x1 in boxes:
+        covered[x0:x1] = True
+
+    runs: list[tuple[int, int]] = []
+    start = None
+    for i, has in enumerate(covered):
+        if not has and start is None:
+            start = i
+        elif has and start is not None:
+            runs.append((start, i - 1))
+            start = None
+    if start is not None:
+        runs.append((start, w - 1))
+
+    min_width = max(12, int(w * 0.004))
+    gutters: list[int] = []
+    for left, right in runs:
+        if right - left + 1 < min_width:
+            continue
+        if left <= content_left + min_width or right >= content_right - min_width:
+            continue
+        left_chars = sum(1 for x0, x1 in boxes if x1 <= left)
+        right_chars = sum(1 for x0, x1 in boxes if x0 >= right)
+        if left_chars >= 5 and right_chars >= 5:
+            gutters.append((left + right) // 2)
+    return sorted(gutters)
+
+
+def detect_column_gutters(gray: np.ndarray,
+                          lines: list[dict] | None = None,
+                          chars: list[dict] | None = None,
+                          scale: float = 150 / 72) -> list[int]:
+    """检测横向试卷的栏间中缝，返回中缝中心 px 列表；单栏返回空列表。
+
+    不假设栏数，也不假设中缝在页面正中：实测 A3 卷有 2 栏，也有 3 栏，
+    且版心可能明显偏左。做法是找「整列几乎没有墨」的竖带，并只保留
+    **版心内部、两侧都有大量文字** 的竖带：右页边距处也有空白竖带，
+    但它右侧没有文字，会被 content_left/content_right 排除。
+    """
+    h, w = gray.shape[:2]
+    if w < h * 1.18:
+        return []
+    if chars:
+        ink_for_chars = gray < INK_THRESHOLD
+        return _gutters_from_chars(chars, scale, gray.shape[:2], ink_for_chars)
+    ink = gray < INK_THRESHOLD
+    y0, y1 = int(h * 0.03), int(h * 0.86)
+    body = ink[y0:y1]
+    if body.size == 0:
+        return []
+    body_h = y1 - y0
+    col_ink = body.sum(axis=0)
+    if lines:
+        # 用行盒的分位数定版心：页眉/页码是少量通栏离群行，不能把版心
+        # 撑到页面最右，否则真正的右页边距会被误当成栏间中缝。
+        lefts = sorted(int(l["px_left"]) for l in lines)
+        rights = sorted(int(l["px_right"]) for l in lines)
+        n = len(lines)
+        content_left = lefts[int(0.10 * (n - 1))]
+        content_right = rights[int(0.90 * (n - 1))]
+    else:
+        # 用「多行都有墨」的列定版心，过滤扫描边缘的孤立竖线
+        active = np.where(col_ink > max(5, int(body_h * 0.01)))[0]
+        if len(active) < 10:
+            return []
+        content_left, content_right = int(active[0]), int(active[-1])
+    if content_right - content_left < w * 0.20:
+        return []
+
+    quiet = col_ink <= max(2, int(body_h * 0.002))
+    runs: list[tuple[int, int]] = []
+    start = None
+    for i, q in enumerate(quiet):
+        if q and start is None:
+            start = i
+        elif not q and start is not None:
+            runs.append((start, i - 1))
+            start = None
+    if start is not None:
+        runs.append((start, len(quiet) - 1))
+
+    min_width = max(10, int(w * 0.004))
+    gutters: list[int] = []
+    for left, right in runs:
+        width = right - left + 1
+        if width < min_width:
+            continue
+        # 只认版心内部的中缝；贴版心左右边缘的空白带是页边距
+        if left <= content_left + min_width or right >= content_right - min_width:
+            continue
+        lstrip = body[:, max(0, left - 60):left]
+        rstrip = body[:, right + 1:min(w, right + 61)]
+        if lstrip.size == 0 or rstrip.size == 0:
+            continue
+        left_cov = float((lstrip.sum(axis=1) > 0).mean())
+        right_cov = float((rstrip.sum(axis=1) > 0).mean())
+        # 中缝两侧都必须有足够多的行有墨，排除公式内部偶然的窄空隙
+        if left_cov >= 0.04 and right_cov >= 0.04:
+            gutters.append((left + right) // 2)
+    return sorted(gutters)
+
+
 def _lines_from_ink(ink: np.ndarray) -> tuple[list[dict], float]:
     row_ink = ink.sum(axis=1)
     runs: list[list[int]] = []
@@ -1638,27 +1770,71 @@ def build(args) -> dict:
         if native_boxes:
             log(f"第 {pno} 页原生图形资源 {len(native_boxes)} 个，已从行投影中剔除")
 
-        raw_lines, typical_h_px = detect_lines(gray_for_lines)
+        chars = (font_probe.char_boxes(pno)
+                 if font_probe is not None and not args.no_figures else [])
+        gutters = detect_column_gutters(gray, chars=chars, scale=scale)
+        column_bounds = [(0, gray.shape[1])]
+        if gutters:
+            column_bounds = []
+            start = 0
+            for gg in gutters:
+                column_bounds.append((start, gg))
+                start = gg
+            column_bounds.append((start, gray.shape[1]))
+            log(f"第 {pno} 页检测到 {len(gutters) + 1} 栏"
+                f"（中缝 x={gutters}），逐栏检测行")
 
-        # 异常高的内容块：按 PDF 文字层字符数拆成「正文行组」与「插图区」。
-        # 没有文字层时 has_pdf_text 返回 -1，block 一律判正文（与旧版一致）。
-        if args.no_figures:
-            extra_lines, figure_regions = [], []
-        else:
-            chars = font_probe.char_boxes(pno) if font_probe is not None else []
-            mask = text_coverage_mask(chars, gray_for_lines.shape, scale)
-            extra_lines, figure_regions = split_and_classify_regions(
-                gray_for_lines, typical_h_px, mask)
+        mask = (None if args.no_figures
+                else text_coverage_mask(chars, gray_for_lines.shape, scale))
+        raw_lines: list[dict] = []
+        extra_lines: list[dict] = []
+        figure_regions: list[dict] = []
+        typical_heights: list[float] = []
+
+        # 关键：双栏/三栏页必须先按栏切图，再在每栏内部做行投影。
+        # 若整页行投影后再按 x 拆行，一栏的段间距会被另一栏的文字填满，
+        # 多行块会粘成一条超高行（实测 2024 北京 Q20 整块被吞掉）。
+        for col_left, col_right in column_bounds:
+            col_gray = gray_for_lines[:, col_left:col_right]
+            col_raw, col_typical = detect_lines(col_gray)
+            typical_heights.append(col_typical)
+            for line in col_raw:
+                line["px_left"] += col_left
+                line["px_right"] += col_left
+            raw_lines.extend(col_raw)
+
+            if args.no_figures:
+                continue
+            col_mask = (mask[:, col_left:col_right]
+                        if mask is not None else None)
+            col_extra, col_figures = split_and_classify_regions(
+                col_gray, col_typical, col_mask)
+            for line in col_extra:
+                line["px_left"] += col_left
+                line["px_right"] += col_left
+            for fig in col_figures:
+                box = fig.get("px") or []
+                if len(box) == 4:
+                    fig["px"] = [box[0] + col_left, box[1],
+                                 box[2] + col_left, box[3]]
+            extra_lines.extend(col_extra)
+            figure_regions.extend(col_figures)
+
             # 表格：PaddleOCR-VL 会把表格压成逐格换行文本、结构不可恢复，
             # 所以按"长直线游程"识别表格区域，把整块当图裁出来（内容与结构都保真）。
-            table_regions = detect_table_grids(gray_for_lines, typical_h_px)
+            table_regions = detect_table_grids(col_gray, col_typical)
             for tr in table_regions:
-                figure_regions.append(tr)
+                px = tr.get("px") or []
+                if len(px) == 4:
+                    tr["px"] = [px[0] + col_left, px[1],
+                                px[2] + col_left, px[3]]
+            figure_regions.extend(table_regions)
             if table_regions:
                 cells = ", ".join("{}x{}格".format(t["rows"], t["cols"])
                                   for t in table_regions)
                 log(f"第 {pno} 页识别到 {len(table_regions)} 个表格候选区（{cells}）")
 
+        typical_h_px = float(np.median(typical_heights)) if typical_heights else 24.0
         noise = [l for l in raw_lines if _is_noise(l)]
         lines = [l for l in raw_lines if not _is_noise(l)] + extra_lines
         before = len(lines)
@@ -1815,6 +1991,8 @@ def build(args) -> dict:
         # 行序 = 页面自上而下。检测是按行墨迹投影出的行程顺序，理论上已是自上而下，
         # 但并叠下划线、过滤空行之后仍可能错序（渲染时表现为第 4 题跑到第 2 题上面）。
         # 显式排序，版面顺序不能依赖上游的偶然性。
+        # 横向多栏卷仍用同一口径：viewer 按坐标绝对定位，行序只影响文本复制顺序；
+        # 若改成“先栏后行”，check_layout_json 的“自上而下”硬门会失败。
         page_lines.sort(key=lambda l: (l["top"], l["left"]))
 
         empty = sum(1 for l in raw_lines if _is_noise(l))
