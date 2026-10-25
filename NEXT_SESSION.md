@@ -114,6 +114,33 @@
 
 ---
 
+## 0.2 2026-10-25 第三轮：下载模型 + T3 表格复核证据层（用户指令“下载模型并全量搭建并测试”）
+
+1. **PP-StructureV3 的模型已全部下载并离线验证**：`~/.paddlex/official_models` 从 4 个增到
+   14 个（合计约 2.4 GB），与 paddlex 的 `PPStructureV3` 全部 SubModules 对齐；在
+   `formula-venv` 里给 `socket.socket.connect` 打补丁实测构建成功、`connections: []`，
+   即下载完成后不再联网。
+2. **整页跑 PP-StructureV3 会把机器拖死（已发生一次）**：14 个模型约 1.6 GB 权重，
+   本机 16 GB 内存在 1654×2339 页图上直接卡死约半小时。此后改为**只用表格识别子模型**
+   `table_recognition_v2`，只裁 `page.tables[].bbox_pt`，CPU 线程压到 4，并关闭
+   版面检测/方向矫正/去扭曲。此结论已写进 AGENTS.md 硬约束 26 与
+   `docs/specs/t3-table-review.md`。
+3. **T3 证据层已实现**：`src/table_review.py`（HTML 表格解析、单元格归一化、
+   `exact/cell_mismatch/structure_differs/no_current` 四类一致性、证据块、结构校验）+
+   `tools/review_tables.py`（裁片 → CPU 子进程 → 证据写 `tables[].reviews[]`）+
+   `check_layout_json` 对含 `reviews` 产物硬校验 + 冒烟 `[14/14]`。**只写证据，不改
+   `headers` / `rows_data`**。
+4. **5 套新语料 15 张表实测**：exact 4 / cell_mismatch 11 / structure_differs 0，约 110 秒
+   CPU。剩余差异都是模型自身错（分式压平成 `1625`、`\infty` 读成 `8`、两级表头并成一行、
+   左列前缀丢失），没有一处比“框线 + 逐格 OCR”更准 → **与 T2 同口径：默认不开启，
+   只作失败区域的可选复核**。规范见 `docs/specs/t3-table-review.md`，AGENTS.md 约束 26。
+5. 校验基线（本次实测）：单元 **26/26**、冒烟 **180 通过 / 1 跳过**、
+   `run_all_checks.py` **21/21**、`--fast` **18/18**。
+6. 推送仍未完成：本会话 `git push` 因 GitHub 凭据需要交互而无法非交互执行，需用户在自己
+   终端跑 `git push origin main`。
+
+---
+
 ## 1. 当前完成状态
 
 ### 验收结果
@@ -126,7 +153,7 @@
   - 原生文字直出 **34.22%**，样式覆盖 **100%**，乱码 **0 行**
 - `out/acceptance/native_final3/view/index.html`：23 套单文件阅读器总览
 - `out/acceptance/native_final3/view/pages_2024quanguoli/page01.png`：字体/散点图实渲样例
-- 全量检查 **21/21**；单元测试 **26/26**；冒烟 **161 通过 / 1 跳过**（本机无 Python 3.11）
+- 全量检查 **21/21**；单元测试 **26/26**；冒烟 **180 通过 / 1 跳过**（本机无 Python 3.11）
 
 ### 已实现的能力
 
@@ -142,6 +169,7 @@
 | 验收工具 | `tools/run_exam_acceptance.py` | PDF 全跑或 layout 重算；页级/逐套指标 |
 | 区域层（T1） | `src/layout_regions.py` | `page.regions[]` 一等区域、双向回链、`ensure_regions` 幂等、`check_layout_json` 硬校验 |
 | 公式证据（T2 阶段 1） | `src/formula_review.py` + `tools/review_formulas.py` | 逐条公式框裁片 → CPU 模型 LaTeX 证据写 `regions[].formulas[]`，不改正文 |
+| 表格证据（T3） | `src/table_review.py` + `tools/review_tables.py` | 表格 bbox 裁片 → CPU `table_recognition_v2` HTML/逐格证据写 `tables[].reviews[]`，不改正文 |
 
 ### 已提交的关键点
 
