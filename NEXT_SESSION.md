@@ -96,7 +96,7 @@
   - 原生文字直出 **34.22%**，样式覆盖 **100%**，乱码 **0 行**
 - `out/acceptance/native_final3/view/index.html`：23 套单文件阅读器总览
 - `out/acceptance/native_final3/view/pages_2024quanguoli/page01.png`：字体/散点图实渲样例
-- 全量检查 **21/21**；单元测试 **15/15**；冒烟 **121 通过 / 1 跳过**（本机无 Python 3.11）
+- 全量检查 **21/21**；单元测试 **21/21**；冒烟 **161 通过 / 1 跳过**（本机无 Python 3.11）
 
 ### 已实现的能力
 
@@ -110,6 +110,8 @@
 | 表格 | `src/ocr_pipeline_layout.py` + `src/exam_structure.py` | pdfplumber 框线 + 逐格 OCR；原生表归属 |
 | 质量/修复队列 | `src/exam_structure.py`（quality）+ `src/repair_plan.py` | issue → auto/manual/blocked，不自动编造内容 |
 | 验收工具 | `tools/run_exam_acceptance.py` | PDF 全跑或 layout 重算；页级/逐套指标 |
+| 区域层（T1） | `src/layout_regions.py` | `page.regions[]` 一等区域、双向回链、`ensure_regions` 幂等、`check_layout_json` 硬校验 |
+| 公式证据（T2 阶段 1） | `src/formula_review.py` + `tools/review_formulas.py` | 逐条公式框裁片 → CPU 模型 LaTeX 证据写 `regions[].formulas[]`，不改正文 |
 
 ### 已提交的关键点
 
@@ -164,8 +166,17 @@ PDF → 页面渲染 → 栏检测 → 行检测 → 逐行 OCR / 原生文字�
 
 ### 先做哪两个
 
-**T1 region schema** 和 **T2 公式专项**。  
-MinerU、PP-StructureV3、LLM 结构重建都不是第一优先级；在 8GB 上同时上会把系统变慢且更难评测。
+**T1 region schema** 和 **T2 公式专项**（2026-10-25 均已完成阶段 1：T1 已提交
+`7d0e7ac`，T2 证据链已提交 `edc8af7`/`9357e0a`/`00f6d6b` 并在 5 套新语料上实测）。  
+MinerU、PP-StructureV3、LLM 结构重建仍不是第一优先级；在 8GB 上同时上会把系统变慢且更难评测。
+
+现在的优先顺序改为：
+
+1. **结构层题号写法**（新发现，未做）：`（1）（2）` 式题号导致 5 套新语料内容门 5/5 fail，
+   详见 §0；不修它，10–15 页卷无法用内容门验收；
+2. **T2 阶段 2 判定**（未做）：内容级人工标注基线还不够（目前只目视 16 条），要按
+   `docs/specs/t2-formula-regions.md` 的判定表补 50–100 条再决定是否默认开启；
+3. T3/T4/T5/T6 仍按触发条件后置（T3 需先批准下载 12 个模型，且本机无 UniMERNet）。
 
 ---
 
@@ -274,7 +285,7 @@ python tools\run_exam_acceptance.py @inputs --out-dir out\acceptance\native_next
 $env:PYTHONIOENCODING='utf-8'
 python tools\run_all_checks.py          # 当前基线 21/21
 python tools\run_all_checks.py --fast   # 当前基线 18/18
-python tools\test_exam_structure.py     # 当前 15/15
+python tools\test_exam_structure.py     # 当前 21/21（T1 区域层 +6）
 ```
 
 ### 阅读器
@@ -347,6 +358,8 @@ T3–T6：
 2. **接受公式专项模型的延迟/CPU 代价，但只对公式区域推理**：不重跑整卷、不逐行跑、
    不替代现有 OCR。
 3. **验收集扩，先补 3–5 套 10–15 页原生电子卷**（需用户提供 PDF，禁止联网下载）。
+   → 2026-10-25 已由用户追加授权"你去搜索"，`data/eval/` 已落 5 套 10–12 页公开原生电子卷；
+   接下来是否继续扩到 15 页、以及换不换题型，等用户定。
 
 推论：可以进入 T2 阶段 1（按区域裁片 + 内容级 A/B），设计见
 `ocr_json_app/docs/specs/t2-formula-regions.md`；**模型结果不得静默覆盖现有 OCR 文本**，
@@ -357,4 +370,5 @@ T3–T6：
 
 ## 10. 一句话交接
 
-**当前系统是“可审计的版式 + 试卷结构”低风险子集；下一步不是继续调规则，而是补 `gpt.md` 的 region schema 和公式专项，并用内容级评测证明收益。**
+**当前系统是“可审计的版式 + 试卷结构”低风险子集；T1 区域层与 T2 公式证据链已落地，
+下一步是修结构层的「（1）」式题号并补公式内容级人工标注基线，之后才轮到 T3/T4/T5/T6。**
