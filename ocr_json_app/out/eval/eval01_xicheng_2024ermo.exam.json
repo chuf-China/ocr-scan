@@ -1,0 +1,1762 @@
+{
+  "schema_version": 1,
+  "document": {
+    "title": "eval01_xicheng_2024ermo",
+    "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\eval\\eval01_xicheng_2024ermo.pdf",
+    "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\eval\\eval01_xicheng_2024ermo.layout.json",
+    "subject": "数学",
+    "pages": 10,
+    "page_size_pt": [
+      595.32,
+      841.92
+    ],
+    "engine": "llama.cpp/paddleocr-vl",
+    "generated_at": "2026-10-25T13:00:07+0800"
+  },
+  "sections": [
+    {
+      "id": "sec-01",
+      "label": "一",
+      "title": "选择题共10小题，每小题4分，共40分。在每小题列出的四个选项中，选出符合题目要求的一项。",
+      "pages": [
+        1
+      ],
+      "question_ids": [
+        "q-001",
+        "q-002",
+        "q-003",
+        "q-004",
+        "q-005",
+        "q-006",
+        "q-007",
+        "q-008",
+        "q-009",
+        "q-010"
+      ],
+      "declared_questions": 10
+    },
+    {
+      "id": "sec-02",
+      "label": "",
+      "title": "",
+      "pages": [
+        2
+      ],
+      "question_ids": [
+        "q-011",
+        "q-012",
+        "q-013",
+        "q-014",
+        "q-015"
+      ],
+      "inferred": true,
+      "reason": "section_heading_missing"
+    },
+    {
+      "id": "sec-03",
+      "label": "三",
+      "title": "解答题共6小题，共85分。解答应写出文字说明，演算步骤或证明过程。",
+      "pages": [
+        3
+      ],
+      "question_ids": [
+        "q-016",
+        "q-017",
+        "q-018",
+        "q-019",
+        "q-020",
+        "q-021"
+      ],
+      "declared_questions": 6
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-001",
+      "number": 1,
+      "section_id": "sec-01",
+      "pages": [
+        1
+      ],
+      "stem": [
+        {
+          "text": "在复平面内，复数 \\(z\\) 对应的点的坐标是 \\((\\sqrt{3}, -1)\\)，则 \\(z \\cdot \\overline{z} =\\)",
+          "page": 1,
+          "ref": "p1-l8"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-001-opt-A",
+          "label": "A",
+          "text": "1",
+          "refs": [
+            "p1-l9"
+          ],
+          "region_refs": [
+            "p1-r9"
+          ]
+        },
+        {
+          "id": "q-001-opt-B",
+          "label": "B",
+          "text": "2",
+          "refs": [
+            "p1-l9"
+          ],
+          "region_refs": [
+            "p1-r9"
+          ]
+        },
+        {
+          "id": "q-001-opt-C",
+          "label": "C",
+          "text": "3",
+          "refs": [
+            "p1-l10"
+          ],
+          "region_refs": [
+            "p1-r10"
+          ]
+        },
+        {
+          "id": "q-001-opt-D",
+          "label": "D",
+          "text": "4",
+          "refs": [
+            "p1-l10"
+          ],
+          "region_refs": [
+            "p1-r10"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "在复平面内，复数 \\(z\\) 对应的点的坐标是 \\((\\sqrt{3}, -1)\\)，则 \\(z \\cdot \\overline{z} =\\)",
+      "option_mode": "text",
+      "region_refs": [
+        "p1-r8",
+        "p1-r9",
+        "p1-r10"
+      ]
+    },
+    {
+      "id": "q-002",
+      "number": 2,
+      "section_id": "sec-01",
+      "pages": [
+        1
+      ],
+      "stem": [
+        {
+          "text": "已知向量\\(\\boldsymbol{a},\\boldsymbol{b}\\)满足\\(\\boldsymbol{a}=(4,3)\\)，\\(\\boldsymbol{a}-2\\boldsymbol{b}=(10,-5)\\)，则",
+          "page": 1,
+          "ref": "p1-l11"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-002-opt-A",
+          "label": "A",
+          "text": "\\(a + b = 0\\)",
+          "refs": [
+            "p1-l12"
+          ],
+          "region_refs": [
+            "p1-r12"
+          ]
+        },
+        {
+          "id": "q-002-opt-B",
+          "label": "B",
+          "text": "\\(a \\cdot b = 0\\)",
+          "refs": [
+            "p1-l12"
+          ],
+          "region_refs": [
+            "p1-r12"
+          ]
+        },
+        {
+          "id": "q-002-opt-C",
+          "label": "C",
+          "text": "\\(|a| > |b|\\)",
+          "refs": [
+            "p1-l13"
+          ],
+          "region_refs": [
+            "p1-r13"
+          ]
+        },
+        {
+          "id": "q-002-opt-D",
+          "label": "D",
+          "text": "\\(a \\parallel b\\)",
+          "refs": [
+            "p1-l13"
+          ],
+          "region_refs": [
+            "p1-r13"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "已知向量\\(\\boldsymbol{a},\\boldsymbol{b}\\)满足\\(\\boldsymbol{a}=(4,3)\\)，\\(\\boldsymbol{a}-2\\boldsymbol{b}=(10,-5)\\)，则",
+      "option_mode": "text",
+      "region_refs": [
+        "p1-r11",
+        "p1-r12",
+        "p1-r13"
+      ]
+    },
+    {
+      "id": "q-003",
+      "number": 3,
+      "section_id": "sec-01",
+      "pages": [
+        1
+      ],
+      "stem": [
+        {
+          "text": "已知集合 \\(A=\\{-1,0,1\\}\\)，\\(B=\\{x\\mid x>c\\}\\)。若 \\(A\\cap B=\\{0,1\\}\\)，则 \\(c\\) 的最小值是",
+          "page": 1,
+          "ref": "p1-l14"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-003-opt-A",
+          "label": "A",
+          "text": "1",
+          "refs": [
+            "p1-l15"
+          ],
+          "region_refs": [
+            "p1-r15"
+          ]
+        },
+        {
+          "id": "q-003-opt-B",
+          "label": "B",
+          "text": "0",
+          "refs": [
+            "p1-l15"
+          ],
+          "region_refs": [
+            "p1-r15"
+          ]
+        },
+        {
+          "id": "q-003-opt-C",
+          "label": "C",
+          "text": "-1",
+          "refs": [
+            "p1-l16"
+          ],
+          "region_refs": [
+            "p1-r16"
+          ]
+        },
+        {
+          "id": "q-003-opt-D",
+          "label": "D",
+          "text": "-2",
+          "refs": [
+            "p1-l16"
+          ],
+          "region_refs": [
+            "p1-r16"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "已知集合 \\(A=\\{-1,0,1\\}\\)，\\(B=\\{x\\mid x>c\\}\\)。若 \\(A\\cap B=\\{0,1\\}\\)，则 \\(c\\) 的最小值是",
+      "option_mode": "text",
+      "region_refs": [
+        "p1-r14",
+        "p1-r15",
+        "p1-r16"
+      ]
+    },
+    {
+      "id": "q-004",
+      "number": 4,
+      "section_id": "sec-01",
+      "pages": [
+        1
+      ],
+      "stem": [
+        {
+          "text": "设\\( (2x-1)^{4}=a_{4}x^{4}+a_{3}x^{3}+a_{2}x^{2}+a_{1}x+a_{0} \\)，则\\(a_{1}+a_{2}+a_{3}+a_{4}=\\)",
+          "page": 1,
+          "ref": "p1-l17"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-004-opt-A",
+          "label": "A",
+          "text": "-1",
+          "refs": [
+            "p1-l18"
+          ],
+          "region_refs": [
+            "p1-r18"
+          ]
+        },
+        {
+          "id": "q-004-opt-B",
+          "label": "B",
+          "text": "0",
+          "refs": [
+            "p1-l18"
+          ],
+          "region_refs": [
+            "p1-r18"
+          ]
+        },
+        {
+          "id": "q-004-opt-C",
+          "label": "C",
+          "text": "1",
+          "refs": [
+            "p1-l19"
+          ],
+          "region_refs": [
+            "p1-r19"
+          ]
+        },
+        {
+          "id": "q-004-opt-D",
+          "label": "D",
+          "text": "2",
+          "refs": [
+            "p1-l19"
+          ],
+          "region_refs": [
+            "p1-r19"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "设\\( (2x-1)^{4}=a_{4}x^{4}+a_{3}x^{3}+a_{2}x^{2}+a_{1}x+a_{0} \\)，则\\(a_{1}+a_{2}+a_{3}+a_{4}=\\)",
+      "option_mode": "text",
+      "region_refs": [
+        "p1-r17",
+        "p1-r18",
+        "p1-r19"
+      ]
+    },
+    {
+      "id": "q-005",
+      "number": 5,
+      "section_id": "sec-01",
+      "pages": [
+        1
+      ],
+      "stem": [
+        {
+          "text": "已知 \\(a \\in \\mathbb{R}\\), \\(b \\in \\mathbb{R}\\)．则“\\(ab > 1\\)”是“\\(a^2 + b^2 > 2\\)”的",
+          "page": 1,
+          "ref": "p1-l20"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-005-opt-A",
+          "label": "A",
+          "text": "充分不必要条件",
+          "refs": [
+            "p1-l21"
+          ],
+          "region_refs": [
+            "p1-r21"
+          ]
+        },
+        {
+          "id": "q-005-opt-B",
+          "label": "B",
+          "text": "必要不充分条件",
+          "refs": [
+            "p1-l21"
+          ],
+          "region_refs": [
+            "p1-r21"
+          ]
+        },
+        {
+          "id": "q-005-opt-C",
+          "label": "C",
+          "text": "充要条件",
+          "refs": [
+            "p1-l22"
+          ],
+          "region_refs": [
+            "p1-r22"
+          ]
+        },
+        {
+          "id": "q-005-opt-D",
+          "label": "D",
+          "text": "既不充分也不必要条件",
+          "refs": [
+            "p1-l22"
+          ],
+          "region_refs": [
+            "p1-r22"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "已知 \\(a \\in \\mathbb{R}\\), \\(b \\in \\mathbb{R}\\)．则“\\(ab > 1\\)”是“\\(a^2 + b^2 > 2\\)”的",
+      "option_mode": "text",
+      "region_refs": [
+        "p1-r20",
+        "p1-r21",
+        "p1-r22"
+      ]
+    },
+    {
+      "id": "q-006",
+      "number": 6,
+      "section_id": "sec-01",
+      "pages": [
+        1
+      ],
+      "stem": [
+        {
+          "text": "已知双曲线 \\(C: mx^2 + ny^2 = 1\\) 的焦点在 \\(y\\) 轴上，且 \\(C\\) 的离心率为 2，则",
+          "page": 1,
+          "ref": "p1-l23"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-006-opt-A",
+          "label": "A",
+          "text": "3m - n = 0",
+          "refs": [
+            "p1-l24"
+          ],
+          "region_refs": [
+            "p1-r24"
+          ]
+        },
+        {
+          "id": "q-006-opt-B",
+          "label": "B",
+          "text": "m - 3n = 0",
+          "refs": [
+            "p1-l24"
+          ],
+          "region_refs": [
+            "p1-r24"
+          ]
+        },
+        {
+          "id": "q-006-opt-C",
+          "label": "C",
+          "text": "\\(3m + n = 0\\)",
+          "refs": [
+            "p1-l25"
+          ],
+          "region_refs": [
+            "p1-r25"
+          ]
+        },
+        {
+          "id": "q-006-opt-D",
+          "label": "D",
+          "text": "\\(m + 3n = 0\\)",
+          "refs": [
+            "p1-l25"
+          ],
+          "region_refs": [
+            "p1-r25"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "已知双曲线 \\(C: mx^2 + ny^2 = 1\\) 的焦点在 \\(y\\) 轴上，且 \\(C\\) 的离心率为 2，则",
+      "option_mode": "text",
+      "region_refs": [
+        "p1-r23",
+        "p1-r24",
+        "p1-r25"
+      ]
+    },
+    {
+      "id": "q-007",
+      "number": 7,
+      "section_id": "sec-01",
+      "pages": [
+        1
+      ],
+      "stem": [
+        {
+          "text": "将函数 \\(f(x)=\\tan x\\) 的图象向右平移1个单位长度，所得图象再关于 y 轴对称，得",
+          "page": 1,
+          "ref": "p1-l26"
+        },
+        {
+          "text": "到函数 \\(g(x)\\) 的图象，则 \\(g(x)=\\)",
+          "page": 1,
+          "ref": "p1-l27"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-007-opt-A",
+          "label": "A",
+          "text": "\\(1 - \\tan x\\)",
+          "refs": [
+            "p1-l28"
+          ],
+          "region_refs": [
+            "p1-r28"
+          ]
+        },
+        {
+          "id": "q-007-opt-B",
+          "label": "B",
+          "text": "\\(-1 - \\tan x\\)",
+          "refs": [
+            "p1-l28"
+          ],
+          "region_refs": [
+            "p1-r28"
+          ]
+        },
+        {
+          "id": "q-007-opt-C",
+          "label": "C",
+          "text": "\\(-\\tan(x-1)\\)",
+          "refs": [
+            "p1-l29"
+          ],
+          "region_refs": [
+            "p1-r29"
+          ]
+        },
+        {
+          "id": "q-007-opt-D",
+          "label": "D",
+          "text": "\\(-\\tan(x+1)\\)",
+          "refs": [
+            "p1-l29"
+          ],
+          "region_refs": [
+            "p1-r29"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "将函数 \\(f(x)=\\tan x\\) 的图象向右平移1个单位长度，所得图象再关于 y 轴对称，得\n到函数 \\(g(x)\\) 的图象，则 \\(g(x)=\\)",
+      "option_mode": "text",
+      "region_refs": [
+        "p1-r26",
+        "p1-r27",
+        "p1-r28",
+        "p1-r29"
+      ]
+    },
+    {
+      "id": "q-008",
+      "number": 8,
+      "section_id": "sec-01",
+      "pages": [
+        2
+      ],
+      "stem": [
+        {
+          "text": "楔体形构件在建筑工程上有广泛的应用．如图，某楔体形构件可视为一个五面体",
+          "page": 2,
+          "ref": "p2-l1"
+        },
+        {
+          "text": "ABCDEF，其中面 ABCD 为正方形．若",
+          "page": 2,
+          "ref": "p2-l2"
+        },
+        {
+          "text": "AB = 6cm，EF = 3cm，且 EF 与面 ABCD 的距离为",
+          "page": 2,
+          "ref": "p2-l3"
+        },
+        {
+          "text": "2cm，则",
+          "page": 2,
+          "ref": "p2-l4"
+        },
+        {
+          "text": "该楔体形构件的体积为",
+          "page": 2,
+          "ref": "p2-l5"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-008-opt-A",
+          "label": "A",
+          "text": "\\(18 \\, cm^3\\)",
+          "refs": [
+            "p2-l6"
+          ],
+          "region_refs": [
+            "p2-r6"
+          ]
+        },
+        {
+          "id": "q-008-opt-B",
+          "label": "B",
+          "text": "\\(24 \\, cm^3\\)",
+          "refs": [
+            "p2-l6"
+          ],
+          "region_refs": [
+            "p2-r6"
+          ]
+        },
+        {
+          "id": "q-008-opt-C",
+          "label": "C",
+          "text": "\\(30cm^{3}\\)",
+          "refs": [
+            "p2-l7"
+          ],
+          "region_refs": [
+            "p2-r7"
+          ]
+        },
+        {
+          "id": "q-008-opt-D",
+          "label": "D",
+          "text": "\\(48cm^{3}\\)",
+          "refs": [
+            "p2-l7"
+          ],
+          "region_refs": [
+            "p2-r7"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [
+        {
+          "ref": "p2-f3",
+          "page": 2,
+          "bbox_pt": [
+            335.21,
+            67.36,
+            463.68,
+            139.77
+          ],
+          "source": "pdf-vector",
+          "distance_pt": 9.77,
+          "region_id": "p2-r30"
+        }
+      ],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "楔体形构件在建筑工程上有广泛的应用．如图，某楔体形构件可视为一个五面体\nABCDEF，其中面 ABCD 为正方形．若\nAB = 6cm，EF = 3cm，且 EF 与面 ABCD 的距离为\n2cm，则\n该楔体形构件的体积为",
+      "option_mode": "text",
+      "region_refs": [
+        "p2-r1",
+        "p2-r2",
+        "p2-r3",
+        "p2-r4",
+        "p2-r5",
+        "p2-r6",
+        "p2-r7"
+      ]
+    },
+    {
+      "id": "q-009",
+      "number": 9,
+      "section_id": "sec-01",
+      "pages": [
+        2
+      ],
+      "stem": [
+        {
+          "text": "已知\\(\\{a_n\\}\\)是无穷等比数列，其前\\(n\\)项和为\\(S_n\\)，\\(a_1=3\\)，\\(S_2=\\frac{3}{2}\\)。若对任意正整数",
+          "page": 2,
+          "ref": "p2-l8"
+        },
+        {
+          "text": "\\(n\\)，都有 \\(S_n - (-1)^n \\cdot A > 0\\)，则 \\(A\\) 的取值范围是",
+          "page": 2,
+          "ref": "p2-l9"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-009-opt-A",
+          "label": "A",
+          "text": "\\((-3,1)\\)",
+          "refs": [
+            "p2-l10"
+          ],
+          "region_refs": [
+            "p2-r10"
+          ]
+        },
+        {
+          "id": "q-009-opt-B",
+          "label": "B",
+          "text": "\\([-2,1)\\)",
+          "refs": [
+            "p2-l10"
+          ],
+          "region_refs": [
+            "p2-r10"
+          ]
+        },
+        {
+          "id": "q-009-opt-C",
+          "label": "C",
+          "text": "\\((-3, \\frac{3}{2})\\)",
+          "refs": [
+            "p2-l11"
+          ],
+          "region_refs": [
+            "p2-r11"
+          ]
+        },
+        {
+          "id": "q-009-opt-D",
+          "label": "D",
+          "text": "\\([-2, \\frac{3}{2})\\)",
+          "refs": [
+            "p2-l11"
+          ],
+          "region_refs": [
+            "p2-r11"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "已知\\(\\{a_n\\}\\)是无穷等比数列，其前\\(n\\)项和为\\(S_n\\)，\\(a_1=3\\)，\\(S_2=\\frac{3}{2}\\)。若对任意正整数\n\\(n\\)，都有 \\(S_n - (-1)^n \\cdot A > 0\\)，则 \\(A\\) 的取值范围是",
+      "option_mode": "text",
+      "region_refs": [
+        "p2-r8",
+        "p2-r9",
+        "p2-r10",
+        "p2-r11"
+      ]
+    },
+    {
+      "id": "q-010",
+      "number": 10,
+      "section_id": "sec-01",
+      "pages": [
+        2
+      ],
+      "stem": [
+        {
+          "text": "一组学生站成一排．若任意相邻的3人中都至少有2名男生，且任意相邻的 5人",
+          "page": 2,
+          "ref": "p2-l12"
+        },
+        {
+          "text": "中都至多有3名男生，则这组学生人数的最大值是",
+          "page": 2,
+          "ref": "p2-l13"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-010-opt-A",
+          "label": "A",
+          "text": "5",
+          "refs": [
+            "p2-l14"
+          ],
+          "region_refs": [
+            "p2-r14"
+          ]
+        },
+        {
+          "id": "q-010-opt-B",
+          "label": "B",
+          "text": "6",
+          "refs": [
+            "p2-l14"
+          ],
+          "region_refs": [
+            "p2-r14"
+          ]
+        },
+        {
+          "id": "q-010-opt-C",
+          "label": "C",
+          "text": "7",
+          "refs": [
+            "p2-l15"
+          ],
+          "region_refs": [
+            "p2-r15"
+          ]
+        },
+        {
+          "id": "q-010-opt-D",
+          "label": "D",
+          "text": "8\n第二部分（非选择题共110分）\n（表格）",
+          "refs": [
+            "p2-l15",
+            "p2-l16",
+            "p2-l17"
+          ],
+          "region_refs": [
+            "p2-r15",
+            "p2-r16",
+            "p2-r17"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [
+        {
+          "ref": "p2-l17-t1",
+          "page": 2,
+          "line_ref": "p2-l17",
+          "headers": [
+            "填空题共",
+            "小题",
+            ""
+          ],
+          "rows": [
+            [
+              "填空题共",
+              "5"
+            ],
+            [
+              "每小题",
+              "5"
+            ]
+          ],
+          "source": "label-number",
+          "region_id": "p2-r17"
+        }
+      ],
+      "cross_page": false,
+      "stem_text": "一组学生站成一排．若任意相邻的3人中都至少有2名男生，且任意相邻的 5人\n中都至多有3名男生，则这组学生人数的最大值是",
+      "option_mode": "text",
+      "region_refs": [
+        "p2-r12",
+        "p2-r13",
+        "p2-r14",
+        "p2-r15",
+        "p2-r16",
+        "p2-r17"
+      ]
+    },
+    {
+      "id": "q-011",
+      "number": 11,
+      "section_id": "sec-02",
+      "pages": [
+        2
+      ],
+      "stem": [
+        {
+          "text": "函数 \\(f(x)=\\sqrt{1+\\log_3 x}\\) 的定义域是 ___.",
+          "page": 2,
+          "ref": "p2-l18"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "函数 \\(f(x)=\\sqrt{1+\\log_3 x}\\) 的定义域是 ___.",
+      "option_mode": "text",
+      "region_refs": [
+        "p2-r18"
+      ]
+    },
+    {
+      "id": "q-012",
+      "number": 12,
+      "section_id": "sec-02",
+      "pages": [
+        2
+      ],
+      "stem": [
+        {
+          "text": "已知圆 C 经过点 \\((-1,0)\\) 和 \\((3,0)\\)，且与直线 y=2 相切，则圆 C 的方程为 ___。",
+          "page": 2,
+          "ref": "p2-l19"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "已知圆 C 经过点 \\((-1,0)\\) 和 \\((3,0)\\)，且与直线 y=2 相切，则圆 C 的方程为 ___。",
+      "option_mode": "text",
+      "region_refs": [
+        "p2-r19"
+      ]
+    },
+    {
+      "id": "q-013",
+      "number": 13,
+      "section_id": "sec-02",
+      "pages": [
+        2
+      ],
+      "stem": [
+        {
+          "text": "已知函数 \\(f(x)=\\sin(\\omega x+\\varphi)\\) (\\(\\omega>0,|\\varphi|<\\frac{\\pi}{2}\\))．直线",
+          "page": 2,
+          "ref": "p2-l20"
+        },
+        {
+          "text": "\\(y=\\frac{\\sqrt{2}}{2}\\) 与曲线 \\(y=f(x)\\) 的两个交点 \\(A,B\\) 如图所示.",
+          "page": 2,
+          "ref": "p2-l21"
+        },
+        {
+          "text": "若\\(|AB|=\\frac{\\pi}{4}\\)，且\\(f(x)\\)在区间\\(\\left(\\frac{5\\pi}{12},\\frac{11\\pi}{12}\\right)\\)上单调递减，",
+          "page": 2,
+          "ref": "p2-l22"
+        },
+        {
+          "text": "则 \\(\\omega = \\)___； \\(\\varphi = \\)___。",
+          "page": 2,
+          "ref": "p2-l23"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "已知函数 \\(f(x)=\\sin(\\omega x+\\varphi)\\) (\\(\\omega>0,|\\varphi|<\\frac{\\pi}{2}\\))．直线\n\\(y=\\frac{\\sqrt{2}}{2}\\) 与曲线 \\(y=f(x)\\) 的两个交点 \\(A,B\\) 如图所示.\n若\\(|AB|=\\frac{\\pi}{4}\\)，且\\(f(x)\\)在区间\\(\\left(\\frac{5\\pi}{12},\\frac{11\\pi}{12}\\right)\\)上单调递减，\n则 \\(\\omega = \\)___； \\(\\varphi = \\)___。",
+      "option_mode": "text",
+      "region_refs": [
+        "p2-r20",
+        "p2-r21",
+        "p2-r22",
+        "p2-r23"
+      ]
+    },
+    {
+      "id": "q-014",
+      "number": 14,
+      "section_id": "sec-02",
+      "pages": [
+        2
+      ],
+      "stem": [
+        {
+          "text": "已知函数 \\(f(x)=\\begin{cases} x^2+2x, & x<-2 \\text{ 或 } x>1, \\\\ \\sqrt{12-3x^2}, & -2 \\leq x \\leq 1, \\end{cases}\\) \\(g(x)=f(x)-a\\)，其中 \\(a \\in \\mathbb{R}\\)。",
+          "page": 2,
+          "ref": "p2-l24"
+        },
+        {
+          "text": "① 若函数 \\(g(x)\\) 无零点，则 \\(a\\) 的一个取值为___；",
+          "page": 2,
+          "ref": "p2-l25"
+        },
+        {
+          "text": "② 若函数 \\(g(x)\\) 有 4 个零点 \\(x_i\\) (\\(i=1,2,3,4\\))，则 \\(x_1 + x_2 + x_3 + x_4 =\\) ___。",
+          "page": 2,
+          "ref": "p2-l26"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [
+        {
+          "ref": "p2-f2",
+          "page": 2,
+          "bbox_pt": [
+            408.9,
+            566.02,
+            540.89,
+            630.46
+          ],
+          "source": "pdf-vector",
+          "distance_pt": 34.34,
+          "region_id": "p2-r29"
+        }
+      ],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "已知函数 \\(f(x)=\\begin{cases} x^2+2x, & x<-2 \\text{ 或 } x>1, \\\\ \\sqrt{12-3x^2}, & -2 \\leq x \\leq 1, \\end{cases}\\) \\(g(x)=f(x)-a\\)，其中 \\(a \\in \\mathbb{R}\\)。\n① 若函数 \\(g(x)\\) 无零点，则 \\(a\\) 的一个取值为___；\n② 若函数 \\(g(x)\\) 有 4 个零点 \\(x_i\\) (\\(i=1,2,3,4\\))，则 \\(x_1 + x_2 + x_3 + x_4 =\\) ___。",
+      "option_mode": "text",
+      "region_refs": [
+        "p2-r24",
+        "p2-r25",
+        "p2-r26"
+      ]
+    },
+    {
+      "id": "q-015",
+      "number": 15,
+      "section_id": "sec-02",
+      "pages": [
+        3
+      ],
+      "stem": [
+        {
+          "text": "在数列 \\(\\{a_n\\}\\) 中，\\(a_1 = \\frac{16}{3}\\)，\\(a_n = \\frac{3a_{n-1} + 4}{-a_{n-1} + 7}\\)（\\(n=2,3,\\cdots\\)）。给出下列三个结论：",
+          "page": 3,
+          "ref": "p3-l1"
+        },
+        {
+          "text": "① 存在正整数 \\(N\\)，当 \\(n \\geqslant N\\) 时，\\(a_n > 2\\)；",
+          "page": 3,
+          "ref": "p3-l2"
+        },
+        {
+          "text": "② 存在正整数 \\(N\\)，当 \\(n \\geqslant N\\) 时，\\(a_n > a_{n-1}\\)；",
+          "page": 3,
+          "ref": "p3-l3"
+        },
+        {
+          "text": "③ 存在正整数 \\(N\\)，当 \\(n \\geqslant N\\) 时，\\(a_n > \\frac{a_{n-1} + a_{n+1}}{2}\\)。",
+          "page": 3,
+          "ref": "p3-l4"
+        },
+        {
+          "text": "其中所有正确结论的序号是 ___.",
+          "page": 3,
+          "ref": "p3-l5"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "在数列 \\(\\{a_n\\}\\) 中，\\(a_1 = \\frac{16}{3}\\)，\\(a_n = \\frac{3a_{n-1} + 4}{-a_{n-1} + 7}\\)（\\(n=2,3,\\cdots\\)）。给出下列三个结论：\n① 存在正整数 \\(N\\)，当 \\(n \\geqslant N\\) 时，\\(a_n > 2\\)；\n② 存在正整数 \\(N\\)，当 \\(n \\geqslant N\\) 时，\\(a_n > a_{n-1}\\)；\n③ 存在正整数 \\(N\\)，当 \\(n \\geqslant N\\) 时，\\(a_n > \\frac{a_{n-1} + a_{n+1}}{2}\\)。\n其中所有正确结论的序号是 ___.",
+      "option_mode": "text",
+      "region_refs": [
+        "p3-r1",
+        "p3-r2",
+        "p3-r3",
+        "p3-r4",
+        "p3-r5"
+      ]
+    },
+    {
+      "id": "q-016",
+      "number": 16,
+      "section_id": "sec-03",
+      "pages": [
+        3
+      ],
+      "stem": [
+        {
+          "text": "（本小题13分）",
+          "page": 3,
+          "ref": "p3-l7"
+        },
+        {
+          "text": "已知函数 \\(f(x)=\\sqrt{3}\\sin x+2\\cos^{2}\\frac{x}{2}\\)。在\\(\\triangle ABC\\)中，\\(f(A)=f(B)\\)，且\\(a\\ne b\\)。",
+          "page": 3,
+          "ref": "p3-l8"
+        },
+        {
+          "text": "（Ⅰ）求\\(\\angle C\\)的大小；",
+          "page": 3,
+          "ref": "p3-l9"
+        },
+        {
+          "text": "（Ⅱ）若 \\(c = 5\\)，且 \\(\\triangle ABC\\) 的面积为 \\(2\\sqrt{3}\\)，求 \\(\\triangle ABC\\) 的周长.",
+          "page": 3,
+          "ref": "p3-l10"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "（本小题13分）\n已知函数 \\(f(x)=\\sqrt{3}\\sin x+2\\cos^{2}\\frac{x}{2}\\)。在\\(\\triangle ABC\\)中，\\(f(A)=f(B)\\)，且\\(a\\ne b\\)。\n（Ⅰ）求\\(\\angle C\\)的大小；\n（Ⅱ）若 \\(c = 5\\)，且 \\(\\triangle ABC\\) 的面积为 \\(2\\sqrt{3}\\)，求 \\(\\triangle ABC\\) 的周长.",
+      "option_mode": "text",
+      "region_refs": [
+        "p3-r7",
+        "p3-r8",
+        "p3-r9",
+        "p3-r10"
+      ]
+    },
+    {
+      "id": "q-017",
+      "number": 17,
+      "section_id": "sec-03",
+      "pages": [
+        3
+      ],
+      "stem": [
+        {
+          "text": "（本小题14分）",
+          "page": 3,
+          "ref": "p3-l11"
+        },
+        {
+          "text": "如图，正方体 \\(ABCD-A_1B_1C_1D_1\\) 的棱长为 2，\\(E\\) 为 \\(BC\\) 的中点，点 \\(M\\) 在 \\(BD_1\\) 上．再从下列三个条件中",
+          "page": 3,
+          "ref": "p3-l12"
+        },
+        {
+          "text": "选择一个作为己知，使点M唯一确定，并解答问题．",
+          "page": 3,
+          "ref": "p3-l13"
+        },
+        {
+          "text": "条件①：\\(MA = MC\\)；",
+          "page": 3,
+          "ref": "p3-l14"
+        },
+        {
+          "text": "条件②：\\(EM \\perp AD\\)；",
+          "page": 3,
+          "ref": "p3-l15"
+        },
+        {
+          "text": "条件③：\\(EM \\parallel\\) 平面 \\(CDD_{1}C_{1}\\)",
+          "page": 3,
+          "ref": "p3-l16"
+        },
+        {
+          "text": "（Ⅰ）求证：M为\\(BD_{1}\\)的中点；",
+          "page": 3,
+          "ref": "p3-l17"
+        },
+        {
+          "text": "（Ⅱ）求直线EM 与平面MCD所成角的大小，及点E到平面MCD的距离．",
+          "page": 3,
+          "ref": "p3-l18"
+        },
+        {
+          "text": "注：如果选择的条件不符合要求，第（Ⅰ）问得0分；如果选择多个符合要求的条件分别解答，按第",
+          "page": 3,
+          "ref": "p3-l19"
+        },
+        {
+          "text": "一个解答计分．",
+          "page": 3,
+          "ref": "p3-l20"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [
+        {
+          "ref": "p3-f2",
+          "page": 3,
+          "bbox_pt": [
+            333.26,
+            427.29,
+            453.58,
+            528.29
+          ],
+          "source": "pdf-vector",
+          "distance_pt": 11.23,
+          "region_id": "p3-r23"
+        }
+      ],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "（本小题14分）\n如图，正方体 \\(ABCD-A_1B_1C_1D_1\\) 的棱长为 2，\\(E\\) 为 \\(BC\\) 的中点，点 \\(M\\) 在 \\(BD_1\\) 上．再从下列三个条件中\n选择一个作为己知，使点M唯一确定，并解答问题．\n条件①：\\(MA = MC\\)；\n条件②：\\(EM \\perp AD\\)；\n条件③：\\(EM \\parallel\\) 平面 \\(CDD_{1}C_{1}\\)\n（Ⅰ）求证：M为\\(BD_{1}\\)的中点；\n（Ⅱ）求直线EM 与平面MCD所成角的大小，及点E到平面MCD的距离．\n注：如果选择的条件不符合要求，第（Ⅰ）问得0分；如果选择多个符合要求的条件分别解答，按第\n一个解答计分．",
+      "option_mode": "text",
+      "region_refs": [
+        "p3-r11",
+        "p3-r12",
+        "p3-r13",
+        "p3-r14",
+        "p3-r15",
+        "p3-r16",
+        "p3-r17",
+        "p3-r18",
+        "p3-r19",
+        "p3-r20"
+      ]
+    },
+    {
+      "id": "q-018",
+      "number": 18,
+      "section_id": "sec-03",
+      "pages": [
+        4
+      ],
+      "stem": [
+        {
+          "text": "（本小题13分）",
+          "page": 4,
+          "ref": "p4-l1"
+        },
+        {
+          "text": "为研究中国工业机器人产量和销量的变化规律，收集得到了2015–2023年工业机器人的产量和销量数",
+          "page": 4,
+          "ref": "p4-l2"
+        },
+        {
+          "text": "据，如下表所示．",
+          "page": 4,
+          "ref": "p4-l3"
+        },
+        {
+          "text": "记2015–2023年工业机器人产量的中位数为a，销量的中位数为b．定义产销率为",
+          "page": 4,
+          "ref": "p4-l4"
+        },
+        {
+          "text": "产量",
+          "page": 4,
+          "ref": "p4-l5"
+        },
+        {
+          "text": "（Ⅰ）从2015－2023年中随机取1年，求工业机器人的产销率大于100%的概率；",
+          "page": 4,
+          "ref": "p4-l6"
+        },
+        {
+          "text": "（Ⅱ）从2018－2023年这6年中随机取2年，这2年中有X年工业机器人的产量不小于a，",
+          "page": 4,
+          "ref": "p4-l7"
+        },
+        {
+          "text": "有Y年工业机器人的销量不小于$b$．记$Z=X+Y$，求$Z$的分布列和数学期望$EZ$；",
+          "page": 4,
+          "ref": "p4-l8"
+        },
+        {
+          "text": "（Ⅲ）从哪年开始的连续5年中随机取1年，工业机器人的产销率超过70%的概率最小．",
+          "page": 4,
+          "ref": "p4-l9"
+        },
+        {
+          "text": "（结论不要求证明）",
+          "page": 4,
+          "ref": "p4-l10"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [
+        {
+          "ref": "p4-f1",
+          "page": 4,
+          "bbox_pt": [
+            111.29,
+            104.64,
+            484.03,
+            168.48
+          ],
+          "source": "table-grid",
+          "distance_pt": 2.4,
+          "region_id": "p4-r24"
+        },
+        {
+          "ref": "p4-f2",
+          "page": 4,
+          "bbox_pt": [
+            541.74,
+            28.35,
+            595.32,
+            81.93
+          ],
+          "source": "pdf-image",
+          "distance_pt": 5.1,
+          "region_id": "p4-r25"
+        }
+      ],
+      "tables": [
+        {
+          "ref": "p4-t1",
+          "page": 4,
+          "bbox_pt": [
+            113.54,
+            106.86,
+            481.92,
+            166.46
+          ],
+          "headers": [
+            "年份",
+            "2015",
+            "2016",
+            "2017",
+            "2018",
+            "2019",
+            "2020",
+            "2021",
+            "2022",
+            "2023"
+          ],
+          "rows": [
+            [
+              "产量（万台）",
+              "3.3",
+              "7.2",
+              "13.1",
+              "14.8",
+              "18.7",
+              "23.7",
+              "36.6",
+              "44.3",
+              "43.0"
+            ],
+            [
+              "销量（万台）",
+              "6.9",
+              "8.7",
+              "13.8",
+              "15.4",
+              "14.0",
+              "15.6",
+              "27.1",
+              "29.7",
+              "31.6"
+            ]
+          ],
+          "rows_count": 3,
+          "cols_count": 10,
+          "source": "pdf-table-cells",
+          "distance_pt": 4.42,
+          "region_id": "p4-r23"
+        }
+      ],
+      "cross_page": false,
+      "stem_text": "（本小题13分）\n为研究中国工业机器人产量和销量的变化规律，收集得到了2015–2023年工业机器人的产量和销量数\n据，如下表所示．\n记2015–2023年工业机器人产量的中位数为a，销量的中位数为b．定义产销率为\n产量\n（Ⅰ）从2015－2023年中随机取1年，求工业机器人的产销率大于100%的概率；\n（Ⅱ）从2018－2023年这6年中随机取2年，这2年中有X年工业机器人的产量不小于a，\n有Y年工业机器人的销量不小于$b$．记$Z=X+Y$，求$Z$的分布列和数学期望$EZ$；\n（Ⅲ）从哪年开始的连续5年中随机取1年，工业机器人的产销率超过70%的概率最小．\n（结论不要求证明）",
+      "option_mode": "text",
+      "region_refs": [
+        "p4-r1",
+        "p4-r2",
+        "p4-r3",
+        "p4-r4",
+        "p4-r5",
+        "p4-r6",
+        "p4-r7",
+        "p4-r8",
+        "p4-r9",
+        "p4-r10"
+      ]
+    },
+    {
+      "id": "q-019",
+      "number": 19,
+      "section_id": "sec-03",
+      "pages": [
+        4
+      ],
+      "stem": [
+        {
+          "text": "（本小题15分）",
+          "page": 4,
+          "ref": "p4-l11"
+        },
+        {
+          "text": "已知函数 \\(f(x)=4a\\sin x+(a^2+1)x^2\\)，其中 \\(a\\geq0\\)。",
+          "page": 4,
+          "ref": "p4-l12"
+        },
+        {
+          "text": "（Ⅰ）若 \\(f(x)\\) 在 x=0 处取得极小值，求 a 的值；",
+          "page": 4,
+          "ref": "p4-l13"
+        },
+        {
+          "text": "（Ⅱ）当\\(a=1\\)时，求\\(f(x)\\)在区间\\([\\frac{\\pi}{2},\\pi]\\)上的最大值；",
+          "page": 4,
+          "ref": "p4-l14"
+        },
+        {
+          "text": "（Ⅲ）证明： f(x)有且只有一个极值点．",
+          "page": 4,
+          "ref": "p4-l15"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "（本小题15分）\n已知函数 \\(f(x)=4a\\sin x+(a^2+1)x^2\\)，其中 \\(a\\geq0\\)。\n（Ⅰ）若 \\(f(x)\\) 在 x=0 处取得极小值，求 a 的值；\n（Ⅱ）当\\(a=1\\)时，求\\(f(x)\\)在区间\\([\\frac{\\pi}{2},\\pi]\\)上的最大值；\n（Ⅲ）证明： f(x)有且只有一个极值点．",
+      "option_mode": "text",
+      "region_refs": [
+        "p4-r11",
+        "p4-r12",
+        "p4-r13",
+        "p4-r14",
+        "p4-r15"
+      ]
+    },
+    {
+      "id": "q-020",
+      "number": 20,
+      "section_id": "sec-03",
+      "pages": [
+        4
+      ],
+      "stem": [
+        {
+          "text": "（本小题15分）",
+          "page": 4,
+          "ref": "p4-l16"
+        },
+        {
+          "text": "已知椭圆 \\(E: \\frac{x^{2}}{a^{2}} + \\frac{y^{2}}{b^{2}} = 1 (a > b > 0)\\) 的一个顶点为 \\(D(2,0)\\)，焦距为 \\(2\\sqrt{2}\\)。",
+          "page": 4,
+          "ref": "p4-l17"
+        },
+        {
+          "text": "（Ⅰ）求椭圆E的方程；",
+          "page": 4,
+          "ref": "p4-l18"
+        },
+        {
+          "text": "（Ⅱ）设点P是第一象限内椭圆E上一点，过P作y轴的垂线，垂足为Q．点P关于原点",
+          "page": 4,
+          "ref": "p4-l19"
+        },
+        {
+          "text": "的对称点为A，直线DQ与椭圆的另一个交点为B，直线DP与y轴的交点为C．",
+          "page": 4,
+          "ref": "p4-l20"
+        },
+        {
+          "text": "求证：A,B,C三点共线．",
+          "page": 4,
+          "ref": "p4-l21"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "（本小题15分）\n已知椭圆 \\(E: \\frac{x^{2}}{a^{2}} + \\frac{y^{2}}{b^{2}} = 1 (a > b > 0)\\) 的一个顶点为 \\(D(2,0)\\)，焦距为 \\(2\\sqrt{2}\\)。\n（Ⅰ）求椭圆E的方程；\n（Ⅱ）设点P是第一象限内椭圆E上一点，过P作y轴的垂线，垂足为Q．点P关于原点\n的对称点为A，直线DQ与椭圆的另一个交点为B，直线DP与y轴的交点为C．\n求证：A,B,C三点共线．",
+      "option_mode": "text",
+      "region_refs": [
+        "p4-r16",
+        "p4-r17",
+        "p4-r18",
+        "p4-r19",
+        "p4-r20",
+        "p4-r21"
+      ]
+    },
+    {
+      "id": "q-021",
+      "number": 21,
+      "section_id": "sec-03",
+      "pages": [
+        5
+      ],
+      "stem": [
+        {
+          "text": "（本小题15分）",
+          "page": 5,
+          "ref": "p5-l1"
+        },
+        {
+          "text": "已知数列 \\(A:a_1,a_2,\\cdots,a_n\\)，从 \\(A\\) 中选取第 \\(i_1\\) 项、第 \\(i_2\\) 项、\\(\\cdots\\)、第 \\(i_k\\) 项（\\(i_1<i_2<\\cdots<i_k\\)）构成数列",
+          "page": 5,
+          "ref": "p5-l2"
+        },
+        {
+          "text": "B: \\(a_{i_1}, a_{i_2}, \\cdots, a_{i_k}\\), B 称为 A 的 k 项子列. 记数列 B 的所有项的和为 \\(T(B)\\).",
+          "page": 5,
+          "ref": "p5-l3"
+        },
+        {
+          "text": "当 \\(k \\geqslant 2\\) 时，若 \\(B\\) 满足：对任意 \\(s \\in \\{1,2,\\cdots,k-1\\}\\)，\\(i_{s+1} - i_s = 1\\)，则称 \\(B\\) 具有性质 \\(P\\)。",
+          "page": 5,
+          "ref": "p5-l4"
+        },
+        {
+          "text": "规定：A的任意一项都是A的1项子列，且具有性质P．",
+          "page": 5,
+          "ref": "p5-l5"
+        },
+        {
+          "text": "（Ⅰ）当n=4时，比较A的具有性质P的子列个数与不具有性质P的子列个数的大小，并",
+          "page": 5,
+          "ref": "p5-l6"
+        },
+        {
+          "text": "说明理由；",
+          "page": 5,
+          "ref": "p5-l7"
+        },
+        {
+          "text": "（Ⅱ）已知数列 \\(A:1,2,3,\\cdots,n\\) (\\(n\\geqslant2\\))。",
+          "page": 5,
+          "ref": "p5-l8"
+        },
+        {
+          "text": "（ⅰ）给定正整数k n，对的项子列B，求所有T(B)的算术平均值；",
+          "page": 5,
+          "ref": "p5-l9"
+        },
+        {
+          "text": "（ii）若 \\(A\\) 有 \\(m\\) 个不同的具有性质 \\(P\\) 的子列 \\(B_1, B_2, \\cdots, B_m\\)，满足：\\(\\forall 1 \\leq i < j \\leq m\\)，",
+          "page": 5,
+          "ref": "p5-l10"
+        },
+        {
+          "text": "Bi与Bj都有公共项，且公共项构成A的具有性质P的子列，求m的最大值．",
+          "page": 5,
+          "ref": "p5-l11"
+        },
+        {
+          "text": "（考生务必将答案答在答题卡上，在试卷上作答无效）",
+          "page": 5,
+          "ref": "p5-l12"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [
+        {
+          "ref": "p5-f1",
+          "page": 5,
+          "bbox_pt": [
+            541.74,
+            28.35,
+            595.32,
+            81.93
+          ],
+          "source": "pdf-image",
+          "distance_pt": 2.22,
+          "region_id": "p5-r14"
+        }
+      ],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "（本小题15分）\n已知数列 \\(A:a_1,a_2,\\cdots,a_n\\)，从 \\(A\\) 中选取第 \\(i_1\\) 项、第 \\(i_2\\) 项、\\(\\cdots\\)、第 \\(i_k\\) 项（\\(i_1<i_2<\\cdots<i_k\\)）构成数列\nB: \\(a_{i_1}, a_{i_2}, \\cdots, a_{i_k}\\), B 称为 A 的 k 项子列. 记数列 B 的所有项的和为 \\(T(B)\\).\n当 \\(k \\geqslant 2\\) 时，若 \\(B\\) 满足：对任意 \\(s \\in \\{1,2,\\cdots,k-1\\}\\)，\\(i_{s+1} - i_s = 1\\)，则称 \\(B\\) 具有性质 \\(P\\)。\n规定：A的任意一项都是A的1项子列，且具有性质P．\n（Ⅰ）当n=4时，比较A的具有性质P的子列个数与不具有性质P的子列个数的大小，并\n说明理由；\n（Ⅱ）已知数列 \\(A:1,2,3,\\cdots,n\\) (\\(n\\geqslant2\\))。\n（ⅰ）给定正整数k n，对的项子列B，求所有T(B)的算术平均值；\n（ii）若 \\(A\\) 有 \\(m\\) 个不同的具有性质 \\(P\\) 的子列 \\(B_1, B_2, \\cdots, B_m\\)，满足：\\(\\forall 1 \\leq i < j \\leq m\\)，\nBi与Bj都有公共项，且公共项构成A的具有性质P的子列，求m的最大值．\n（考生务必将答案答在答题卡上，在试卷上作答无效）",
+      "option_mode": "text",
+      "region_refs": [
+        "p5-r1",
+        "p5-r2",
+        "p5-r3",
+        "p5-r4",
+        "p5-r5",
+        "p5-r6",
+        "p5-r7",
+        "p5-r8",
+        "p5-r9",
+        "p5-r10",
+        "p5-r11",
+        "p5-r12"
+      ]
+    }
+  ],
+  "front_matter": [
+    {
+      "text": "2024北京西城高三二模",
+      "page": 1,
+      "ref": "p1-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r1"
+      ]
+    },
+    {
+      "text": "数学",
+      "page": 1,
+      "ref": "p1-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r2"
+      ]
+    },
+    {
+      "text": "2024.5",
+      "page": 1,
+      "ref": "p1-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r3"
+      ]
+    },
+    {
+      "text": "试结束后，将本试卷和答题卡一并交回。",
+      "page": 1,
+      "ref": "p1-l5",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r5"
+      ]
+    },
+    {
+      "text": "第一部分（选择题共40分）",
+      "page": 1,
+      "ref": "p1-l6",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r6"
+      ]
+    }
+  ],
+  "unassigned": {
+    "figures": [
+      {
+        "ref": "p1-f1",
+        "page": 1,
+        "bbox_pt": [
+          541.74,
+          28.35,
+          595.32,
+          81.93
+        ],
+        "source": "pdf-image",
+        "distance_pt": 300.45,
+        "region_id": "p1-r31"
+      },
+      {
+        "ref": "p2-f1",
+        "page": 2,
+        "bbox_pt": [
+          541.74,
+          28.35,
+          595.32,
+          81.93
+        ],
+        "source": "pdf-image",
+        "distance_pt": 86.7,
+        "region_id": "p2-r28"
+      },
+      {
+        "ref": "p3-f1",
+        "page": 3,
+        "bbox_pt": [
+          541.74,
+          28.35,
+          595.32,
+          81.93
+        ],
+        "source": "pdf-image",
+        "distance_pt": 115.98,
+        "region_id": "p3-r22"
+      },
+      {
+        "ref": "p6-f1",
+        "page": 6,
+        "bbox_pt": [
+          541.74,
+          28.35,
+          595.32,
+          81.93
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p6-r29"
+      },
+      {
+        "ref": "p7-f1",
+        "page": 7,
+        "bbox_pt": [
+          541.74,
+          28.35,
+          595.32,
+          81.93
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p7-r32"
+      },
+      {
+        "ref": "p7-f2",
+        "page": 7,
+        "bbox_pt": [
+          335.81,
+          170.95,
+          472.56,
+          301.33
+        ],
+        "source": "pdf-vector+labels",
+        "distance_pt": null,
+        "region_id": "p7-r33"
+      },
+      {
+        "ref": "p8-f1",
+        "page": 8,
+        "bbox_pt": [
+          541.74,
+          28.35,
+          595.32,
+          81.93
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p8-r32"
+      },
+      {
+        "ref": "p9-f1",
+        "page": 9,
+        "bbox_pt": [
+          541.74,
+          28.35,
+          595.32,
+          81.93
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p9-r28"
+      },
+      {
+        "ref": "p10-f1",
+        "page": 10,
+        "bbox_pt": [
+          541.74,
+          28.35,
+          595.32,
+          81.93
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p10-r25"
+      }
+    ],
+    "tables": [],
+    "lines": []
+  },
+  "stats": {
+    "sections": 3,
+    "questions": 21,
+    "front_matter_lines": 5,
+    "figures_assigned": 6,
+    "figures_unassigned": 9,
+    "tables_assigned": 2,
+    "tables_unassigned": 0,
+    "questions_cross_page": 0,
+    "options": 40,
+    "subquestions": 0,
+    "regions": 270,
+    "question_region_refs": 100
+  }
+}

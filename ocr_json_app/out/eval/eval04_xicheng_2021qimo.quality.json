@@ -1,0 +1,396 @@
+{
+  "schema_version": 1,
+  "document": {
+    "title": "eval04_xicheng_2021qimo",
+    "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\eval\\eval04_xicheng_2021qimo.pdf",
+    "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\eval\\eval04_xicheng_2021qimo.layout.json",
+    "subject": "数学",
+    "pages": 12,
+    "page_size_pt": [
+      595.3,
+      841.9
+    ],
+    "engine": "llama.cpp/paddleocr-vl",
+    "generated_at": "2026-10-25T13:01:31+0800"
+  },
+  "summary": {
+    "status": "fail",
+    "errors": 6,
+    "warnings": 16,
+    "questions": 0,
+    "sections": 5,
+    "figures_assigned": 0,
+    "figures_unassigned": 11,
+    "missing_question_numbers": [],
+    "duplicate_question_numbers": [],
+    "content_truncated": 0,
+    "content_truncated_samples": [],
+    "empty_sections": 5,
+    "line_overflow": 0,
+    "line_overlaps": 0,
+    "coverage_ratio": 0.99723,
+    "uncovered_regions": 0,
+    "formula_count": 345,
+    "formula_lines": 157,
+    "formula_broken": 1,
+    "formula_suspicious": 0,
+    "formula_samples": [
+      {
+        "page": 7,
+        "line_id": "p7-l6",
+        "body": "\\underline{\\text{\\(\\sqrt{30}",
+        "issues": [
+          "unbalanced_braces"
+        ]
+      }
+    ],
+    "tables": 0,
+    "tables_unassigned": 5,
+    "garbled_lines": 0,
+    "font_count": 12,
+    "regions": 290,
+    "region_types": {
+      "text": 116,
+      "formula": 158,
+      "table": 9,
+      "figure": 7
+    },
+    "region_problems": 0,
+    "region_refs_unresolved": 0
+  },
+  "checks": {
+    "question_numbers_complete": true,
+    "question_numbers_unique": true,
+    "all_questions_have_stem": true,
+    "all_questions_have_options": true,
+    "content_consistency_ok": false,
+    "text_clean_ok": true,
+    "all_figures_assigned": false,
+    "all_tables_structured": true,
+    "geometry_ok": true,
+    "page_coverage_ok": true,
+    "formula_structure_ok": false,
+    "regions_consistent": true
+  },
+  "repair": {
+    "actions": [
+      {
+        "code": "section_empty",
+        "action": "review_section",
+        "mode": "manual",
+        "reason": "空大题需确认标题是否误识别或题目是否漏行",
+        "target": 1,
+        "message": "大题“一、选择题共10小题，每小题4分，共40分。在每小题列出的四个选项中，选出符合题目要求”没有题目"
+      },
+      {
+        "code": "section_empty",
+        "action": "review_section",
+        "mode": "manual",
+        "reason": "空大题需确认标题是否误识别或题目是否漏行",
+        "target": 4,
+        "message": "大题“三、解答题共6小题，共85分。解答应写出文字说明，演算步骤或证明过程。”没有题目"
+      },
+      {
+        "code": "section_empty",
+        "action": "review_section",
+        "mode": "manual",
+        "reason": "空大题需确认标题是否误识别或题目是否漏行",
+        "target": 6,
+        "message": "大题“一、选择题（共10小题，每小题4分，共40分）”没有题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p1-f1",
+        "message": "图 p1-f1 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p2-f1",
+        "message": "图 p2-f1 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p3-f1",
+        "message": "图 p3-f1 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p3-f2",
+        "message": "图 p3-f2 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p4-f1",
+        "message": "图 p4-f1 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p4-f2",
+        "message": "图 p4-f2 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p6-f1",
+        "message": "图 p6-f1 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p8-f1",
+        "message": "图 p8-f1 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p9-f1",
+        "message": "图 p9-f1 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p9-f2",
+        "message": "图 p9-f2 未归属到题目"
+      },
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p3-l2-t1",
+        "message": "图 p3-l2-t1 未归属到题目"
+      },
+      {
+        "code": "table_unassigned",
+        "action": "attach_table",
+        "mode": "manual",
+        "reason": "表格归属需要人工确认题号",
+        "target": "p3-t1",
+        "message": "表 p3-t1 未归属到题目"
+      },
+      {
+        "code": "table_unassigned",
+        "action": "attach_table",
+        "mode": "manual",
+        "reason": "表格归属需要人工确认题号",
+        "target": "p4-t1",
+        "message": "表 p4-t1 未归属到题目"
+      },
+      {
+        "code": "table_unassigned",
+        "action": "attach_table",
+        "mode": "manual",
+        "reason": "表格归属需要人工确认题号",
+        "target": "p8-t1",
+        "message": "表 p8-t1 未归属到题目"
+      },
+      {
+        "code": "table_unassigned",
+        "action": "attach_table",
+        "mode": "manual",
+        "reason": "表格归属需要人工确认题号",
+        "target": "p9-t1",
+        "message": "表 p9-t1 未归属到题目"
+      },
+      {
+        "code": "table_unassigned",
+        "action": "attach_table",
+        "mode": "manual",
+        "reason": "表格归属需要人工确认题号",
+        "target": "p9-t2",
+        "message": "表 p9-t2 未归属到题目"
+      },
+      {
+        "code": "formula_structure_broken",
+        "action": "review_formula",
+        "mode": "manual",
+        "reason": "公式结构错误不能自动改写",
+        "target": null,
+        "message": "1 条公式括号/定界符/环境不平衡，无法可靠渲染"
+      }
+    ],
+    "counts": {
+      "auto_candidate": 0,
+      "manual": 20,
+      "blocked": 0
+    },
+    "total": 20,
+    "auto_executed": false,
+    "note": "auto_candidate 只是允许重试，执行前仍应保留原 JSON；manual 不得自动补内容"
+  },
+  "issues": [
+    {
+      "level": "error",
+      "code": "section_empty",
+      "message": "大题“一、选择题共10小题，每小题4分，共40分。在每小题列出的四个选项中，选出符合题目要求”没有题目",
+      "page": 1
+    },
+    {
+      "level": "error",
+      "code": "section_empty",
+      "message": "大题“三、解答题共6小题，共85分。解答应写出文字说明，演算步骤或证明过程。”没有题目",
+      "page": 4
+    },
+    {
+      "level": "error",
+      "code": "section_empty",
+      "message": "大题“一、选择题（共10小题，每小题4分，共40分）”没有题目",
+      "page": 6
+    },
+    {
+      "level": "error",
+      "code": "section_empty",
+      "message": "大题“二、填空题（共5小题，每小题5分，共25分）”没有题目",
+      "page": 6
+    },
+    {
+      "level": "error",
+      "code": "section_empty",
+      "message": "大题“三、解答题（共6小题，共85分）”没有题目",
+      "page": 6
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p1-f1 未归属到题目",
+      "page": 1,
+      "ref": "p1-f1"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p2-f1 未归属到题目",
+      "page": 2,
+      "ref": "p2-f1"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p3-f1 未归属到题目",
+      "page": 3,
+      "ref": "p3-f1"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p3-f2 未归属到题目",
+      "page": 3,
+      "ref": "p3-f2"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p4-f1 未归属到题目",
+      "page": 4,
+      "ref": "p4-f1"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p4-f2 未归属到题目",
+      "page": 4,
+      "ref": "p4-f2"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p6-f1 未归属到题目",
+      "page": 6,
+      "ref": "p6-f1"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p8-f1 未归属到题目",
+      "page": 8,
+      "ref": "p8-f1"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p9-f1 未归属到题目",
+      "page": 9,
+      "ref": "p9-f1"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p9-f2 未归属到题目",
+      "page": 9,
+      "ref": "p9-f2"
+    },
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p3-l2-t1 未归属到题目",
+      "page": 3,
+      "ref": "p3-l2-t1"
+    },
+    {
+      "level": "warning",
+      "code": "table_unassigned",
+      "message": "表 p3-t1 未归属到题目",
+      "page": 3,
+      "ref": "p3-t1"
+    },
+    {
+      "level": "warning",
+      "code": "table_unassigned",
+      "message": "表 p4-t1 未归属到题目",
+      "page": 4,
+      "ref": "p4-t1"
+    },
+    {
+      "level": "warning",
+      "code": "table_unassigned",
+      "message": "表 p8-t1 未归属到题目",
+      "page": 8,
+      "ref": "p8-t1"
+    },
+    {
+      "level": "warning",
+      "code": "table_unassigned",
+      "message": "表 p9-t1 未归属到题目",
+      "page": 9,
+      "ref": "p9-t1"
+    },
+    {
+      "level": "warning",
+      "code": "table_unassigned",
+      "message": "表 p9-t2 未归属到题目",
+      "page": 9,
+      "ref": "p9-t2"
+    },
+    {
+      "level": "error",
+      "code": "formula_structure_broken",
+      "message": "1 条公式括号/定界符/环境不平衡，无法可靠渲染"
+    }
+  ]
+}

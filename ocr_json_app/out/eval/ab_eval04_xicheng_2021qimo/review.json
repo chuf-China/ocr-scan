@@ -1,0 +1,280 @@
+{
+  "meta": {
+    "total": 281,
+    "sampled": 16
+  },
+  "items": [
+    {
+      "page": 2,
+      "region_id": "p2-r1",
+      "agreement": "partial",
+      "current": "f(x)",
+      "latex": "\\text{\"}f(x)",
+      "bbox_pt": [
+        340.75,
+        92.38,
+        370.08,
+        104.7
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5468,
+      "region_text": "（7）已知函数 \\(f(x)=\\sin 2x, x \\in [a,b]\\)，则 “\\(b-a \\geq \\frac{\\pi}{2}\\)” 是 “\\(f(x)\\) 的值域为 \\([-1,1]\\)” 的"
+    },
+    {
+      "page": 4,
+      "region_id": "p4-r4",
+      "agreement": "partial",
+      "current": "CC_1",
+      "latex": "\\cdot C C_{1}",
+      "bbox_pt": [
+        265.88,
+        170.28,
+        283.05,
+        181.45
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6489,
+      "region_text": "\\(AB \\perp AC\\)，\\(BE \\perp AB_1\\) 交 \\(AA_1\\) 于点 \\(E\\)，\\(D\\) 为 \\(CC_1\\) 的中点."
+    },
+    {
+      "page": 6,
+      "region_id": "p6-r26",
+      "agreement": "differs",
+      "current": "AB_1 \\perp BE",
+      "latex": ",4a-4=0",
+      "bbox_pt": [
+        232.74,
+        632.11,
+        275.12,
+        641.83
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8082,
+      "region_text": "因为 \\(AB_1 \\perp BE\\)，所以 4a - 4 = 0，即 a = 1。 ……8 分"
+    },
+    {
+      "page": 6,
+      "region_id": "p6-r26",
+      "agreement": "differs",
+      "current": "AB_1 \\perp BE",
+      "latex": "\\mid a=1",
+      "bbox_pt": [
+        298.1,
+        632.53,
+        319.45,
+        641.83
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7466,
+      "region_text": "因为 \\(AB_1 \\perp BE\\)，所以 4a - 4 = 0，即 a = 1。 ……8 分"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r14",
+      "agreement": "differs",
+      "current": "c = 4\\sqrt{3}",
+      "latex": ",c=4{\\sqrt{3}}.",
+      "bbox_pt": [
+        156.33,
+        418.63,
+        192.01,
+        431.13
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7766,
+      "region_text": "所以 \\(c = 4\\sqrt{3}\\). ……6分"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r22",
+      "agreement": "differs",
+      "current": "\\triangle ABC; A=C; a=c",
+      "latex": ",a=c",
+      "bbox_pt": [
+        282.04,
+        636.8,
+        303.91,
+        645.91
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7132,
+      "region_text": "解：（Ⅰ）在\\(\\triangle ABC\\)中，因为\\(A=C\\)，所以\\(a=c\\)。"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r2",
+      "agreement": "differs",
+      "current": "a = c = 3\\sqrt{2}",
+      "latex": "a=c=3{\\sqrt{2}}",
+      "bbox_pt": [
+        158.89,
+        123.12,
+        212.38,
+        135.0
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8101,
+      "region_text": "所以 \\(a = c = 3\\sqrt{2}\\)． ……4分"
+    },
+    {
+      "page": 9,
+      "region_id": "p9-r6",
+      "agreement": "partial",
+      "current": "f(1)=0",
+      "latex": ":f(1)=0",
+      "bbox_pt": [
+        156.93,
+        249.78,
+        192.29,
+        261.3
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5554,
+      "region_text": "因为 \\(f(1)=0\\)，\\(f'(1)=2\\)，……3 分"
+    },
+    {
+      "page": 9,
+      "region_id": "p9-r8",
+      "agreement": "normalized",
+      "current": "f'(x)=0",
+      "latex": "f^{\\prime}(x)=0",
+      "bbox_pt": [
+        146.65,
+        301.84,
+        186.17,
+        313.63
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.672,
+      "region_text": "（Ⅱ）令 \\(f'(x)=0\\)，得 \\(3x^{2}-1=0\\)，解得 \\(x=-\\frac{\\sqrt{3}}{3}\\) 或 \\(x=\\frac{\\sqrt{3}}{3}\\)。"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r1",
+      "agreement": "normalized",
+      "current": "g'(x) > 0",
+      "latex": "g^{\\prime}(x)>0",
+      "bbox_pt": [
+        156.73,
+        93.02,
+        195.75,
+        105.54
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5143,
+      "region_text": "\\(g'(x) > 0\\)，\\(g(x)\\) 在区间 \\([\\frac{\\pi}{2}, \\pi)\\) 上单调递增。"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r16",
+      "agreement": "normalized",
+      "current": "a^2 = b^2 + c^2",
+      "latex": "a^{2}=b^{2}+c^{2}",
+      "bbox_pt": [
+        158.05,
+        539.82,
+        208.7,
+        552.72
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8116,
+      "region_text": "因为 \\(a^2 = b^2 + c^2\\)，所以 \\(c^2 = 2\\)，\\(c = \\sqrt{2}\\)。 ……2 分"
+    },
+    {
+      "page": 11,
+      "region_id": "p11-r1",
+      "agreement": "differs",
+      "current": "A,B; \\Delta>0; k^2>\\frac{1}{2}",
+      "latex": "\\Delta{\\geq}0",
+      "bbox_pt": [
+        287.51,
+        93.53,
+        309.63,
+        103.88
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5125,
+      "region_text": "因为直线与椭圆交于 \\(A,B\\) 两点，故 \\(\\Delta>0\\)，解得 \\(k^2>\\frac{1}{2}\\)。 ……6 分"
+    },
+    {
+      "page": 11,
+      "region_id": "p11-r18",
+      "agreement": "exact",
+      "current": "a_{2}=\\frac{1}{2}",
+      "latex": "a_{2}=\\frac{1}{2}",
+      "bbox_pt": [
+        195.47,
+        601.98,
+        223.85,
+        624.44
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5293,
+      "region_text": "解：（Ⅰ）因为\\(a_{1}=\\frac{1}{2}\\)，\\(a_{2}=\\frac{1}{2}\\)，\\(a_{3}=\\frac{3}{8}\\)，\\(a_{4}=\\frac{1}{4}\\)，\\(a_{5}=\\frac{5}{32}\\)，"
+    },
+    {
+      "page": 11,
+      "region_id": "p11-r20",
+      "agreement": "differs",
+      "current": "n=1; S_{1}^{*}=a_{2}-a_{1}; |a_{2}-a_{1}|=|S_{1}^{*}|=|a_{1}^{*}|=1",
+      "latex": "\\verb|n=1",
+      "bbox_pt": [
+        185.2,
+        661.48,
+        206.23,
+        671.15
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7101,
+      "region_text": "（Ⅱ）必要性：对 \\(n=1\\)，有 \\(S_{1}^{*}=a_{2}-a_{1}\\)，因此 \\(|a_{2}-a_{1}|=|S_{1}^{*}|=|a_{1}^{*}|=1\\)。……5 分"
+    },
+    {
+      "page": 12,
+      "region_id": "p12-r6",
+      "agreement": "partial",
+      "current": "n \\in \\mathbb{N}^*",
+      "latex": "n\\in\\mathbf{N}^{*},\\quad S_{n}^{*}=a_{n+1}-a_{1}",
+      "bbox_pt": [
+        196.53,
+        206.77,
+        297.61,
+        219.83
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5496,
+      "region_text": "综上，“对任意 \\(n \\in \\mathbb{N}^*\\)，\\(S_n^* = a_{n+1} - a_1\\)”的充要条件是“对任意 \\(n \\in \\mathbb{N}^*\\)，"
+    },
+    {
+      "page": 12,
+      "region_id": "p12-r18",
+      "agreement": "differs",
+      "current": "a_{m+1} - a_m \\in \\{-1, 0, 1\\}; k = 0",
+      "latex": ",k=0",
+      "bbox_pt": [
+        270.36,
+        517.34,
+        292.93,
+        526.98
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7078,
+      "region_text": "因为 \\(a_{m+1} - a_m \\in \\{-1, 0, 1\\}\\)，所以 \\(k = 0\\) 或 1. ……13 分"
+    }
+  ]
+}

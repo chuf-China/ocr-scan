@@ -1,0 +1,824 @@
+{
+  "meta": {
+    "total": 249,
+    "sampled": 48
+  },
+  "items": [
+    {
+      "page": 1,
+      "region_id": "p1-r12",
+      "agreement": "differs",
+      "current": "a + b = 0; a \\cdot b = 0",
+      "latex": "\\boldsymbol{a}+\\boldsymbol{b}=\\boldsymbol{0}",
+      "bbox_pt": [
+        113.63,
+        294.24,
+        151.99,
+        303.76
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8305,
+      "region_text": "(A) \\(a + b = 0\\) (B) \\(a \\cdot b = 0\\)"
+    },
+    {
+      "page": 1,
+      "region_id": "p1-r12",
+      "agreement": "differs",
+      "current": "a + b = 0; a \\cdot b = 0",
+      "latex": "\\pmb{a}\\cdot\\pmb{b}=0",
+      "bbox_pt": [
+        292.47,
+        295.27,
+        327.87,
+        304.8
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8071,
+      "region_text": "(A) \\(a + b = 0\\) (B) \\(a \\cdot b = 0\\)"
+    },
+    {
+      "page": 1,
+      "region_id": "p1-r17",
+      "agreement": "exact",
+      "current": "a_{1}+a_{2}+a_{3}+a_{4}=",
+      "latex": "a_{1}+a_{2}+a_{3}+a_{4}=",
+      "bbox_pt": [
+        282.71,
+        411.2,
+        356.13,
+        421.85
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8946,
+      "region_text": "（4）设\\( (2x-1)^{4}=a_{4}x^{4}+a_{3}x^{3}+a_{2}x^{2}+a_{1}x+a_{0} \\)，则\\(a_{1}+a_{2}+a_{3}+a_{4}=\\)"
+    },
+    {
+      "page": 1,
+      "region_id": "p1-r20",
+      "agreement": "partial",
+      "current": "a \\in \\mathbb{R}",
+      "latex": "\\mid a\\in\\mathbf{R},b\\in\\mathbf{R}",
+      "bbox_pt": [
+        109.97,
+        481.32,
+        164.06,
+        491.21
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7627,
+      "region_text": "（5）已知 \\(a \\in \\mathbb{R}\\), \\(b \\in \\mathbb{R}\\)．则“\\(ab > 1\\)”是“\\(a^2 + b^2 > 2\\)”的"
+    },
+    {
+      "page": 1,
+      "region_id": "p1-r28",
+      "agreement": "normalized",
+      "current": "-1 - \\tan x",
+      "latex": "-1-\\tan x",
+      "bbox_pt": [
+        291.88,
+        664.5,
+        334.49,
+        673.62
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7018,
+      "region_text": "(A) \\(1 - \\tan x\\) (B) \\(-1 - \\tan x\\)"
+    },
+    {
+      "page": 2,
+      "region_id": "p2-r11",
+      "agreement": "normalized",
+      "current": "(-3, \\frac{3}{2})",
+      "latex": "(-3,\\frac{3}{2})",
+      "bbox_pt": [
+        113.94,
+        282.34,
+        148.1,
+        306.57
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6387,
+      "region_text": "(C) \\((-3, \\frac{3}{2})\\) (D) \\([-2, \\frac{3}{2})\\)"
+    },
+    {
+      "page": 2,
+      "region_id": "p2-r19",
+      "agreement": "differs",
+      "current": "(-1,0); (3,0)",
+      "latex": ";y=2",
+      "bbox_pt": [
+        287.99,
+        510.21,
+        311.46,
+        520.34
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6772,
+      "region_text": "（12）已知圆 C 经过点 \\((-1,0)\\) 和 \\((3,0)\\)，且与直线 y=2 相切，则圆 C 的方程为 ___。"
+    },
+    {
+      "page": 2,
+      "region_id": "p2-r22",
+      "agreement": "differs",
+      "current": "|AB|=\\frac{\\pi}{4}; f(x); \\left(\\frac{5\\pi}{12},\\frac{11\\pi}{12}\\right)",
+      "latex": "\\mid A B\\mid={\\frac{\\pi}{4}}",
+      "bbox_pt": [
+        99.89,
+        611.09,
+        137.05,
+        632.3
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8635,
+      "region_text": "若\\(|AB|=\\frac{\\pi}{4}\\)，且\\(f(x)\\)在区间\\(\\left(\\frac{5\\pi}{12},\\frac{11\\pi}{12}\\right)\\)上单调递减，"
+    },
+    {
+      "page": 2,
+      "region_id": "p2-r24",
+      "agreement": "differs",
+      "current": "f(x)=\\begin{cases} x^2+2x, & x<-2 \\text{ 或 } x>1, \\\\ \\sqrt{12-3x^2}, & -2 \\leq x \\leq 1, \\end{cases}; g(x)=f(x)-a; a \\in \\mathbb{R}",
+      "latex": "x>1,",
+      "bbox_pt": [
+        262.98,
+        666.28,
+        284.1,
+        676.31
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5843,
+      "region_text": "(14) 已知函数 \\(f(x)=\\begin{cases} x^2+2x, & x<-2 \\text{ 或 } x>1, \\\\ \\sqrt{12-3x^2}, & -2 \\leq x \\leq 1, \\end{cases}\\) \\(g(x)=f(x)-a\\)，其中 \\(a \\in \\mathbb{R}\\)。"
+    },
+    {
+      "page": 3,
+      "region_id": "p3-r2",
+      "agreement": "partial",
+      "current": "n \\geqslant N",
+      "latex": "\\mid n\\geqslant N",
+      "bbox_pt": [
+        184.22,
+        85.33,
+        211.3,
+        95.11
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6933,
+      "region_text": "① 存在正整数 \\(N\\)，当 \\(n \\geqslant N\\) 时，\\(a_n > 2\\)；"
+    },
+    {
+      "page": 3,
+      "region_id": "p3-r3",
+      "agreement": "differs",
+      "current": "N; n \\geqslant N; a_n > a_{n-1}",
+      "latex": "a_{_n}>a_{_{n-1}}\\text{;}",
+      "bbox_pt": [
+        233.98,
+        108.67,
+        274.01,
+        119.1
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8356,
+      "region_text": "② 存在正整数 \\(N\\)，当 \\(n \\geqslant N\\) 时，\\(a_n > a_{n-1}\\)；"
+    },
+    {
+      "page": 3,
+      "region_id": "p3-r10",
+      "agreement": "partial",
+      "current": "\\triangle ABC",
+      "latex": "\\therefore\\triangle ABC",
+      "bbox_pt": [
+        258.69,
+        289.14,
+        288.18,
+        299.33
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6087,
+      "region_text": "（Ⅱ）若 \\(c = 5\\)，且 \\(\\triangle ABC\\) 的面积为 \\(2\\sqrt{3}\\)，求 \\(\\triangle ABC\\) 的周长."
+    },
+    {
+      "page": 3,
+      "region_id": "p3-r15",
+      "agreement": "normalized",
+      "current": "EM \\perp AD",
+      "latex": "EM\\perp AD",
+      "bbox_pt": [
+        117.9,
+        466.63,
+        165.57,
+        476.59
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.654,
+      "region_text": "条件②：\\(EM \\perp AD\\)；"
+    },
+    {
+      "page": 3,
+      "region_id": "p3-r16",
+      "agreement": "differs",
+      "current": "EM \\parallel; CDD_{1}C_{1}",
+      "latex": "\\left[CD_{1}C_{1}\\right.",
+      "bbox_pt": [
+        168.98,
+        494.16,
+        203.04,
+        506.07
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8127,
+      "region_text": "条件③：\\(EM \\parallel\\) 平面 \\(CDD_{1}C_{1}\\)"
+    },
+    {
+      "page": 4,
+      "region_id": "p4-r12",
+      "agreement": "normalized",
+      "current": "f(x)=4a\\sin x+(a^2+1)x^2",
+      "latex": "f(x)=4a\\sin x+(a^{2}+1)x^{2}",
+      "bbox_pt": [
+        117.43,
+        406.16,
+        233.62,
+        418.05
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.9113,
+      "region_text": "已知函数 \\(f(x)=4a\\sin x+(a^2+1)x^2\\)，其中 \\(a\\geq0\\)。"
+    },
+    {
+      "page": 4,
+      "region_id": "p4-r13",
+      "agreement": "differs",
+      "current": "f(x)",
+      "latex": "\\left(x=0\\right.",
+      "bbox_pt": [
+        131.57,
+        430.05,
+        153.23,
+        438.84
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7178,
+      "region_text": "（Ⅰ）若 \\(f(x)\\) 在 x=0 处取得极小值，求 a 的值；"
+    },
+    {
+      "page": 4,
+      "region_id": "p4-r14",
+      "agreement": "partial",
+      "current": "f(x)",
+      "latex": "\\cdot f(x)",
+      "bbox_pt": [
+        151.18,
+        458.46,
+        171.85,
+        469.59
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6238,
+      "region_text": "（Ⅱ）当\\(a=1\\)时，求\\(f(x)\\)在区间\\([\\frac{\\pi}{2},\\pi]\\)上的最大值；"
+    },
+    {
+      "page": 4,
+      "region_id": "p4-r17",
+      "agreement": "normalized",
+      "current": "E: \\frac{x^{2}}{a^{2}} + \\frac{y^{2}}{b^{2}} = 1 (a > b > 0)",
+      "latex": "E:\\frac{x^{2}}{a^{2}}+\\frac{y^{2}}{b^{2}}=1(a>b>0)",
+      "bbox_pt": [
+        117.98,
+        600.59,
+        229.8,
+        626.21
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.95,
+      "region_text": "已知椭圆 \\(E: \\frac{x^{2}}{a^{2}} + \\frac{y^{2}}{b^{2}} = 1 (a > b > 0)\\) 的一个顶点为 \\(D(2,0)\\)，焦距为 \\(2\\sqrt{2}\\)。"
+    },
+    {
+      "page": 5,
+      "region_id": "p5-r2",
+      "agreement": "differs",
+      "current": "A:a_1,a_2,\\cdots,a_n; A; i_1; i_2",
+      "latex": "i_{\\textit{k}}",
+      "bbox_pt": [
+        385.59,
+        68.91,
+        394.58,
+        79.27
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6272,
+      "region_text": "已知数列 \\(A:a_1,a_2,\\cdots,a_n\\)，从 \\(A\\) 中选取第 \\(i_1\\) 项、第 \\(i_2\\) 项、\\(\\cdots\\)、第 \\(i_k\\) 项（\\(i_1<i_2<\\cdots<i_k\\)）构成数列"
+    },
+    {
+      "page": 5,
+      "region_id": "p5-r4",
+      "agreement": "differs",
+      "current": "k \\geqslant 2; B; s \\in \\{1,2,\\cdots,k-1\\}; i_{s+1} - i_s = 1",
+      "latex": "i_{_{s+1}}-i_{_{s}}=1",
+      "bbox_pt": [
+        304.79,
+        118.73,
+        349.74,
+        130.64
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7477,
+      "region_text": "当 \\(k \\geqslant 2\\) 时，若 \\(B\\) 满足：对任意 \\(s \\in \\{1,2,\\cdots,k-1\\}\\)，\\(i_{s+1} - i_s = 1\\)，则称 \\(B\\) 具有性质 \\(P\\)。"
+    },
+    {
+      "page": 6,
+      "region_id": "p6-r11",
+      "agreement": "exact",
+      "current": "f(x)=\\sqrt{3}\\sin x+2\\cos^{2}\\frac{x}{2}",
+      "latex": "f(x)=\\sqrt{3}\\sin x+2\\cos^{2}\\frac{x}{2}",
+      "bbox_pt": [
+        101.13,
+        303.17,
+        210.05,
+        325.36
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.856,
+      "region_text": "解：（Ⅰ）\\(f(x)=\\sqrt{3}\\sin x+2\\cos^{2}\\frac{x}{2}\\)"
+    },
+    {
+      "page": 6,
+      "region_id": "p6-r18",
+      "agreement": "normalized",
+      "current": "A+B=\\frac{2\\pi}{3}",
+      "latex": "A+B=\\frac{2\\pi}{3}.",
+      "bbox_pt": [
+        238.43,
+        511.22,
+        288.23,
+        536.2
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7919,
+      "region_text": "所以\\((A+\\frac{\\pi}{6})+(B+\\frac{\\pi}{6})=\\pi\\)，即\\(A+B=\\frac{2\\pi}{3}\\)。 ……5分"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r2",
+      "agreement": "differs",
+      "current": "EM \\perp AD",
+      "latex": "E M\\bot A D",
+      "bbox_pt": [
+        128.65,
+        95.08,
+        174.12,
+        104.91
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5942,
+      "region_text": "解：选条件②：\\(EM \\perp AD\\)。"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r4",
+      "agreement": "partial",
+      "current": "CDD_1C_1",
+      "latex": "\\left[CDD_{1}C_{1}\\right.",
+      "bbox_pt": [
+        313.93,
+        132.25,
+        348.03,
+        144.04
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6616,
+      "region_text": "在正方体 \\(ABCD-A_1B_1C_1D_1\\) 中，因为 \\(BC \\perp\\) 平面 \\(CDD_1C_1\\)，"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r12",
+      "agreement": "partial",
+      "current": "EM \\subset",
+      "latex": "EM\\subset 平",
+      "bbox_pt": [
+        221.59,
+        288.25,
+        260.16,
+        298.93
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5824,
+      "region_text": "因为 \\( EM \\parallel\\) 平面 \\( CDD_1C_1 \\)，\\( EM \\subset\\) 平面 \\( BCD_1 \\)，平面 \\( B \\)"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r12",
+      "agreement": "partial",
+      "current": "CDD_1C_1",
+      "latex": "\\dot{\\iota}C D D_{1}C_{1}",
+      "bbox_pt": [
+        173.83,
+        288.51,
+        207.83,
+        299.85
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6183,
+      "region_text": "因为 \\( EM \\parallel\\) 平面 \\( CDD_1C_1 \\)，\\( EM \\subset\\) 平面 \\( BCD_1 \\)，平面 \\( B \\)"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r20",
+      "agreement": "differs",
+      "current": "\\boldsymbol{m} = (x, y, z); \\begin{cases} \\boldsymbol{m} \\cdot \\overrightarrow{DC} = 0, \\\\ \\boldsymbol{m} \\cdot \\overrightarrow{DM} = 0, \\end{cases}; \\begin{cases} y = 0, \\\\ x + y + z = 0. \\end{cases}",
+      "latex": "\\begin{array}{r}{\\mathcal{1}\\left\\{\\begin{aligned}{}&{{}y=0,}\\\\ {}&{{}x+y+z=0.}\\end{aligned}\\right.}\\end{array}",
+      "bbox_pt": [
+        371.25,
+        451.69,
+        432.29,
+        479.69
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7327,
+      "region_text": "设平面 MCD 的法向量为 \\(\\boldsymbol{m} = (x, y, z)\\)，则 \\(\\begin{cases} \\boldsymbol{m} \\cdot \\overrightarrow{DC} = 0, \\\\ \\boldsymbol{m} \\cdot \\overrightarrow{DM} = 0, \\end{cases}\\) 即 \\(\\begin{cases} y = 0, \\\\ x + y + z = 0. \\end{cases}\\)"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r21",
+      "agreement": "partial",
+      "current": "m=(1,0,-1)",
+      "latex": "\\boldsymbol{m}=(1,0,-1)",
+      "bbox_pt": [
+        218.04,
+        490.35,
+        271.63,
+        501.06
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8153,
+      "region_text": "令 x=1，则 z=-1．于是 \\(m=(1,0,-1)\\)．"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r21",
+      "agreement": "differs",
+      "current": "m=(1,0,-1)",
+      "latex": "\\left[\\begin{array}{l}{z=-1}\\end{array}\\right.",
+      "bbox_pt": [
+        156.04,
+        490.8,
+        184.14,
+        500.64
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6911,
+      "region_text": "令 x=1，则 z=-1．于是 \\(m=(1,0,-1)\\)．"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r21",
+      "agreement": "differs",
+      "current": "m=(1,0,-1)",
+      "latex": "\\cdot x=1",
+      "bbox_pt": [
+        112.18,
+        490.96,
+        132.62,
+        500.5
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.649,
+      "region_text": "令 x=1，则 z=-1．于是 \\(m=(1,0,-1)\\)．"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r1",
+      "agreement": "exact",
+      "current": "b=15.4",
+      "latex": "b=15.4",
+      "bbox_pt": [
+        169.86,
+        46.47,
+        204.75,
+        56.66
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5423,
+      "region_text": "（Ⅱ）因为\\(a=18.7\\)，\\(b=15.4\\)，……4分"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r11",
+      "agreement": "differs",
+      "current": "f'(x) = 4a\\cos x + 2(a^2 + 1)x",
+      "latex": "f^{\\prime}(x)=4a\\cos x+2(a^{2}+1)x",
+      "bbox_pt": [
+        100.6,
+        299.84,
+        222.69,
+        311.72
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8629,
+      "region_text": "解：（Ⅰ）\\(f'(x) = 4a\\cos x + 2(a^2 + 1)x\\)。 ……2分"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r13",
+      "agreement": "normalized",
+      "current": "f(x)=x^{2}",
+      "latex": "f(x)=x^{2}\\;.",
+      "bbox_pt": [
+        157.95,
+        340.76,
+        200.16,
+        352.48
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.673,
+      "region_text": "当a=0时，\\(f(x)=x^{2}\\)."
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r13",
+      "agreement": "differs",
+      "current": "f(x)=x^{2}",
+      "latex": "\\mathrm{i}a=0",
+      "bbox_pt": [
+        111.74,
+        341.63,
+        134.54,
+        351.61
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5641,
+      "region_text": "当a=0时，\\(f(x)=x^{2}\\)."
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r17",
+      "agreement": "differs",
+      "current": "f'(x) = 4\\cos x + 4x = 4(\\cos x + x)",
+      "latex": "f^{\\prime}(x)=4\\cos x+4x=4(\\cos x+x)",
+      "bbox_pt": [
+        100.94,
+        419.17,
+        248.18,
+        430.78
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8646,
+      "region_text": "\\(f'(x) = 4\\cos x + 4x = 4(\\cos x + x)\\). ……6分"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r21",
+      "agreement": "partial",
+      "current": "f(x)",
+      "latex": ",f(x)",
+      "bbox_pt": [
+        123.14,
+        525.88,
+        143.98,
+        537.05
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5316,
+      "region_text": "所以 \\(f(x)\\) 的最大值为 \\(f(\\pi) = 2\\pi^2\\)。 ……9 分"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r22",
+      "agreement": "differs",
+      "current": "f'(x)=4a\\cos x+2(a^{2}+1)x",
+      "latex": "f^{\\prime}(x)=4a\\cos x+2(a^{2}+1)x",
+      "bbox_pt": [
+        101.16,
+        545.71,
+        223.38,
+        558.21
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8931,
+      "region_text": "（Ⅲ）\\(f'(x)=4a\\cos x+2(a^{2}+1)x\\)"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r26",
+      "agreement": "differs",
+      "current": "g(x)=f'(x)",
+      "latex": "\\mid a>0",
+      "bbox_pt": [
+        112.02,
+        627.48,
+        134.7,
+        637.73
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5652,
+      "region_text": "当a>0时，设\\(g(x)=f'(x)\\)."
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r29",
+      "agreement": "differs",
+      "current": "g'(x) \\geqslant 0; g(x); (-\\infty, +\\infty)",
+      "latex": "g^{\\prime}(x)\\geqslant0",
+      "bbox_pt": [
+        123.13,
+        713.18,
+        164.1,
+        724.85
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7601,
+      "region_text": "所以 \\(g'(x) \\geqslant 0\\)，即 \\(g(x)\\) 在 \\((-\\infty, +\\infty)\\) 上单调递增。……12分"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r29",
+      "agreement": "normalized",
+      "current": "(-\\infty, +\\infty)",
+      "latex": "(-\\infty,+\\infty)",
+      "bbox_pt": [
+        221.18,
+        713.78,
+        265.91,
+        724.58
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6213,
+      "region_text": "所以 \\(g'(x) \\geqslant 0\\)，即 \\(g(x)\\) 在 \\((-\\infty, +\\infty)\\) 上单调递增。……12分"
+    },
+    {
+      "page": 9,
+      "region_id": "p9-r7",
+      "agreement": "partial",
+      "current": "a^{2}=4",
+      "latex": "a^{2}=4,b^{2}=2",
+      "bbox_pt": [
+        122.37,
+        226.43,
+        184.52,
+        238.74
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.86,
+      "region_text": "解得 \\(a^{2}=4\\), \\(b^{2}=2\\)."
+    },
+    {
+      "page": 9,
+      "region_id": "p9-r9",
+      "agreement": "partial",
+      "current": "P(m,n)",
+      "latex": "\\mid P(m,n)",
+      "bbox_pt": [
+        113.14,
+        281.3,
+        146.06,
+        292.64
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5846,
+      "region_text": "（Ⅱ）设 \\(P(m,n)\\)，则 \\(Q(0,n)\\)，\\(A(-m,-n)\\)。 ……5分"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r1",
+      "agreement": "exact",
+      "current": "2^{4}-1=15",
+      "latex": "2^{4}-1=15",
+      "bbox_pt": [
+        190.65,
+        47.09,
+        234.92,
+        58.19
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7151,
+      "region_text": "解：（Ⅰ）当n=4时，A共有\\(2^{4}-1=15\\)个子列，………1分"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r7",
+      "agreement": "differs",
+      "current": "T(B) + T(B') = \\sum a_{i_j} + \\sum (n+1 - a_{i_j}) = k(n+1)",
+      "latex": "T(B)+T(B')=\\sum_{j=1}^{k}a_{i_{j}}+\\sum_{j=1}^{k}(n+1-a_{i_{j}})=k(n+1)",
+      "bbox_pt": [
+        121.29,
+        182.57,
+        328.8,
+        210.88
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.9409,
+      "region_text": "所以 \\(T(B) + T(B') = \\sum a_{i_j} + \\sum (n+1 - a_{i_j}) = k(n+1)\\). ……7分"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r12",
+      "agreement": "differs",
+      "current": "j=1,2,\\cdots,m; y_j < x_{k_0}; B_j; B_{k_0}",
+      "latex": "\\left[y_{_{j}}<x_{_{k_{0}}}\\right.",
+      "bbox_pt": [
+        211.87,
+        310.19,
+        244.46,
+        322.49
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8307,
+      "region_text": "若存在 \\(j=1,2,\\cdots,m\\)，使 \\(y_j < x_{k_0}\\)，则 \\(B_j\\) 与 \\(B_{k_0}\\) 没有公共项，与已知矛盾。"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r13",
+      "agreement": "differs",
+      "current": "j=1,2,\\cdots,m; y_j \\geqslant x_{k_0}",
+      "latex": "\\cdot y_{j}",
+      "bbox_pt": [
+        253.18,
+        333.93,
+        263.52,
+        346.17
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5108,
+      "region_text": "所以，对任意 \\(j=1,2,\\cdots,m\\)，都有 \\(y_j \\geqslant x_{k_0}\\)．……10分"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r18",
+      "agreement": "partial",
+      "current": "x_{k_0}(n+1-x_{k_0}) \\geqslant m",
+      "latex": "x_{k_0}(n+1-x_{k_0})",
+      "bbox_pt": [
+        122.9,
+        445.26,
+        187.07,
+        458.52
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.9019,
+      "region_text": "所以 \\(x_{k_0}(n+1-x_{k_0}) \\geqslant m\\)。 ……13分"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r19",
+      "agreement": "differs",
+      "current": "n; x_k\\in\\{1,2,\\cdots,\\frac{n+1}{2}\\}; y_k\\in\\{\\frac{n+1}{2},\\frac{n+3}{2},\\cdots,n\\}",
+      "latex": "y_{k}\\in\\left\\{\\frac{n+1}{2},\\frac{n+3}{2},\\cdots,n\\right\\}",
+      "bbox_pt": [
+        297.09,
+        468.14,
+        399.73,
+        491.99
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5803,
+      "region_text": "① 当\\(n\\)是奇数时，取\\(x_k\\in\\{1,2,\\cdots,\\frac{n+1}{2}\\}\\)，\\(y_k\\in\\{\\frac{n+1}{2},\\frac{n+3}{2},\\cdots,n\\}\\)，"
+    }
+  ]
+}

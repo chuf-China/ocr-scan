@@ -1,0 +1,1446 @@
+{
+  "schema_version": 1,
+  "document": {
+    "title": "eval05_xicheng_2020qimo",
+    "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\eval\\eval05_xicheng_2020qimo.pdf",
+    "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\eval\\eval05_xicheng_2020qimo.layout.json",
+    "subject": "数学",
+    "pages": 12,
+    "page_size_pt": [
+      430.63,
+      659.44
+    ],
+    "engine": "llama.cpp/paddleocr-vl",
+    "generated_at": "2026-10-25T13:01:44+0800"
+  },
+  "sections": [
+    {
+      "id": "sec-01",
+      "label": "一",
+      "title": "选择题:本大题共8小题,每小题5分,共40分在每小题列出的四个选项中,选出",
+      "pages": [
+        1
+      ],
+      "question_ids": [
+        "q-001",
+        "q-002",
+        "q-003"
+      ]
+    },
+    {
+      "id": "sec-02",
+      "label": "二",
+      "title": "填空题:本大题共6小题,每小题5分,共30分.",
+      "pages": [
+        3
+      ],
+      "question_ids": [
+        "q-004",
+        "q-005"
+      ]
+    },
+    {
+      "id": "sec-03",
+      "label": "三",
+      "title": "解答题:本大题共6小题,共80分.解答应写出必要的文字说明、证明过程或演算步骤.",
+      "pages": [
+        4
+      ],
+      "question_ids": []
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-001",
+      "number": 1,
+      "section_id": "sec-01",
+      "pages": [
+        1
+      ],
+      "stem": [
+        {
+          "text": "设集合 \\(A = \\{x \\mid x < a\\}\\)，\\(B = \\{-3, 0, 1, 5\\}\\)，若集合 \\(A \\cap B\\) 有且仅有 2 个元素，则实数 \\(a\\)",
+          "page": 1,
+          "ref": "p1-l8"
+        },
+        {
+          "text": "的取值范围为",
+          "page": 1,
+          "ref": "p1-l9"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-001-opt-A",
+          "label": "A",
+          "text": "\\((-3,+\\infty)\\)",
+          "refs": [
+            "p1-l10"
+          ],
+          "region_refs": [
+            "p1-r10"
+          ]
+        },
+        {
+          "id": "q-001-opt-B",
+          "label": "B",
+          "text": "\\((0,1]\\)",
+          "refs": [
+            "p1-l10"
+          ],
+          "region_refs": [
+            "p1-r10"
+          ]
+        },
+        {
+          "id": "q-001-opt-C",
+          "label": "C",
+          "text": "\\([1,+\\infty)\\)",
+          "refs": [
+            "p1-l10"
+          ],
+          "region_refs": [
+            "p1-r10"
+          ]
+        },
+        {
+          "id": "q-001-opt-D",
+          "label": "D",
+          "text": "\\([1,5)\\)\n.若复数z 3-i,则在复平面内z对应的点位于\n( )第一象限 ()第二象限 ()第三象限 ()第四象限",
+          "refs": [
+            "p1-l10",
+            "p1-l11",
+            "p1-l12"
+          ],
+          "region_refs": [
+            "p1-r10",
+            "p1-r11",
+            "p1-r12"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "设集合 \\(A = \\{x \\mid x < a\\}\\)，\\(B = \\{-3, 0, 1, 5\\}\\)，若集合 \\(A \\cap B\\) 有且仅有 2 个元素，则实数 \\(a\\)\n的取值范围为",
+      "option_mode": "text",
+      "region_refs": [
+        "p1-r8",
+        "p1-r9",
+        "p1-r10",
+        "p1-r11",
+        "p1-r12"
+      ]
+    },
+    {
+      "id": "q-002",
+      "number": 3,
+      "section_id": "sec-01",
+      "pages": [
+        1,
+        2
+      ],
+      "stem": [
+        {
+          "text": "在\\(\\triangle ABC\\)中，若\\(a=6\\)，\\(A=60^\\circ\\)，\\(B=75^\\circ\\)，则\\(c=\\)",
+          "page": 1,
+          "ref": "p1-l13"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-002-opt-A",
+          "label": "A",
+          "text": "100 cm\\(^{3}\\)\n← 6 →",
+          "refs": [
+            "p1-l14",
+            "p1-l16",
+            "p1-l19",
+            "p2-l9",
+            "p2-l10"
+          ],
+          "region_refs": [
+            "p1-r14",
+            "p1-r16",
+            "p1-r19",
+            "p2-r9",
+            "p2-r10"
+          ]
+        },
+        {
+          "id": "q-002-opt-B",
+          "label": "B",
+          "text": "200 cm\\(^{3}\\)",
+          "refs": [
+            "p1-l14",
+            "p1-l16",
+            "p1-l19",
+            "p2-l11"
+          ],
+          "region_refs": [
+            "p1-r14",
+            "p1-r16",
+            "p1-r19",
+            "p2-r11"
+          ]
+        },
+        {
+          "id": "q-002-opt-C",
+          "label": "C",
+          "text": "\\(300 \\, cm^{3}\\)",
+          "refs": [
+            "p1-l14",
+            "p1-l17",
+            "p1-l19",
+            "p2-l12"
+          ],
+          "region_refs": [
+            "p1-r14",
+            "p1-r17",
+            "p1-r19",
+            "p2-r12"
+          ]
+        },
+        {
+          "id": "q-002-opt-D",
+          "label": "D",
+          "text": "400 cm\\(^{3}\\)",
+          "refs": [
+            "p1-l14",
+            "p1-l15",
+            "p1-l17",
+            "p1-l18",
+            "p1-l19",
+            "p1-l20",
+            "p2-l1",
+            "p2-l2",
+            "p2-l3",
+            "p2-l4",
+            "p2-l5",
+            "p2-l6",
+            "p2-l7",
+            "p2-l8",
+            "p2-l13"
+          ],
+          "region_refs": [
+            "p1-r14",
+            "p1-r15",
+            "p1-r17",
+            "p1-r18",
+            "p1-r19",
+            "p1-r20",
+            "p2-r1",
+            "p2-r2",
+            "p2-r3",
+            "p2-r4",
+            "p2-r5",
+            "p2-r6",
+            "p2-r7",
+            "p2-r8",
+            "p2-r13"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [
+        {
+          "ref": "p2-f1",
+          "page": 2,
+          "bbox_pt": [
+            21.58,
+            402.19,
+            401.38,
+            428.59
+          ],
+          "source": "raster-diagram",
+          "distance_pt": 0.0,
+          "region_id": "p2-r18"
+        },
+        {
+          "ref": "p2-f2",
+          "page": 2,
+          "bbox_pt": [
+            196.83,
+            255.01,
+            311.55,
+            321.04
+          ],
+          "source": "pdf-image+pdf-vector",
+          "distance_pt": 2.53,
+          "region_id": "p2-r19"
+        }
+      ],
+      "tables": [],
+      "cross_page": true,
+      "stem_text": "在\\(\\triangle ABC\\)中，若\\(a=6\\)，\\(A=60^\\circ\\)，\\(B=75^\\circ\\)，则\\(c=\\)",
+      "option_mode": "text",
+      "region_refs": [
+        "p1-r13",
+        "p1-r14",
+        "p1-r16",
+        "p1-r19",
+        "p2-r9",
+        "p2-r10",
+        "p2-r11",
+        "p1-r17",
+        "p2-r12",
+        "p1-r15",
+        "p1-r18",
+        "p1-r20",
+        "p2-r1",
+        "p2-r2",
+        "p2-r3",
+        "p2-r4",
+        "p2-r5",
+        "p2-r6",
+        "p2-r7",
+        "p2-r8",
+        "p2-r13"
+      ]
+    },
+    {
+      "id": "q-003",
+      "number": 8,
+      "section_id": "sec-01",
+      "pages": [
+        2,
+        3
+      ],
+      "stem": [
+        {
+          "text": "已知函数 \\(f(x)=\\sqrt{x+1}+k\\)，若存在区间 \\([a,b]\\)，使得函数 \\(f(x)\\) 在区间 \\([a,b]\\) 上的",
+          "page": 2,
+          "ref": "p2-l14"
+        },
+        {
+          "text": "值域为[a ,b ],则实数k的取值范围为",
+          "page": 2,
+          "ref": "p2-l15"
+        }
+      ],
+      "options": [
+        {
+          "id": "q-003-opt-A",
+          "label": "A",
+          "text": "\\((-1, +\\infty)\\)",
+          "refs": [
+            "p2-l16"
+          ],
+          "region_refs": [
+            "p2-r16"
+          ]
+        },
+        {
+          "id": "q-003-opt-B",
+          "label": "B",
+          "text": "\\((-1, 0]\\)",
+          "refs": [
+            "p2-l16"
+          ],
+          "region_refs": [
+            "p2-r16"
+          ]
+        },
+        {
+          "id": "q-003-opt-C",
+          "label": "C",
+          "text": "\\(\\left(-\\frac{1}{4}, +\\infty\\right)\\)",
+          "refs": [
+            "p2-l16"
+          ],
+          "region_refs": [
+            "p2-r16"
+          ]
+        },
+        {
+          "id": "q-003-opt-D",
+          "label": "D",
+          "text": "\\(\\left(-\\frac{1}{4}, 0\\right]\\)\n北京市西城区学年度第一学期期末试卷高三数学第页 (共页)\n第Ⅱ卷非选择题共分",
+          "refs": [
+            "p2-l16",
+            "p2-l17",
+            "p3-l1"
+          ],
+          "region_refs": [
+            "p2-r16",
+            "p2-r17",
+            "p3-r1"
+          ]
+        }
+      ],
+      "subquestions": [],
+      "figures": [
+        {
+          "ref": "p2-f3",
+          "page": 2,
+          "bbox_pt": [
+            346.34,
+            233.55,
+            420.59,
+            308.68
+          ],
+          "source": "pdf-vector",
+          "distance_pt": 38.84,
+          "region_id": "p2-r20"
+        },
+        {
+          "ref": "p3-f1",
+          "page": 3,
+          "bbox_pt": [
+            293.09,
+            224.39,
+            348.03,
+            348.89
+          ],
+          "source": "pdf-vector",
+          "distance_pt": 0.0,
+          "region_id": "p3-r21"
+        }
+      ],
+      "tables": [],
+      "cross_page": true,
+      "stem_text": "已知函数 \\(f(x)=\\sqrt{x+1}+k\\)，若存在区间 \\([a,b]\\)，使得函数 \\(f(x)\\) 在区间 \\([a,b]\\) 上的\n值域为[a ,b ],则实数k的取值范围为",
+      "option_mode": "text",
+      "region_refs": [
+        "p2-r14",
+        "p2-r15",
+        "p2-r16",
+        "p2-r17",
+        "p3-r1"
+      ]
+    },
+    {
+      "id": "q-004",
+      "number": 10,
+      "section_id": "sec-02",
+      "pages": [
+        3
+      ],
+      "stem": [
+        {
+          "text": "已知向量 \\(\\boldsymbol{a} = (-4,6)\\)，\\(\\boldsymbol{b} = (2,x)\\) 满足 \\(\\boldsymbol{a} \\parallel \\boldsymbol{b}\\)，其中 \\(x \\in \\mathbb{R}\\)，那么 \\(|\\boldsymbol{b}| =\\) ___.",
+          "page": 3,
+          "ref": "p3-l4"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "已知向量 \\(\\boldsymbol{a} = (-4,6)\\)，\\(\\boldsymbol{b} = (2,x)\\) 满足 \\(\\boldsymbol{a} \\parallel \\boldsymbol{b}\\)，其中 \\(x \\in \\mathbb{R}\\)，那么 \\(|\\boldsymbol{b}| =\\) ___.",
+      "option_mode": "text",
+      "region_refs": [
+        "p3-r4"
+      ]
+    },
+    {
+      "id": "q-005",
+      "number": 11,
+      "section_id": "sec-02",
+      "pages": [
+        3
+      ],
+      "stem": [
+        {
+          "text": "在公差为 \\(d (d \\neq 0)\\) 的等差数列 \\(\\{a_n\\}\\) 中，\\(a_1 = -1\\)，且 \\(a_2, a_4, a_{12}\\) 成等比数列，",
+          "page": 3,
+          "ref": "p3-l5"
+        },
+        {
+          "text": "则 \\(d=\\) ___.",
+          "page": 3,
+          "ref": "p3-l6"
+        },
+        {
+          "text": ".某四棱锥的三视图如图所示,则该四棱锥的四个侧面中,直角三角形有个.",
+          "page": 3,
+          "ref": "p3-l7"
+        },
+        {
+          "text": ".对于双曲线,给出下列三个条件:",
+          "page": 3,
+          "ref": "p3-l8"
+        },
+        {
+          "text": "离心率为 ;",
+          "page": 3,
+          "ref": "p3-l9"
+        },
+        {
+          "text": "一条渐近线的倾斜角为 ;",
+          "page": 3,
+          "ref": "p3-l10"
+        },
+        {
+          "text": "实轴长为 ,且焦点在x轴上.",
+          "page": 3,
+          "ref": "p3-l11"
+        },
+        {
+          "text": "写出符合其中两个条件的一个双曲线的标准方程 .",
+          "page": 3,
+          "ref": "p3-l12"
+        },
+        {
+          "text": ".某商贸公司售卖某种水果.经市场调研可知:在未来天内,这种水果每箱的销售利",
+          "page": 3,
+          "ref": "p3-l13"
+        },
+        {
+          "text": "润r(单位:元)与时间t( t ,t N,单位:天)之间的函数关系式为r 1t ,",
+          "page": 3,
+          "ref": "p3-l14"
+        },
+        {
+          "text": "且日销售量y(单位:箱)与时间t之间的函数关系式为y t.",
+          "page": 3,
+          "ref": "p3-l15"
+        },
+        {
+          "text": "第天的销售利润为元;",
+          "page": 3,
+          "ref": "p3-l16"
+        },
+        {
+          "text": "在未来的这天中,公司决定每销售箱该水果就捐赠m(m N*)元给“精准扶",
+          "page": 3,
+          "ref": "p3-l17"
+        },
+        {
+          "text": "贫”对象.为保证销售积极性,要求捐赠之后每天的利润随时间t的增大而增大,则m",
+          "page": 3,
+          "ref": "p3-l18"
+        },
+        {
+          "text": "的最小值是 .",
+          "page": 3,
+          "ref": "p3-l19"
+        },
+        {
+          "text": "北京市西城区学年度第一学期期末试卷高三数学第页 (共页)",
+          "page": 3,
+          "ref": "p3-l20"
+        }
+      ],
+      "options": [],
+      "subquestions": [],
+      "figures": [
+        {
+          "ref": "p3-f2",
+          "page": 3,
+          "bbox_pt": [
+            367.84,
+            225.2,
+            420.78,
+            288.85
+          ],
+          "source": "pdf-vector",
+          "distance_pt": 17.84,
+          "region_id": "p3-r22"
+        }
+      ],
+      "tables": [],
+      "cross_page": false,
+      "stem_text": "在公差为 \\(d (d \\neq 0)\\) 的等差数列 \\(\\{a_n\\}\\) 中，\\(a_1 = -1\\)，且 \\(a_2, a_4, a_{12}\\) 成等比数列，\n则 \\(d=\\) ___.\n.某四棱锥的三视图如图所示,则该四棱锥的四个侧面中,直角三角形有个.\n.对于双曲线,给出下列三个条件:\n离心率为 ;\n一条渐近线的倾斜角为 ;\n实轴长为 ,且焦点在x轴上.\n写出符合其中两个条件的一个双曲线的标准方程 .\n.某商贸公司售卖某种水果.经市场调研可知:在未来天内,这种水果每箱的销售利\n润r(单位:元)与时间t( t ,t N,单位:天)之间的函数关系式为r 1t ,\n且日销售量y(单位:箱)与时间t之间的函数关系式为y t.\n第天的销售利润为元;\n在未来的这天中,公司决定每销售箱该水果就捐赠m(m N*)元给“精准扶\n贫”对象.为保证销售积极性,要求捐赠之后每天的利润随时间t的增大而增大,则m\n的最小值是 .\n北京市西城区学年度第一学期期末试卷高三数学第页 (共页)",
+      "option_mode": "text",
+      "region_refs": [
+        "p3-r5",
+        "p3-r6",
+        "p3-r7",
+        "p3-r8",
+        "p3-r9",
+        "p3-r10",
+        "p3-r11",
+        "p3-r12",
+        "p3-r13",
+        "p3-r14",
+        "p3-r15",
+        "p3-r16",
+        "p3-r17",
+        "p3-r18",
+        "p3-r19",
+        "p3-r20"
+      ]
+    }
+  ],
+  "front_matter": [
+    {
+      "text": "北京市西城区—学年度第一学期期末试卷",
+      "page": 1,
+      "ref": "p1-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r1"
+      ]
+    },
+    {
+      "text": "高三数学",
+      "page": 1,
+      "ref": "p1-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r2"
+      ]
+    },
+    {
+      "text": "本试卷共页,共分。考试时长分钟。考生务必将答案答在答题卡上,在试",
+      "page": 1,
+      "ref": "p1-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r3"
+      ]
+    },
+    {
+      "text": "卷上作答无效。",
+      "page": 1,
+      "ref": "p1-l4",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r4"
+      ]
+    },
+    {
+      "text": "第卷选择题共分",
+      "page": 1,
+      "ref": "p1-l5",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r5"
+      ]
+    },
+    {
+      "text": "符合题目要求的一项",
+      "page": 1,
+      "ref": "p1-l7",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p1-r7"
+      ]
+    },
+    {
+      "text": ".在( x)5的展开式中,x2的系数为 .",
+      "page": 3,
+      "ref": "p3-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p3-r3"
+      ]
+    },
+    {
+      "text": ".(本小题满分分)",
+      "page": 4,
+      "ref": "p4-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r2"
+      ]
+    },
+    {
+      "text": "已知函数 \\(f(x)=2\\cos x \\cdot \\sin\\left(x-\\frac{\\pi}{6}\\right)\\).",
+      "page": 4,
+      "ref": "p4-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r3"
+      ]
+    },
+    {
+      "text": "( )求函数f(x)的最小正周期;",
+      "page": 4,
+      "ref": "p4-l4",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r4"
+      ]
+    },
+    {
+      "text": "（Ⅱ）求函数 \\(f(x)\\) 在区间 \\([-\\frac{\\pi}{2}, 0]\\) 上的最小值和最大值.",
+      "page": 4,
+      "ref": "p4-l5",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r5"
+      ]
+    },
+    {
+      "text": ".(本小题满分分)",
+      "page": 4,
+      "ref": "p4-l6",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r6"
+      ]
+    },
+    {
+      "text": "高铁和航空的飞速发展不仅方便了人们的出行,更带动了我国经济的巨大发展.据统",
+      "page": 4,
+      "ref": "p4-l7",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r7"
+      ]
+    },
+    {
+      "text": "计,在年这一年内从A市到B市乘坐高铁或飞机出行的成年人约为万人次.为了",
+      "page": 4,
+      "ref": "p4-l8",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r8"
+      ]
+    },
+    {
+      "text": "解乘客出行的满意度,现从中随机抽取人次作为样本,得到下表(单位:人次):",
+      "page": 4,
+      "ref": "p4-l9",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r9"
+      ]
+    },
+    {
+      "text": "( )在样本中任取个,求这个出行人恰好不是青年人的概率;",
+      "page": 4,
+      "ref": "p4-l10",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r10"
+      ]
+    },
+    {
+      "text": "( )在年从A市到B市乘坐高铁的所有成年人中,随机选取人次,记其中老年人",
+      "page": 4,
+      "ref": "p4-l11",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r11"
+      ]
+    },
+    {
+      "text": "出行的人次为X.以频率作为概率,求X的分布列和数学期望;",
+      "page": 4,
+      "ref": "p4-l12",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r12"
+      ]
+    },
+    {
+      "text": "( )如果甲将要从A市出发到B市,那么根据表格中的数据,你建议甲是乘坐高铁还是",
+      "page": 4,
+      "ref": "p4-l13",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r13"
+      ]
+    },
+    {
+      "text": "飞机? 并说明理由.",
+      "page": 4,
+      "ref": "p4-l14",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r14"
+      ]
+    },
+    {
+      "text": ".(本小题满分分)",
+      "page": 4,
+      "ref": "p4-l15",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r15"
+      ]
+    },
+    {
+      "text": "如图,在三棱柱ABC ABC 中,BB 平面ABC, ABC为正三角形,侧面",
+      "page": 4,
+      "ref": "p4-l16",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r16"
+      ]
+    },
+    {
+      "text": "ABBA 是边长为的正方形,D为BC的中点.",
+      "page": 4,
+      "ref": "p4-l17",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r17"
+      ]
+    },
+    {
+      "text": "（Ⅰ）求证：\\(A_1B \\parallel\\) 平面 \\(AC_1D\\)；",
+      "page": 4,
+      "ref": "p4-l18",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r18"
+      ]
+    },
+    {
+      "text": "( )求二面角C AC D的余弦值;",
+      "page": 4,
+      "ref": "p4-l19",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r19"
+      ]
+    },
+    {
+      "text": "( )试判断直线AB 与平面ACD的位置关系,并加以证明.",
+      "page": 4,
+      "ref": "p4-l20",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r20"
+      ]
+    },
+    {
+      "text": "北京市西城区学年度第一学期期末试卷高三数学第页 (共页)",
+      "page": 4,
+      "ref": "p4-l21",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p4-r21"
+      ]
+    },
+    {
+      "text": ".(本小题满分分)",
+      "page": 5,
+      "ref": "p5-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r1"
+      ]
+    },
+    {
+      "text": "已知椭圆W x2 的右焦点为F 过点F且斜率为kk 的直线l与椭圆W",
+      "page": 5,
+      "ref": "p5-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r2"
+      ]
+    },
+    {
+      "text": "交于A,B两点,线段AB的中点为M.O为坐标原点.",
+      "page": 5,
+      "ref": "p5-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r3"
+      ]
+    },
+    {
+      "text": "( )证明:点M在y轴的右侧;",
+      "page": 5,
+      "ref": "p5-l4",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r4"
+      ]
+    },
+    {
+      "text": "( )设线段AB的垂直平分线与x轴、y轴分别相交于点C,D.若 ODC与 CMF的",
+      "page": 5,
+      "ref": "p5-l5",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r5"
+      ]
+    },
+    {
+      "text": "面积相等,求直线l的斜率k.",
+      "page": 5,
+      "ref": "p5-l6",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r6"
+      ]
+    },
+    {
+      "text": ".(本小题满分分)",
+      "page": 5,
+      "ref": "p5-l7",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r7"
+      ]
+    },
+    {
+      "text": "已知函数 \\(f(x)=\\mathrm{e}^{x}-ax+\\frac{1}{2}x^{2}\\)，其中 a>-1。",
+      "page": 5,
+      "ref": "p5-l8",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r8"
+      ]
+    },
+    {
+      "text": "（Ⅰ）当 a=0 时，求曲线 \\(y=f(x)\\) 在点 \\((0,f(0))\\) 处的切线方程；",
+      "page": 5,
+      "ref": "p5-l9",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r9"
+      ]
+    },
+    {
+      "text": "( )当a 时,求函数f(x)的单调区间;",
+      "page": 5,
+      "ref": "p5-l10",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r10"
+      ]
+    },
+    {
+      "text": "（Ⅲ）若 \\(f(x) \\geqslant \\frac{1}{2}x^2 + x + b\\) 对于 \\(x \\in \\mathbb{R}\\) 恒成立，求 \\(b - a\\) 的最大值.",
+      "page": 5,
+      "ref": "p5-l11",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r11"
+      ]
+    },
+    {
+      "text": ".(本小题满分分)",
+      "page": 5,
+      "ref": "p5-l12",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r12"
+      ]
+    },
+    {
+      "text": "设整数集合 \\(A = \\{a_1, a_2, \\cdots, a_{100}\\}\\)，其中 \\(1 \\leqslant a_1 < a_2 < \\cdots < a_{100} \\leqslant 205\\)，且对于任意",
+      "page": 5,
+      "ref": "p5-l13",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r13"
+      ]
+    },
+    {
+      "text": "i，\\(j(1\\leqslant i\\leqslant j\\leqslant100)\\)，若\\(i+j\\in A\\)，则\\(a_i+a_j\\in A\\)。",
+      "page": 5,
+      "ref": "p5-l14",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r14"
+      ]
+    },
+    {
+      "text": "( )请写出一个满足条件的集合A;",
+      "page": 5,
+      "ref": "p5-l15",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r15"
+      ]
+    },
+    {
+      "text": "（Ⅱ）证明：任意 \\(x \\in \\{101, 102, \\cdots, 200\\}\\)，\\(x \\notin A\\)；",
+      "page": 5,
+      "ref": "p5-l16",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r16"
+      ]
+    },
+    {
+      "text": "( )若a ,求满足条件的集合A的个数.",
+      "page": 5,
+      "ref": "p5-l17",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r17"
+      ]
+    },
+    {
+      "text": "北京市西城区学年度第一学期期末试卷高三数学第页 (共页)",
+      "page": 5,
+      "ref": "p5-l18",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p5-r18"
+      ]
+    },
+    {
+      "text": "北京市西城区2019—2020学年度第一学期期末试卷",
+      "page": 6,
+      "ref": "p6-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p6-r1"
+      ]
+    },
+    {
+      "text": "高三数学参考答案",
+      "page": 6,
+      "ref": "p6-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p6-r2"
+      ]
+    },
+    {
+      "text": "解：（Ⅰ）设事件：“在样本中任取1个，这个出行人恰好不是青年人”为M，",
+      "page": 6,
+      "ref": "p6-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p6-r3"
+      ]
+    },
+    {
+      "text": "1分",
+      "page": 6,
+      "ref": "p6-l4",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p6-r4"
+      ]
+    },
+    {
+      "text": "由表可得：样本中出行的老年人、中年人、青年人人次分别为19，39，42，",
+      "page": 7,
+      "ref": "p7-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p7-r1"
+      ]
+    },
+    {
+      "text": "2分",
+      "page": 7,
+      "ref": "p7-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p7-r2"
+      ]
+    },
+    {
+      "text": "连接 \\(A_1C\\)。设 \\(A_1C \\cap AC_1 = E\\)，则 \\(E\\) 是 \\(A_1C\\) 的中点。",
+      "page": 7,
+      "ref": "p7-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p7-r3"
+      ]
+    },
+    {
+      "text": "连接DE. 由D，E分别为BC和A1C的中点，",
+      "page": 8,
+      "ref": "p8-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p8-r1"
+      ]
+    },
+    {
+      "text": "得 \\(DE \\parallel A_1B\\). …… 2分",
+      "page": 8,
+      "ref": "p8-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p8-r2"
+      ]
+    },
+    {
+      "text": "设二面角 \\(C - AC_1 - D\\) 的平面角为 \\(\\theta\\)，则 \\(|\\cos\\theta| = \\frac{|\\sin\\theta|}{|\\mathbf{n}_1| \\cdot |\\mathbf{n}_2|} = \\frac{\\sqrt{2}}{5}\\)，",
+      "page": 8,
+      "ref": "p8-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p8-r3"
+      ]
+    },
+    {
+      "text": "由图可得二面角CAC1D为锐二面角，",
+      "page": 8,
+      "ref": "p8-l4",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p8-r4"
+      ]
+    },
+    {
+      "text": "所以二面角 \\(C - AC_1 - D\\) 的余弦值为 \\(\\frac{\\sqrt{15}}{5}\\). …… 10 分",
+      "page": 9,
+      "ref": "p9-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p9-r1"
+      ]
+    },
+    {
+      "text": "（III）结论：直线 \\(A_1B_1\\) 与平面 \\(AC_1D\\) 相交。……11分",
+      "page": 9,
+      "ref": "p9-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p9-r2"
+      ]
+    },
+    {
+      "text": "即 \\(M\\left(\\frac{4\\sqrt{3}k^{2}}{4k^{2}+1},-\\frac{\\sqrt{3}k}{4k^{2}+1}\\right)\\).",
+      "page": 9,
+      "ref": "p9-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p9-r3"
+      ]
+    },
+    {
+      "text": "所以线段AB的垂直平分线方程为：y (x ). ………8分",
+      "page": 10,
+      "ref": "p10-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p10-r1"
+      ]
+    },
+    {
+      "text": "（III）由 \\(f(x) \\geqslant \\frac{1}{2} x^2 + x + b\\)，得 \\(\\mathrm{e}^x - (a+1)x - b \\geqslant 0\\) 在 \\(x \\in \\mathbb{R}\\) 上恒成立。",
+      "page": 10,
+      "ref": "p10-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p10-r2"
+      ]
+    },
+    {
+      "text": "设 \\(g(x) = \\mathrm{e}^x - (a+1)x - b\\)，……9分",
+      "page": 10,
+      "ref": "p10-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p10-r3"
+      ]
+    },
+    {
+      "text": "则 \\(g'(x) = \\mathrm{e}^x - (a+1)\\).",
+      "page": 11,
+      "ref": "p11-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p11-r1"
+      ]
+    },
+    {
+      "text": "由 \\( g'(x) = \\mathrm{e}^x - (a+1) = 0 \\)，得 \\( x = \\ln(a+1) \\)，（\\( a > -1 \\)）。 …… 10 分",
+      "page": 11,
+      "ref": "p11-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p11-r2"
+      ]
+    },
+    {
+      "text": "所以任意 \\(x \\in \\{101, 102, \\cdots, 200\\}\\)，\\(x \\notin A\\)。 …… 8 分",
+      "page": 11,
+      "ref": "p11-l3",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p11-r3"
+      ]
+    },
+    {
+      "text": "（Ⅲ）设集合 \\(A \\cap \\{201, 202, \\cdots, 205\\}\\) 中有 \\(m (1 \\leq m \\leq 5)\\) 个元素，\\(a_{100-m} = b\\)，",
+      "page": 11,
+      "ref": "p11-l4",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p11-r4"
+      ]
+    },
+    {
+      "text": "由题意，得 \\(a_1 < a_2 < \\cdots < a_{100-m} \\leq 200\\)，\\(200 < a_{100-m+1} < a_{100-m+2} < \\cdots < a_{100}\\)，",
+      "page": 12,
+      "ref": "p12-l1",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p12-r1"
+      ]
+    },
+    {
+      "text": "由（Ⅱ），得 \\(a_{100-m} = b \\leqslant 100\\)。",
+      "page": 12,
+      "ref": "p12-l2",
+      "reason": "before_first_question",
+      "region_refs": [
+        "p12-r2"
+      ]
+    }
+  ],
+  "unassigned": {
+    "figures": [
+      {
+        "ref": "p4-f1",
+        "page": 4,
+        "bbox_pt": [
+          32.61,
+          220.29,
+          397.07,
+          314.84
+        ],
+        "source": "table-grid",
+        "distance_pt": null,
+        "region_id": "p4-r23"
+      },
+      {
+        "ref": "p4-f2",
+        "page": 4,
+        "bbox_pt": [
+          302.89,
+          527.21,
+          420.77,
+          608.55
+        ],
+        "source": "pdf-vector",
+        "distance_pt": null,
+        "region_id": "p4-r24"
+      },
+      {
+        "ref": "p6-f1",
+        "page": 6,
+        "bbox_pt": [
+          90.0,
+          127.2,
+          505.32,
+          714.6
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p6-r6"
+      },
+      {
+        "ref": "p7-f1",
+        "page": 7,
+        "bbox_pt": [
+          90.0,
+          127.2,
+          505.32,
+          714.6
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p7-r6"
+      },
+      {
+        "ref": "p8-f1",
+        "page": 8,
+        "bbox_pt": [
+          90.0,
+          127.2,
+          564.36,
+          714.6
+        ],
+        "source": "pdf-image+pdf-vector",
+        "distance_pt": null,
+        "region_id": "p8-r6"
+      },
+      {
+        "ref": "p9-f1",
+        "page": 9,
+        "bbox_pt": [
+          90.0,
+          127.2,
+          505.32,
+          714.6
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p9-r5"
+      },
+      {
+        "ref": "p10-f1",
+        "page": 10,
+        "bbox_pt": [
+          90.0,
+          127.2,
+          505.32,
+          714.6
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p10-r5"
+      },
+      {
+        "ref": "p11-f1",
+        "page": 11,
+        "bbox_pt": [
+          90.0,
+          127.2,
+          505.32,
+          714.6
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p11-r7"
+      },
+      {
+        "ref": "p12-f1",
+        "page": 12,
+        "bbox_pt": [
+          90.0,
+          127.2,
+          505.32,
+          714.6
+        ],
+        "source": "pdf-image",
+        "distance_pt": null,
+        "region_id": "p12-r4"
+      }
+    ],
+    "tables": [
+      {
+        "ref": "p4-t1",
+        "page": 4,
+        "bbox_pt": [
+          34.78,
+          222.55,
+          395.46,
+          312.79
+        ],
+        "headers": [
+          "满意度",
+          "老年人",
+          "",
+          "中年人",
+          "",
+          "青年人",
+          ""
+        ],
+        "rows": [
+          [
+            "",
+            "乘坐高铁",
+            "乘坐飞机",
+            "乘坐高铁",
+            "乘坐飞机",
+            "乘坐高铁",
+            "乘坐飞机"
+          ],
+          [
+            "10分（满意）",
+            "12",
+            "1",
+            "20",
+            "2",
+            "20",
+            "1"
+          ],
+          [
+            "5分（一般）",
+            "2",
+            "3",
+            "6",
+            "2",
+            "4",
+            "9"
+          ],
+          [
+            "0分（不满意）",
+            "1",
+            "0",
+            "6",
+            "3",
+            "4",
+            "4"
+          ]
+        ],
+        "rows_count": 5,
+        "cols_count": 7,
+        "source": "pdf-table-cells",
+        "distance_pt": null,
+        "region_id": "p4-r22"
+      },
+      {
+        "ref": "p7-t1",
+        "page": 7,
+        "bbox_pt": [
+          180.05,
+          368.64,
+          400.0,
+          424.24
+        ],
+        "headers": [
+          "X",
+          "0",
+          "1",
+          "2"
+        ],
+        "rows": [
+          [
+            "P",
+            "\\(\\frac{16}{25}\\)",
+            "\\(\\frac{8}{25}\\)",
+            "\\(\\frac{1}{25}\\)"
+          ]
+        ],
+        "rows_count": 2,
+        "cols_count": 4,
+        "source": "pdf-table-cells",
+        "distance_pt": null,
+        "region_id": "p7-r5"
+      },
+      {
+        "ref": "p11-t1",
+        "page": 11,
+        "bbox_pt": [
+          169.85,
+          165.84,
+          414.95,
+          245.34
+        ],
+        "headers": [
+          "\\(x\\)",
+          "\\((-\\infty, \\ln(a+1))\\)",
+          "\\(\\ln(a+1)\\)",
+          "\\(\\ln(a+1), +\\infty)\\)"
+        ],
+        "rows": [
+          [
+            "\\(g'(x)\\)",
+            "-",
+            "0",
+            "+"
+          ],
+          [
+            "\\(g(x)\\)",
+            "↓",
+            "极小值",
+            "北微信号："
+          ]
+        ],
+        "rows_count": 3,
+        "cols_count": 4,
+        "source": "pdf-table-cells",
+        "distance_pt": null,
+        "region_id": "p11-r6"
+      }
+    ],
+    "lines": []
+  },
+  "stats": {
+    "sections": 3,
+    "questions": 5,
+    "front_matter_lines": 68,
+    "figures_assigned": 5,
+    "figures_unassigned": 9,
+    "tables_assigned": 0,
+    "tables_unassigned": 3,
+    "questions_cross_page": 2,
+    "options": 12,
+    "subquestions": 0,
+    "regions": 143,
+    "question_region_refs": 48
+  }
+}

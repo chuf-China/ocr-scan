@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "document": {
+    "title": "eval01_xicheng_2024ermo",
+    "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\eval\\eval01_xicheng_2024ermo.pdf",
+    "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\demo_eval01\\eval01_fix.layout.json",
+    "subject": "数学",
+    "pages": 10,
+    "page_size_pt": [
+      595.32,
+      841.92
+    ],
+    "engine": "llama.cpp/paddleocr-vl",
+    "generated_at": "2026-10-25T21:19:16+0800"
+  },
+  "summary": {
+    "status": "warn",
+    "errors": 0,
+    "warnings": 1,
+    "questions": 21,
+    "sections": 3,
+    "figures_assigned": 4,
+    "figures_unassigned": 1,
+    "missing_question_numbers": [],
+    "duplicate_question_numbers": [],
+    "content_truncated": 0,
+    "content_truncated_samples": [],
+    "empty_sections": 0,
+    "line_overflow": 0,
+    "line_overlaps": 0,
+    "coverage_ratio": 0.99258,
+    "uncovered_regions": 0,
+    "formula_count": 317,
+    "formula_lines": 146,
+    "formula_broken": 0,
+    "formula_suspicious": 0,
+    "formula_samples": [],
+    "tables": 1,
+    "tables_unassigned": 0,
+    "garbled_lines": 0,
+    "font_count": 14,
+    "regions": 260,
+    "region_types": {
+      "text": 103,
+      "formula": 151,
+      "table": 2,
+      "figure": 4
+    },
+    "region_problems": 0,
+    "region_refs_unresolved": 0,
+    "defects": {
+      "by_class": {
+        "missing_figure": {
+          "count": 1,
+          "errors": 0,
+          "warnings": 1,
+          "by_owner": {
+            "program": 1,
+            "model": 0,
+            "input": 0,
+            "mixed": 0
+          }
+        }
+      },
+      "by_owner": {
+        "program": 1,
+        "model": 0,
+        "input": 0,
+        "mixed": 0
+      },
+      "unknown": []
+    }
+  },
+  "checks": {
+    "question_numbers_complete": true,
+    "question_numbers_unique": true,
+    "all_questions_have_stem": true,
+    "all_questions_have_options": true,
+    "content_consistency_ok": true,
+    "text_clean_ok": true,
+    "all_figures_assigned": false,
+    "all_tables_structured": true,
+    "geometry_ok": true,
+    "page_coverage_ok": true,
+    "formula_structure_ok": true,
+    "regions_consistent": true,
+    "defect_codes_registered": true
+  },
+  "repair": {
+    "actions": [
+      {
+        "code": "figure_unassigned",
+        "action": "attach_figure",
+        "mode": "manual",
+        "reason": "插图归属需要人工确认题号",
+        "target": "p7-f1",
+        "message": "图 p7-f1 未归属到题目"
+      }
+    ],
+    "counts": {
+      "auto_candidate": 0,
+      "manual": 1,
+      "blocked": 0
+    },
+    "total": 1,
+    "auto_executed": false,
+    "note": "auto_candidate 只是允许重试，执行前仍应保留原 JSON；manual 不得自动补内容"
+  },
+  "issues": [
+    {
+      "level": "warning",
+      "code": "figure_unassigned",
+      "message": "图 p7-f1 未归属到题目",
+      "page": 7,
+      "ref": "p7-f1"
+    }
+  ]
+}

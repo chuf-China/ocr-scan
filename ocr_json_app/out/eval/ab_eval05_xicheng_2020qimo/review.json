@@ -1,0 +1,280 @@
+{
+  "meta": {
+    "total": 65,
+    "sampled": 16
+  },
+  "items": [
+    {
+      "page": 3,
+      "region_id": "p3-r4",
+      "agreement": "differs",
+      "current": "\\boldsymbol{a} = (-4,6); \\boldsymbol{b} = (2,x); \\boldsymbol{a} \\parallel \\boldsymbol{b}; x \\in \\mathbb{R}",
+      "latex": "a\\mathbin{//}b",
+      "bbox_pt": [
+        209.49,
+        112.57,
+        233.07,
+        122.68
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6426,
+      "region_text": "10. 已知向量 \\(\\boldsymbol{a} = (-4,6)\\)，\\(\\boldsymbol{b} = (2,x)\\) 满足 \\(\\boldsymbol{a} \\parallel \\boldsymbol{b}\\)，其中 \\(x \\in \\mathbb{R}\\)，那么 \\(|\\boldsymbol{b}| =\\) ___."
+    },
+    {
+      "page": 3,
+      "region_id": "p3-r5",
+      "agreement": "partial",
+      "current": "a_2, a_4, a_{12}",
+      "latex": "a_{\\mathrm{~12~}},",
+      "bbox_pt": [
+        320.5,
+        143.9,
+        334.23,
+        150.98
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.551,
+      "region_text": "11. 在公差为 \\(d (d \\neq 0)\\) 的等差数列 \\(\\{a_n\\}\\) 中，\\(a_1 = -1\\)，且 \\(a_2, a_4, a_{12}\\) 成等比数列，"
+    },
+    {
+      "page": 4,
+      "region_id": "p4-r5",
+      "agreement": "partial",
+      "current": "[-\\frac{\\pi}{2}, 0]",
+      "latex": "[-\\frac{\\pi}{2}",
+      "bbox_pt": [
+        128.07,
+        102.84,
+        154.56,
+        121.51
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5852,
+      "region_text": "（Ⅱ）求函数 \\(f(x)\\) 在区间 \\([-\\frac{\\pi}{2}, 0]\\) 上的最小值和最大值."
+    },
+    {
+      "page": 4,
+      "region_id": "p4-r18",
+      "agreement": "differs",
+      "current": "A_1B \\parallel; AC_1D",
+      "latex": "A_{1}B\\not\\cup.",
+      "bbox_pt": [
+        63.57,
+        488.4,
+        95.23,
+        498.76
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5669,
+      "region_text": "（Ⅰ）求证：\\(A_1B \\parallel\\) 平面 \\(AC_1D\\)；"
+    },
+    {
+      "page": 5,
+      "region_id": "p5-r8",
+      "agreement": "differs",
+      "current": "f(x)=\\mathrm{e}^{x}-ax+\\frac{1}{2}x^{2}",
+      "latex": "a>-1.",
+      "bbox_pt": [
+        208.77,
+        183.52,
+        241.52,
+        192.93
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6953,
+      "region_text": "已知函数 \\(f(x)=\\mathrm{e}^{x}-ax+\\frac{1}{2}x^{2}\\)，其中 a>-1。"
+    },
+    {
+      "page": 5,
+      "region_id": "p5-r9",
+      "agreement": "differs",
+      "current": "y=f(x); (0,f(0))",
+      "latex": "y=\\operatorname{ 在 }(x)",
+      "bbox_pt": [
+        125.0,
+        208.69,
+        167.17,
+        220.02
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6736,
+      "region_text": "（Ⅰ）当 a=0 时，求曲线 \\(y=f(x)\\) 在点 \\((0,f(0))\\) 处的切线方程；"
+    },
+    {
+      "page": 5,
+      "region_id": "p5-r9",
+      "agreement": "differs",
+      "current": "y=f(x); (0,f(0))",
+      "latex": "a=0",
+      "bbox_pt": [
+        45.3,
+        209.31,
+        68.59,
+        218.1
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7528,
+      "region_text": "（Ⅰ）当 a=0 时，求曲线 \\(y=f(x)\\) 在点 \\((0,f(0))\\) 处的切线方程；"
+    },
+    {
+      "page": 5,
+      "region_id": "p5-r13",
+      "agreement": "normalized",
+      "current": "1 \\leqslant a_1 < a_2 < \\cdots < a_{100} \\leqslant 205",
+      "latex": "1\\leqslant a_{1}<a_{2}<\\cdots<a_{100}\\leqslant205",
+      "bbox_pt": [
+        226.8,
+        317.88,
+        354.88,
+        328.25
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8729,
+      "region_text": "设整数集合 \\(A = \\{a_1, a_2, \\cdots, a_{100}\\}\\)，其中 \\(1 \\leqslant a_1 < a_2 < \\cdots < a_{100} \\leqslant 205\\)，且对于任意"
+    },
+    {
+      "page": 5,
+      "region_id": "p5-r13",
+      "agreement": "differs",
+      "current": "A = \\{a_1, a_2, \\cdots, a_{100}\\}; 1 \\leqslant a_1 < a_2 < \\cdots < a_{100} \\leqslant 205",
+      "latex": "A=\\left\\{a_{1},a_{2},\\cdots,a_{100}\\right\\}",
+      "bbox_pt": [
+        85.41,
+        318.15,
+        190.4,
+        328.32
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8746,
+      "region_text": "设整数集合 \\(A = \\{a_1, a_2, \\cdots, a_{100}\\}\\)，其中 \\(1 \\leqslant a_1 < a_2 < \\cdots < a_{100} \\leqslant 205\\)，且对于任意"
+    },
+    {
+      "page": 5,
+      "region_id": "p5-r14",
+      "agreement": "exact",
+      "current": "i+j\\in A",
+      "latex": "i+j\\in A",
+      "bbox_pt": [
+        125.85,
+        337.03,
+        165.2,
+        347.45
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7779,
+      "region_text": "i，\\(j(1\\leqslant i\\leqslant j\\leqslant100)\\)，若\\(i+j\\in A\\)，则\\(a_i+a_j\\in A\\)。"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r3",
+      "agreement": "partial",
+      "current": "\\theta",
+      "latex": "\\left|\\cos\\theta\\right|=\\left|\\frac{\\boldsymbol{n}_{1}\\cdot\\boldsymbol{n}_{2}}{\\left|\\boldsymbol{n}_{1}\\right|\\cdot\\left|\\boldsymbol{n}_{2}\\right|}\\right|=\\frac{\\sqrt{15}}{5}",
+      "bbox_pt": [
+        321.51,
+        705.13,
+        435.6,
+        733.61
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.9399,
+      "region_text": "设二面角 \\(C - AC_1 - D\\) 的平面角为 \\(\\theta\\)，则 \\(|\\cos\\theta| = \\frac{|\\sin\\theta|}{|\\mathbf{n}_1| \\cdot |\\mathbf{n}_2|} = \\frac{\\sqrt{2}}{5}\\)，"
+    },
+    {
+      "page": 9,
+      "region_id": "p9-r1",
+      "agreement": "partial",
+      "current": "\\frac{\\sqrt{15}}{5}",
+      "latex": "1\\frac{\\sqrt{15}}{5}",
+      "bbox_pt": [
+        299.2,
+        74.03,
+        319.93,
+        100.14
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8321,
+      "region_text": "所以二面角 \\(C - AC_1 - D\\) 的余弦值为 \\(\\frac{\\sqrt{15}}{5}\\). …… 10 分"
+    },
+    {
+      "page": 9,
+      "region_id": "p9-r2",
+      "agreement": "normalized",
+      "current": "A_1B_1",
+      "latex": "A_{1}B_{1}",
+      "bbox_pt": [
+        191.45,
+        113.14,
+        210.09,
+        125.35
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7525,
+      "region_text": "（III）结论：直线 \\(A_1B_1\\) 与平面 \\(AC_1D\\) 相交。……11分"
+    },
+    {
+      "page": 11,
+      "region_id": "p11-r4",
+      "agreement": "differs",
+      "current": "A \\cap \\{201, 202, \\cdots, 205\\}; m (1 \\leq m \\leq 5); a_{100-m} = b",
+      "latex": "\\mathcal{A}\\bigcap\\{201,202,\\cdots,205\\}",
+      "bbox_pt": [
+        168.83,
+        746.35,
+        267.53,
+        757.85
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5976,
+      "region_text": "（Ⅲ）设集合 \\(A \\cap \\{201, 202, \\cdots, 205\\}\\) 中有 \\(m (1 \\leq m \\leq 5)\\) 个元素，\\(a_{100-m} = b\\)，"
+    },
+    {
+      "page": 11,
+      "region_id": "p11-r4",
+      "agreement": "differs",
+      "current": "A \\cap \\{201, 202, \\cdots, 205\\}; m (1 \\leq m \\leq 5); a_{100-m} = b",
+      "latex": "a_{_{100-m}}=b",
+      "bbox_pt": [
+        389.43,
+        747.51,
+        431.92,
+        758.89
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8698,
+      "region_text": "（Ⅲ）设集合 \\(A \\cap \\{201, 202, \\cdots, 205\\}\\) 中有 \\(m (1 \\leq m \\leq 5)\\) 个元素，\\(a_{100-m} = b\\)，"
+    },
+    {
+      "page": 12,
+      "region_id": "p12-r2",
+      "agreement": "normalized",
+      "current": "a_{100-m} = b \\leqslant 100",
+      "latex": "a_{100-m}=b\\leqslant100",
+      "bbox_pt": [
+        195.43,
+        112.54,
+        262.75,
+        124.17
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8729,
+      "region_text": "由（Ⅱ），得 \\(a_{100-m} = b \\leqslant 100\\)。"
+    }
+  ]
+}

@@ -1,0 +1,280 @@
+{
+  "meta": {
+    "total": 296,
+    "sampled": 16
+  },
+  "items": [
+    {
+      "page": 2,
+      "region_id": "p2-r13",
+      "agreement": "normalized",
+      "current": "B = \\frac{\\pi}{12}",
+      "latex": "B=\\frac{\\pi}{12}",
+      "bbox_pt": [
+        168.18,
+        357.22,
+        196.55,
+        378.08
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.731,
+      "region_text": "所以 \\(2B = \\frac{\\pi}{6}\\)，则 \\(B = \\frac{\\pi}{12}\\)． ……6分"
+    },
+    {
+      "page": 3,
+      "region_id": "p3-r17",
+      "agreement": "differs",
+      "current": "EM, BC \\subset; B_1BCC_1; EM \\cap BC = M; AM \\perp",
+      "latex": "B_{1}BC_{1}",
+      "bbox_pt": [
+        381.22,
+        683.64,
+        415.58,
+        696.83
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5916,
+      "region_text": "由于 \\( EM, BC \\subset \\) 平面 \\( B_1BCC_1 \\)，\\( EM \\cap BC = M \\)，所以 \\( AM \\perp \\) 平面 \\( B_1BCC_1 \\)，……6分"
+    },
+    {
+      "page": 5,
+      "region_id": "p5-r8",
+      "agreement": "partial",
+      "current": "A_1B",
+      "latex": "\\Delta A_{1}BN\\sim\\Delta BB_{1}N",
+      "bbox_pt": [
+        328.96,
+        390.8,
+        405.29,
+        402.84
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7439,
+      "region_text": "所以 \\(\\angle NBH\\) 即为直线 \\(A_1B\\) 与平面 \\(DBC_1\\) 所成角，由于 \\(\\triangle A_1DN \\sim \\triangle BB_1N\\)，"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r14",
+      "agreement": "differs",
+      "current": "f(p) = -8p^{3} + 12p^{2} - 2; 0 < p < 1; f'(p) = -24p^{2} + 24p = -24p(p-1) > 0",
+      "latex": "0<\\bar{p}\\le1",
+      "bbox_pt": [
+        270.11,
+        487.94,
+        308.86,
+        501.78
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6192,
+      "region_text": "【14分段：设 \\(f(p) = -8p^{3} + 12p^{2} - 2\\)，\\(0 < p < 1\\)，利用 \\(f'(p) = -24p^{2} + 24p = -24p(p-1) > 0\\)，"
+    },
+    {
+      "page": 7,
+      "region_id": "p7-r23",
+      "agreement": "partial",
+      "current": "l_1, l_2",
+      "latex": "\\mid l_{1},l_{2}",
+      "bbox_pt": [
+        127.78,
+        738.73,
+        145.55,
+        751.38
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7302,
+      "region_text": "（2）当\\(l_1, l_2\\)倾斜角互补时，直线AC与直线BD交于点\\(M\\)，求\\(\\triangle MAB\\)的内切圆的圆心横坐标的"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r7",
+      "agreement": "normalized",
+      "current": "\\begin{cases} x_1 + x_2 = 4 + \\dfrac{2}{k^2} \\\\ x_1 x_2 = 4 \\end{cases}",
+      "latex": "\\left\\{\\begin{aligned}x_{1}+x_{2}=4+\\frac{2}{k^{2}}\\\\ x_{1}x_{2}=4\\end{aligned}\\right.",
+      "bbox_pt": [
+        331.46,
+        219.56,
+        404.8,
+        262.82
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.881,
+      "region_text": "由于 \\(\\begin{cases} y = kx - 2k \\\\ y^2 = 2x \\end{cases}\\)，则 \\(k^2x^2 - (4k^2 + 2)x + 4k^2 = 0\\)，则 \\(\\begin{cases} x_1 + x_2 = 4 + \\dfrac{2}{k^2} \\\\ x_1 x_2 = 4 \\end{cases}\\)，……3分"
+    },
+    {
+      "page": 8,
+      "region_id": "p8-r7",
+      "agreement": "differs",
+      "current": "\\begin{cases} y = kx - 2k \\\\ y^2 = 2x \\end{cases}; k^2x^2 - (4k^2 + 2)x + 4k^2 = 0; \\begin{cases} x_1 + x_2 = 4 + \\dfrac{2}{k^2} \\\\ x_1 x_2 = 4 \\end{cases}",
+      "latex": "y=kx-2k\\atop y^{2}\\equiv2x",
+      "bbox_pt": [
+        111.84,
+        225.06,
+        165.53,
+        256.41
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8313,
+      "region_text": "由于 \\(\\begin{cases} y = kx - 2k \\\\ y^2 = 2x \\end{cases}\\)，则 \\(k^2x^2 - (4k^2 + 2)x + 4k^2 = 0\\)，则 \\(\\begin{cases} x_1 + x_2 = 4 + \\dfrac{2}{k^2} \\\\ x_1 x_2 = 4 \\end{cases}\\)，……3分"
+    },
+    {
+      "page": 9,
+      "region_id": "p9-r1",
+      "agreement": "exact",
+      "current": "M(-2,0)",
+      "latex": "M(-2,0)",
+      "bbox_pt": [
+        311.91,
+        93.04,
+        357.78,
+        106.03
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5001,
+      "region_text": "则 \\(\\left\\{\\begin{array}{l}(y_{1}+\\frac{4}{y_{1}})y=2x+4\\\\-(y_{1}+\\frac{4}{y_{1}})y=2x+4\\end{array}\\right.\\)，解得 \\(\\left\\{\\begin{array}{l}x=-2\\\\y=0\\end{array}\\right.\\)，所以点 \\(M(-2,0)\\)，……11 分"
+    },
+    {
+      "page": 9,
+      "region_id": "p9-r13",
+      "agreement": "partial",
+      "current": "f(z) = \\sqrt{12}+z-\\sqrt{-4}+z",
+      "latex": "n=\\frac{\\left(\\sqrt{12+z}-\\sqrt{-4+z}\\right)^{2}}{8},\\quad f(z)=\\sqrt{12+z}-\\sqrt{-4+z},\\quad z>8",
+      "bbox_pt": [
+        92.98,
+        524.75,
+        388.03,
+        551.05
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6165,
+      "region_text": "则 \\( n = \\frac{(\\sqrt{12}+z-\\sqrt{4}+z)}{c} \\)，设 \\( f(z) = \\sqrt{12}+z-\\sqrt{-4}+z \\)，\\( z > 8 \\)，"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r3",
+      "agreement": "differs",
+      "current": "f(x_1)=\\frac{x_1^2+6x_1+4}{x_1^2-2x_1+4}=\\frac{8x_1}{x_1^2-2x_1+4}+1=\\frac{8}{x_1+\\frac{4}{x_1}-2}+1>1, x_1>0",
+      "latex": "f\\left(x_{1}\\right)=\\frac{x_{1}^{2}+6x_{1}\\pm4}{x_{1}^{2}-2x_{1}+4}=\\frac{8x_{1}}{x_{1}^{2}-2x_{1}+4}+1=\\frac{8}{x_{1}+\\frac{4}{x_{1}}-2}+1>1,x_{1}>0",
+      "bbox_pt": [
+        100.74,
+        165.14,
+        375.42,
+        208.5
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8909,
+      "region_text": "设 \\(f(x_1)=\\frac{x_1^2+6x_1+4}{x_1^2-2x_1+4}=\\frac{8x_1}{x_1^2-2x_1+4}+1=\\frac{8}{x_1+\\frac{4}{x_1}-2}+1>1, x_1>0\\)，……15分"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r13",
+      "agreement": "differs",
+      "current": "a_1 \\ne a_2; \\{a_n\\}; a_n < 2025; a_1, a_2",
+      "latex": "\\left(\\bar{a_{1}}\\neq\\bar{a_{2}}\\right)",
+      "bbox_pt": [
+        128.88,
+        595.67,
+        166.16,
+        610.43
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.7431,
+      "region_text": "19. （3）若 \\(a_1 \\ne a_2\\)，是否存在数列 \\(\\{a_n\\}\\)，使得 \\(a_n < 2025\\) 恒成立？若存在，求出一组 \\(a_1, a_2\\) 的值；若"
+    },
+    {
+      "page": 10,
+      "region_id": "p10-r18",
+      "agreement": "differs",
+      "current": "n=1; 1=a_1=|a_2-a_3|; 1=|a_2-2|; a_2=1",
+      "latex": ",1=\\lfloor a_{2}-2\\rfloor",
+      "bbox_pt": [
+        238.35,
+        710.56,
+        282.79,
+        723.21
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.8462,
+      "region_text": "令 \\(n=1\\) 得 \\(1=a_1=|a_2-a_3|\\)，所以 \\(1=|a_2-2|\\)，则 \\(a_2=1\\) 或 3，……1 分"
+    },
+    {
+      "page": 11,
+      "region_id": "p11-r5",
+      "agreement": "normalized",
+      "current": "x, y, x + y, x, y",
+      "latex": "x,y,x+y,x,y",
+      "bbox_pt": [
+        270.87,
+        205.76,
+        331.84,
+        216.49
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6937,
+      "region_text": "当\\(a_3 = a_1 + a_2\\)时，数列\\(\\{a_n\\}\\)前5项为：\\(x, y, x + y, x, y\\)，"
+    },
+    {
+      "page": 11,
+      "region_id": "p11-r10",
+      "agreement": "differs",
+      "current": "\\{a_n\\}; \\cdots; n\\geq3; a_{n+2}=a_{n+1}+a_n",
+      "latex": "\\left\\{a_{n}\\right\\}",
+      "bbox_pt": [
+        176.97,
+        390.47,
+        195.68,
+        405.02
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.5306,
+      "region_text": "另一方面：取数列\\(\\{a_n\\}\\)：1,1,0,1,1,2,3,5,\\(\\cdots\\)其中当\\(n\\geq3\\)时，\\(a_{n+2}=a_{n+1}+a_n\\)，"
+    },
+    {
+      "page": 12,
+      "region_id": "p12-r2",
+      "agreement": "differs",
+      "current": "p_1 < p_2 < \\cdots < p_k; n \\geq p_k + 1; **; a_{n+2} = a_{n+1} + a_n \\geq a_{n+1} + 1",
+      "latex": "\\mid n\\geq p_{k}",
+      "bbox_pt": [
+        198.08,
+        112.42,
+        226.05,
+        123.49
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.745,
+      "region_text": "其中 \\(p_1 < p_2 < \\cdots < p_k\\)，则当 \\(n \\geq p_k + 1\\) 时，(\\(**\\)) 式恒成立，此时 \\(a_{n+2} = a_{n+1} + a_n \\geq a_{n+1} + 1\\) 恒成立，"
+    },
+    {
+      "page": 12,
+      "region_id": "p12-r5",
+      "agreement": "partial",
+      "current": "i_m = p",
+      "latex": "i_{m}=p,\\quad i_{m+1}=p+j,\\quad j\\geq2",
+      "bbox_pt": [
+        336.73,
+        204.36,
+        462.78,
+        216.85
+      ],
+      "dpi": 300,
+      "crop_source": "pd-doclayout",
+      "score": 0.6013,
+      "region_text": "其中 \\(i_1 < i_2 < \\cdots < i_k < \\cdots\\)，考虑 \\(a_{i_{m+1}}\\) 与 \\(a_{i_m}\\)，为方便书写记且 \\(i_m = p\\)，\\(i_{m+1} = p + j\\)，\\(j \\geq 2\\)，则"
+    }
+  ]
+}
