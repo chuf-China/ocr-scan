@@ -109,6 +109,15 @@ def _quality_summary(layout: dict, exam: dict, quality: dict) -> dict[str, Any]:
                     table_filled += bool(str(value or "").strip())
     coverage = float((layout.get("document") or {}).get("coverage", {}).get("ratio") or 0.0)
     manual = int((quality.get("repair") or {}).get("counts", {}).get("manual") or 0)
+    doc = layout.get("document") or {}
+    stats = layout.get("stats") or {}
+    native_lines = sum(1 for p in pages for line in (p.get("lines") or [])
+                       if line.get("text_source") == "native-text")
+    native_ratio = native_lines / max(1, lines)
+    styled = sum(1 for p in pages for line in (p.get("lines") or [])
+                 if line.get("style"))
+    style_ratio = styled / max(1, lines)
+    font_audit = doc.get("font_audit") or {}
     return {
         "pages": len(pages),
         "lines": lines,
@@ -126,6 +135,13 @@ def _quality_summary(layout: dict, exam: dict, quality: dict) -> dict[str, Any]:
         "table_filled": table_filled,
         "table_fill_rate": 1.0 if table_cells == 0 else table_filled / table_cells,
         "coverage": coverage,
+        "native_text_lines": native_lines,
+        "native_ratio": native_ratio,
+        "native_fast_lines": int(stats.get("native_text_fast_path") or 0),
+        "styled_lines": styled,
+        "style_ratio": style_ratio,
+        "font_count": int(font_audit.get("font_count") or 0),
+        "garbled_lines": int(font_audit.get("garbled_lines") or 0),
         "manual_actions": manual,
         "manual_per_page": manual / max(1, len(pages)),
         "quality_status": (quality.get("summary") or {}).get("status", "unknown"),
@@ -210,6 +226,9 @@ def _aggregate(results: list[dict[str, Any]]) -> dict[str, Any]:
         "mean_formula_pass_rate": round(mean("formula_pass_rate"), 4),
         "mean_table_fill_rate": round(mean("table_fill_rate"), 4),
         "mean_manual_per_page": round(mean("manual_per_page"), 3),
+        "mean_native_ratio": round(mean("native_ratio"), 4),
+        "mean_style_ratio": round(mean("style_ratio"), 4),
+        "total_garbled_lines": sum(r["metrics"].get("garbled_lines", 0) for r in results),
         "total_questions": sum(r["metrics"]["questions"] for r in results),
         "total_options": sum(r["metrics"]["options_actual"] for r in results),
         "total_figures": sum(r["metrics"].get("figures", 0) for r in results),
@@ -237,9 +256,12 @@ def write_report(out_dir: Path, results: list[dict[str, Any]],
         f"- 平均公式结构通过率：{agg['mean_formula_pass_rate']:.2%}",
         f"- 平均表格单元格填充率：{agg['mean_table_fill_rate']:.2%}",
         f"- 平均人工动作/页：{agg['mean_manual_per_page']:.2f}",
+        f"- 平均原生文字占比：{agg['mean_native_ratio']:.2%}"
+        f"（字体样式 {agg['mean_style_ratio']:.2%}）",
+        f"- 乱码行：(cid:)/替换符/控制符 共 {agg['total_garbled_lines']} 行",
         "",
-        "| 试卷 | 页 | 行 | 题 | 选项 | 覆盖率 | 公式 | 表格 | 人工/页 | 结果 |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        "| 试卷 | 页 | 行 | 题 | 选项 | 覆盖率 | 公式 | 表格 | 原生 | 人工/页 | 结果 |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for r in results:
         m = r["metrics"]
@@ -247,6 +269,7 @@ def write_report(out_dir: Path, results: list[dict[str, Any]],
             f"| {Path(r['input']).name} | {m['pages']} | {m['lines']} | {m['questions']} | "
             f"{m['options_actual']}/{m['options_expected']} | {m['coverage']:.2%} | "
             f"{m['formula_pass_rate']:.2%} | {m['table_fill_rate']:.2%} | "
+            f"{m.get('native_ratio', 0):.2%} | "
             f"{m['manual_per_page']:.2f} | {'PASS' if r['pass'] else 'FAIL: ' + ','.join(r['failures'])} |"
         )
     lines += ["", f"阈值：覆盖率 ≥ {thresholds['coverage']:.0%}，公式 ≥ {thresholds['formula']:.0%}，"

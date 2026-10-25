@@ -45,6 +45,9 @@ _ACTIONS: dict[str, tuple[str, str, str]] = {
         "review_question_numbers", "manual", "缺号可能是漏行，也可能是试卷本身跳号"),
     "formula_structure_broken": (
         "review_formula", "manual", "公式结构错误不能自动改写"),
+    "garbled_text": (
+        "review_garbled_text", "manual",
+        "含 (cid:)/替换符/控制符的行需重新 OCR 或对照原图"),
     "section_empty": (
         "review_section", "manual", "空大题需确认标题是否误识别或题目是否漏行"),
     "line_overflow": (

@@ -199,6 +199,13 @@ function buildPage(page, doc) {
     el.dataset.text = ln.text;
     el.style.left = (ln.left * k).toFixed(2) + "px";
     el.style.fontSize = fontPx.toFixed(2) + "px";
+    // 原生 PDF 的字体/字重/颜色；OCR 行没有 style，保持模板默认
+    if (ln.style) {
+      if (ln.style.font_family) el.style.fontFamily = ln.style.font_family;
+      el.style.fontWeight = ln.style.bold ? "700" : "400";
+      el.style.fontStyle = ln.style.italic ? "italic" : "normal";
+      if (ln.style.color) el.style.color = ln.style.color;
+    }
     // 行盒顶对齐。**不能**用垂直居中（translateY(-50%)）：含分式/大括号的公式行
     // 盒高远大于字号，居中会把整行上推半行，和上一行叠在一起（实测严重错位）。
     el.style.top = (ln.top * k).toFixed(2) + "px";

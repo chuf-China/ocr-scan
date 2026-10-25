@@ -464,7 +464,20 @@ def test_native_figures() -> None:
     table_chars = [{"x0": 110 + i * 8, "top": 120 + i * 5,
                     "x1": 114 + i * 8, "bottom": 126 + i * 5} for i in range(20)]
     page = FakePage(lines=table_lines, chars=table_chars)
-    check("表格不被当成矢量图", layout._native_figure_boxes(page) == [])
+    check("表格不被当成矢量图",
+          layout._native_figure_boxes(page, exclude_boxes=[
+              {"bbox_pt": [100, 100, 400, 300]}]) == [])
+
+    # 3b) 散点图的刻度/轴标题在路径 bbox 外侧，必须吸收进图框。
+    page = FakePage(curves=[
+        {"x0": 100, "top": 100, "x1": 200, "bottom": 220},
+        {"x0": 80, "top": 150, "x1": 220, "bottom": 152},
+    ], chars=[{"x0": 86, "top": 146, "x1": 94, "bottom": 154},
+              {"x0": 140, "top": 226, "x1": 148, "bottom": 234}])
+    boxes = layout._native_figure_boxes(page)
+    check("图簇吸收刻度/轴标题", len(boxes) == 1
+          and boxes[0]["pt"] == [80.0, 100.0, 220.0, 234.0],
+          f"实得 {boxes}")
 
     # 4) 占页大半的边框也必须拒绝。
     page = FakePage(rects=[{"x0": 10, "top": 10, "x1": 590, "bottom": 830}])
@@ -568,6 +581,33 @@ def test_native_text() -> None:
           len(info.get("mismatch_samples") or []) == 1
           and info["mismatch_samples"][0]["native"] == "已知集合",
           f"实得 {info.get('mismatch_samples')}")
+
+    px_lines = [{"px_top": 20.0, "px_bottom": 50.0,
+                 "px_left": 20.0, "px_right": 200.0}]
+    native = [{"text": "已知集合", "left": 10.0, "right": 100.0,
+               "top": 10.0, "bottom": 25.0, "quality": "text"}]
+    fast = layout.match_native_lines_to_pixels(px_lines, native, 2.0)
+    check("原生快路：几何匹配可靠文字行", 0 in fast, f"实得 {fast}")
+    native[0]["text"] = "若 $x=1$，则"
+    check("原生快路：公式行不抢 OCR",
+          layout.match_native_lines_to_pixels(px_lines, native, 2.0) == {})
+    native[0].update(text="已知集合", quality="math")
+    check("原生快路：非 text 质量不匹配",
+          layout.match_native_lines_to_pixels(px_lines, native, 2.0) == {})
+
+    style_line = {"left": 10.0, "right": 100.0, "top": 10.0, "bottom": 24.0}
+    style_chars = [
+        {"x0": 10, "x1": 20, "top": 10, "bottom": 24,
+         "fontname": "ABCDEF+SimSun-Bold", "non_stroking_color": (0,)},
+        {"x0": 20, "x1": 30, "top": 10, "bottom": 24,
+         "fontname": "ABCDEF+SimSun-Bold", "non_stroking_color": (0,)},
+    ]
+    n = layout.annotate_line_styles([style_line], style_chars)
+    check("原生行恢复字体样式", n == 1
+          and style_line["style"]["bold"] is True
+          and "serif" in style_line["style"]["font_family"]
+          and style_line["style"]["color"] == "#000000",
+          f"实得 {style_line}")
 
 
 def test_exam_structure() -> None:

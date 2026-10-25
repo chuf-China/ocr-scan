@@ -451,9 +451,14 @@ python tools\run_exam_acceptance.py --reuse out\exams\*.layout.json
 文字选择题选项齐全；纯图形选项记为 `option_mode=graphical`，不按空文字项失败；
 `quality.status=fail` 或任一结构/渲染检查非零都直接失败。这里的
 “公式通过率”只证明定界符/括号/环境可解析，“表格填充率”只证明需填单元格非空，
-**不等于**公式内容全对或表格 F1。20 套语料与已修正缺陷见
-[`docs/specs/s6-generalization.md`](docs/specs/s6-generalization.md)；发布门槛、发布物和
-已知限制见 [`docs/specs/release-standard.md`](docs/specs/release-standard.md)。
+**不等于**公式内容全对或表格 F1。报告同时输出原生字占比 `native_ratio`、样式行占比
+`style_ratio` 和乱码行 `garbled_lines`，用来证明原生 PDF 没有被整份当扫描件；它们只是
+诊断指标，不能替代上述硬门。本次 23 套（20 套历年 + 3 套未见）全部通过，原生直出
+34.22%、样式覆盖 100%、乱码 0；报告见 `out/acceptance/native_final3/acceptance.md`。
+20 套语料与已修正缺陷见
+[`docs/specs/s6-generalization.md`](docs/specs/s6-generalization.md)；原生 PDF 快路/图/样式/
+字体门见 [`docs/specs/native-pdf-quality.md`](docs/specs/native-pdf-quality.md)；发布门槛、
+发布物和已知限制见 [`docs/specs/release-standard.md`](docs/specs/release-standard.md)。
 
 逐行 OCR 裁片对 150dpi 小字行自动放大 2 倍；页顶栏首行再向左多带 40px，救回悬在
 栏缝外的题号（2025 全国 1 第 16 题）。栏中部行不能这样扩，否则左邻栏末字会混入，
@@ -477,11 +482,15 @@ python tools\run_exam_acceptance.py --reuse out\exams\*.layout.json
                 "native_text": { "available": true, "chars": 2417, "lines": 118,
                                  "reliable_lines": 78, "matched_lines": 90,
                                  "mismatched_lines": 5, "native_only_lines": 28,
-                                 "ocr_only_lines": 0, "fallbacks": 0 } },
+                                 "ocr_only_lines": 0, "fallbacks": 0,
+                                 "fast": 16, "styled_lines": 77 },
+                "font_audit": { "font_count": 6, "font_names": ["SimSun"],
+                                "garbled_lines": 0, "cid_chars": 0 } },
   "stats": { "pages": 6, "lines": 77, "lines_with_math": 51, "figures": 5,
              "vote": 3, "disagreed_lines": 0,
              "native_text_lines": 118, "native_text_matched": 90,
-             "native_text_mismatched": 5, "native_text_fallbacks": 0 },
+             "native_text_mismatched": 5, "native_text_fallbacks": 0,
+             "native_text_fast_path": 16 },
   "pages": [ {
       "page": 3, "width": 595.3, "height": 841.9,     // pt，A4
       "render_px": [1240, 1754], "line_source": "raster-projection",
@@ -510,9 +519,16 @@ python tools\run_exam_acceptance.py --reuse out\exams\*.layout.json
 }
 ```
 
-有文字层的 PDF 会额外产出 `native_text` 旁路（`pdfplumber` chars 聚行 + 与 OCR 行比对）：
-`native_quality` 是 `text` / `mixed` / `math` / `empty`，只有 OCR 行为空时才用 `native-text` 兜底；
-公式行仍以 OCR 为准。数学卷的原生字层常把公式拆成 `x2`/`y0` 或私有字库，不能直接替换。
+有文字层的 PDF 会先跑**原生快路**（`--text-source auto`，默认）：`pdfplumber` chars
+聚行后，只有“纯文字、无公式定界符、无 `(cid:)`/替换符、CJK 占比 ≥45%”的行才在几何
+匹配通过后直接采用 `text_source=native-text`，不再送 OCR；公式行、乱码行、缩放/旋转
+页仍走 OCR。日志和 `document.native_text.fast` / `stats.native_text_fast_path` 记录
+快路行数，`--text-source ocr` 可强制回到全 OCR。数学卷的原生字层常把公式拆成
+`x2`/`y0` 或私有字库，所以**不能**无门槛地拿原生字替换 OCR。
+
+采用原生字/OCR 的行都带 `style`（pdfplumber 字号、粗斜体、颜色、衬线/无衬线），阅读器
+按该样式渲染；`document.font_audit` 汇总字体、PUA、`(cid:)`、替换符和乱码行，
+乱码行是 `garbled_text` error，不会静默通过。
 
 网页顶部可切换 **「OCR 文本层」/「原始扫描」**：前者是重建版式（可选中、可搜索，KaTeX 排版公式），
 后者是原始页图。插图与表格裁片在两个视图下都在原位。

@@ -96,10 +96,10 @@ python tools\run_exam_acceptance.py data\exams\new3\*.pdf --out-dir out\acceptan
 
 ## 5. 当前基线（2026-10-25）
 
-- 代码：`a2563cc`（S6 之后栏首题号/小字行裁片修复）；
-- 20 套：`out/acceptance/final25/acceptance.md`，20/20；
-- 未见 3 套：`out/acceptance/new3_final2/acceptance.md`，3/3；
-- 全量检查：21/21；单元测试 13/13；冒烟 116 通过 / 1 跳过。
+- 代码：P0–P3 原生 PDF 改造提交；
+- 23 套（20 套历年 + 3 套未见 2022 卷）：`out/acceptance/native_final3/acceptance.md`，23/23；
+  原生直出 34.22%，样式覆盖 100%，乱码行 0，平均覆盖率 99.98%，人工动作 0.15/页；
+- 全量检查：21/21；单元测试 15/15；冒烟 121 通过 / 1 跳过。
 
 基线只是“当时证据”，不是永久承诺；重跑后数字变化要更新本节或发布说明。
 

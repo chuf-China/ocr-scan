@@ -449,10 +449,21 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
         # 图形选项卷会把 A/B/C/D 标签和图分开 OCR：选项被解析出来但正文为空，
         # 四个图各自挂在题上。此时不是“空选项”，而是图形选项。
         has_option_text = any((o.get("text") or "").strip() for o in q["options"])
+        graphics = len(q.get("figures") or []) + len(q.get("tables") or [])
+        empty_options = sum(1 for o in q["options"] if not (o.get("text") or "").strip())
+        stem_text = q.get("stem_text") or ""
+        graphical_stem = any(k in stem_text for k in ("图", "图象", "图像", "大致"))
         q["option_mode"] = (
             "graphical"
             if _is_choice_title(title)
-            and not has_option_text and len(q["figures"]) >= 2
+            and graphics >= 2
+            and (
+                not has_option_text
+                or (graphics >= 4 and empty_options >= 2 and graphical_stem)
+                # 部分选项是图/表（如 2023 新高考 1 Q12：A/B 文字，C/D 是图），
+                # 文字选项只有 2 个，不能当成缺选项。
+                or (len(q["options"]) < 4 and graphics >= 2)
+            )
             else "text"
         )
 
@@ -536,6 +547,18 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                 best[1]["tables"].append(item)
             else:
                 unassigned_tables.append(item)
+
+    # 表格归属在 option_mode 初判之后才完成；这里用最终图/表数重算一次，
+    # 避免“A/B 文字 + C/D 图”的题被当成缺选项。
+    for q in questions:
+        title = section_titles.get(q.get("section_id"), "")
+        graphics = len(q.get("figures") or []) + len(q.get("tables") or [])
+        empty_options = sum(1 for o in q["options"] if not (o.get("text") or "").strip())
+        has_text = any((o.get("text") or "").strip() for o in q["options"])
+        if (_is_choice_title(title) and graphics >= 2
+                and (not has_text or len(q["options"]) < 4
+                     or (graphics >= 4 and empty_options >= 2))):
+            q["option_mode"] = "graphical"
 
     return {
         "schema_version": 1,
@@ -806,6 +829,20 @@ def build_quality(layout: dict, exam: dict) -> dict:
             issues.append(_issue("warning", "native_ocr_mismatch",
                                  f"原生文字层与 OCR 不一致率 {ratio:.0%}"))
 
+    font_audit = (layout.get("document") or {}).get("font_audit") or {}
+    garbled_lines = int(font_audit.get("garbled_lines") or 0)
+    if not garbled_lines:
+        for page in pages:
+            for line in page.get("lines") or []:
+                text = str(line.get("text") or "")
+                if ("(cid:" in text or "\ufffd" in text
+                        or any(ord(c) < 32 and c not in "\n\t" for c in text)):
+                    garbled_lines += 1
+    if garbled_lines:
+        issues.append(_issue(
+            "error", "garbled_text",
+            f"{garbled_lines} 行含 (cid:)/替换符/控制符，不能当作正文"))
+
     errors = sum(1 for i in issues if i["level"] == "error")
     warnings = sum(1 for i in issues if i["level"] == "warning")
     return {
@@ -835,6 +872,8 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "formula_samples": formula_samples[:20],
             "tables": table_total,
             "tables_unassigned": len((exam.get("unassigned") or {}).get("tables") or []),
+            "garbled_lines": garbled_lines,
+            "font_count": int(font_audit.get("font_count") or 0),
         },
         "checks": {
             "question_numbers_complete": not missing,
@@ -847,6 +886,7 @@ def build_quality(layout: dict, exam: dict) -> dict:
                 if "选择" in next((s.get("title") or "" for s in exam.get("sections") or []
                                    if s.get("id") == q.get("section_id")), "")),
             "content_consistency_ok": truncated_stems == 0 and not empty_sections,
+            "text_clean_ok": garbled_lines == 0,
             "all_figures_assigned": not unassigned_figs,
             "all_tables_structured": all(
                 (t.get("headers") or []) and (t.get("rows") or [])

@@ -174,11 +174,14 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
 11. **提交前只添加真正改动的文件**（不要 `git add -A`）：`out/` 样例产物、`data/` 输入、
     `vendor/` 是刻意跟踪的；`__pycache__/` 与 `*.pyc` 已被 `.gitignore` 忽略。工作区里仓库外的
     `ocr_json_app.rar` 不要提交，也不要解压进仓库。
-12. **原生文字层只做旁路，不覆盖 OCR 公式**：PDF 有 text layer 时，`pdfplumber` 的 chars 会按
-    行聚合并与 OCR 行做几何/文本比对，结果写在 `native_text`、`native_quality`、
-    `native_similarity`、`native_mismatch` 与页/文档 `native_text` 统计里。只有 OCR 行为空时才用
-    `native-text` 兜底；数学卷的原生字层常把公式拆成 `x2`/`y0` 或私有字库，不能拿它替换 OCR。
-    不要为了“多用原生字”放宽这条——公式正确性优先。
+12. **原生文字层走“有条件快路”，公式仍以 OCR 为准**：PDF 有 text layer 时，`pdfplumber`
+    chars 聚行；只有纯文字行（无公式定界符、无 `(cid:)`/替换符/控制符、CJK ≥2 字且占比
+    ≥45%）在 `match_native_lines_to_pixels()` 的几何一对一门槛（纵向 ≥0.45、横向 ≥0.25）
+    通过后，才用 `text_source=native-text` 跳过 OCR。公式行、乱码行、页缩放/旋转页必须
+    回 OCR；`--text-source ocr` 可全量回退。原生字层常把公式拆成 `x2`/`y0` 或私有字库，
+    不能无门槛替换。行样式来自 `annotate_line_styles()`（字号/粗斜体/颜色/衬线），
+    `audit_fonts()` 的 PUA/`(cid:)`/替换符/乱码是硬 error。不要为了“多用原生字”放宽
+    这些门槛——公式正确性和不乱码优先。
 13. **横向 A3 卷的多栏必须逐栏检测**：只在 `width >= height * 1.18` 的页启用
     `detect_column_gutters()`；有 PDF 文字层时用字符盒找整列空白（过滤文字层里
     图像上无墨的离群字符），没有时退回像素投影。找到中缝后**先按栏切图，再在
@@ -226,7 +229,7 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    原生字层不一致一律 `manual`。`auto_candidate` 不等于已修复，执行前必须保留
    原 JSON；不得自动补题干/选项/表头/题号或改公式。
 20. **稳定性必须用多套真题验收，不能拿单张卷调参**：`tools/run_exam_acceptance.py`
-   对 20 套语料跑覆盖率（≥99%）、选项完整、公式结构（≥95%）、表格填充（≥90%）、
+   对 20 套历年语料 + 3 套未见样本跑覆盖率（≥99%）、选项完整、公式结构（≥95%）、表格填充（≥90%）、
    人工动作/页（≤1）；`quality.status=fail` 或任一检查非零即整批失败。纯图形选项用
    `option_mode=graphical` 标记并按 warning 处理，不能假装成 4 个空文字选项。语料在
    `data/exams/` 与 `data/exams/corpus/`，失败样本先复现再改判据；禁止只对某张卷
@@ -235,6 +238,13 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    `out/paper.layout*.json` 是架构升级前的演示产物，仍跑结构与渲染检查；内容门用
    `check_exam_json.py --advisory` 记录 fail 但不阻断回归。新产物（`schema_version=1`）
    不得加 `--advisory`，验收批次更不得用它掩盖缺题/缺选项。
+22. **原生 PDF 的图、样式、字体必须单独验收**：插图 bbox 先排除已确认表格，再用
+   `_expand_box_with_labels()` 吸收 12pt 内的坐标轴/点/图例小字（远离矢量最多 26pt），
+   相邻矢量簇间隙 <14pt 合并；不要因为扩框后图数变少就退回旧启发式。行样式写
+   `line.style`（字号/粗斜体/颜色/衬线），阅读器在 `fitLineWidth()` 前应用；
+   `document.font_audit` 的 PUA、`(cid:)`、U+FFFD、乱码行必须进质量门。验收报告同时
+   输出 `native_ratio`、`style_ratio`、`garbled_lines`，但它们只是诊断指标，不能
+   替代覆盖率/公式/表格/选项硬门。详见 `docs/specs/native-pdf-quality.md`。
 
 ## 改哪里 / 怎么改
 

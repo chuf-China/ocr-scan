@@ -25,16 +25,23 @@ python src\ocr_pipeline_layout.py --serve-only --out out\paper.layout.paddle.jso
 ## 原生文字层（layout 流水线）
 
 PDF 本身有文字层时，`ocr_pipeline_layout.py` 会从 `pdfplumber` 的 chars 取原生字符，按 y
-聚成行，和 OCR 行做几何 + 文本比对；结果只作为**旁路**，不直接覆盖 OCR：
+聚成行，和 OCR 行做几何 + 文本比对。默认 `--text-source auto` 先走**有条件快路**：
 
-- `native_text` / `native_quality` / `native_similarity` / `native_mismatch`：每行的候选原生文字、
-  质量（`text` / `mixed` / `math` / `empty`）、匹配相似度、是否明显不一致；
+- 只有纯文字行（无公式定界符、无 `(cid:)`/替换符/控制符、CJK ≥2 字且占比 ≥45%），
+  且 `match_native_lines_to_pixels()` 的纵向/横向重叠过门、一对一匹配成功，才用
+  `text_source=native-text` 跳过 OCR；公式行、乱码行、缩放/旋转页仍回 OCR。
+- `native_text` / `native_quality` / `native_similarity` / `native_mismatch`：每行的候选
+  原生文字、质量（`text` / `mixed` / `math` / `empty`）、匹配相似度、是否明显不一致；
 - 页和文档的 `native_text` 统计：`chars`、`lines`、`matched_lines`、`mismatched_lines`、
-  `native_only_lines`、`fallbacks`；
-- 只有 OCR 行文字为空、且原生行质量是 `text` 时才用 `native-text` 兜底；公式行仍走 OCR。
+  `native_only_lines`、`fallbacks`、`fast`；另有 `stats.native_text_fast_path`；
+- `--text-source ocr` 可全量回退到旧行为。
 
-数学卷的原生字层常把公式拆成 `x2`/`y0`，或使用私有字库；原生文字只用于质量诊断和
-“OCR 缺字”兜底，不能拿它替换公式。
+数学卷的原生字层常把公式拆成 `x2`/`y0`，或使用私有字库；快路的安全门槛不能放宽，
+公式正确性和不乱码优先。
+
+行样式由 `annotate_line_styles()` 从 chars 取字号、粗斜体、颜色、衬线/无衬线，写入
+`line.style`；`audit_fonts()` 统计字体、PUA、`(cid:)`、替换符和乱码行，结果写
+`document.font_audit`。`exam_structure` 把乱码行升级为 `garbled_text` error。
 
 ## 页面分类与覆盖率（S1）
 
@@ -77,7 +84,8 @@ bbox；`ocr_table_cells()` 按单元格裁片逐格 OCR。每页写 `tables[]`�
 layout JSON 的 `lines[]` 仍是自上而下的物理行序，不能直接当阅读顺序。`exam_structure.py`
 用 `column`/`reading_order` 先排栏内顺序，再识别大题、题号、选项、小问；行/图/题目都有稳定
 `id`，归属通过 `refs` 回溯。`build_quality()` 检查缺号/重号、空题干、选择题选项不足 A–D、
-图未归属、几何越界和原生/OCR 不一致率；`status=error` 时 `tools/check_exam_json.py` 退出 1。
+图未归属、几何越界、原生/OCR 不一致率和乱码行；`status=fail` 时
+`tools/check_exam_json.py` 退出 1。
 
 ```powershell
 python tools\build_exam_json.py out\exams\2023beijing.layout.json

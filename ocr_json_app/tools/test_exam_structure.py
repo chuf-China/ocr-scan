@@ -213,6 +213,33 @@ class ExamStructureTests(unittest.TestCase):
         self.assertIn("choice_options_graphical", codes)
         self.assertNotIn("choice_options_incomplete", codes)
 
+    def test_table_options_are_graphical_after_assignment(self) -> None:
+        # 2023 新高考 1 Q12：A/B 是文字选项，C/D 是两张表格图。
+        # option_mode 初判时 tables 还没挂到题上，必须在表格归属完成后重算。
+        page = {
+            "page": 1, "width": 1000, "height": 800,
+            "lines": [
+                line("一、单选题", 50, 20),
+                line("1. 下列结论正确的是（）", 50, 50),
+                line("(A) 直径为 0.99 m 的球体", 50, 80),
+                line("(B) 所有棱长均为 1.4 m 的四面体", 50, 100),
+                line("（表格）", 50, 120),
+            ],
+            "figures": [],
+            "tables": [
+                {"bbox_pt": [50, 130, 150, 190], "headers": ["a"],
+                 "rows_data": [["1"]], "rows": 1, "cols": 1,
+                 "source": "pdf-table-cells"},
+                {"bbox_pt": [160, 130, 260, 190], "headers": ["b"],
+                 "rows_data": [["2"]], "rows": 1, "cols": 1,
+                 "source": "pdf-table-cells"},
+            ],
+        }
+        exam = es.build_exam({"document": {}, "pages": [page]})
+        q = exam["questions"][0]
+        self.assertEqual(len(q["tables"]), 2)
+        self.assertEqual(q["option_mode"], "graphical")
+
     def test_repair_plan_routes_safe_and_manual(self) -> None:
         from repair_plan import build_repair_plan
         plan = build_repair_plan([
@@ -280,6 +307,32 @@ class ExamStructureTests(unittest.TestCase):
         self.assertEqual(quality["summary"]["missing_question_numbers"], [2])
         self.assertEqual(quality["summary"]["status"], "fail")
         self.assertFalse(quality["checks"]["question_numbers_complete"])
+
+    def test_garbled_text_is_hard_error(self) -> None:
+        page = {
+            "page": 1, "width": 1000, "height": 800,
+            "lines": [
+                line("一、单选题", 50, 50),
+                line("1. 已知 (cid:0) 集合 A", 50, 80),
+                line("(A) 1", 70, 100),
+                line("(B) 2", 70, 120),
+            ],
+            "figures": [],
+        }
+        layout = {
+            "document": {"title": "测试卷",
+                         "font_audit": {"garbled_lines": 1,
+                                        "font_count": 1}},
+            "pages": [page],
+        }
+        exam = es.build_exam(layout)
+        quality = es.build_quality(layout, exam)
+        codes = [i["code"] for i in quality["issues"]]
+        self.assertIn("garbled_text", codes)
+        self.assertEqual(quality["summary"]["status"], "fail")
+        self.assertFalse(quality["checks"]["text_clean_ok"])
+        self.assertIn("review_garbled_text",
+                      [a["action"] for a in quality["repair"]["actions"]])
 
 
 if __name__ == "__main__":

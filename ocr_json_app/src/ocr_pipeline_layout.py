@@ -266,6 +266,25 @@ def clip_figures_to_avoid_text(pil, figures: list[dict], lines: list[dict],
             return total
 
         box = list(fig["pt"])
+        # 先按“第一条压到的正文行”直接收底边。中文公式行常比图框低 1~3pt，
+        # 逐边贪心会在大片选项文字上反复试探后放弃（实测 2024 全国理 Q7 的
+        # 四个图象选项）；直接把底边提到该行上方，既不切图主体，也不压字。
+        capped_bottom = box[3]
+        for l in lines:
+            if (l["top"] >= box[1] + min_h and l["top"] < capped_bottom
+                    and min(l["right"], box[2]) - max(l["left"], box[0]) > 0):
+                capped_bottom = min(capped_bottom, l["top"] - 0.5)
+        if capped_bottom < box[3] and capped_bottom - box[1] >= min_h:
+            box[3] = capped_bottom
+        if overlap(box) <= 0 and box != list(fig["pt"]):
+            new_px = [max(0, int(round(box[0] * kx))), max(0, int(round(box[1] * ky))),
+                      int(round(box[2] * kx)), int(round(box[3] * ky))]
+            crop = _crop_figure_px(pil, new_px, page_w, page_h)
+            if crop:
+                fig.update(crop)
+                fig["clipped_to_avoid_text"] = True
+                changed += 1
+            continue
         if overlap(box) <= 0:
             continue
         for _ in range(60):
@@ -284,6 +303,10 @@ def clip_figures_to_avoid_text(pil, figures: list[dict], lines: list[dict],
             box = best[1]
         if overlap(box) > 0:
             fig["clip_failed"] = True       # 收不到零交叠（图与文字交缠），留给人工看
+            # 小面积“图”其实是公式分数线/根号等矢量碎片，又和正文纠缠：
+            # 直接丢弃，别让它盖住题干（实测 2023 新高考 2 Q7 的 40x52pt 碎片）。
+            if (fig["pt"][2] - fig["pt"][0]) * (fig["pt"][3] - fig["pt"][1]) < 8000:
+                fig["drop"] = True
             continue
         new_px = [max(0, int(round(box[0] * kx))), max(0, int(round(box[1] * ky))),
                   int(round(box[2] * kx)), int(round(box[3] * ky))]
@@ -410,7 +433,17 @@ def drop_lines_inside_figures(page_lines: list[dict], figures: list[dict]) -> tu
                 covered += ix * iy
         # 同一行可以横跨两张并排插图（实测统计图下轴标签 `0.002 -- 指标`
         # 同时压住两张图）。逐图都不到 50%，但并集达到 76%，仍是图内文字。
-        if covered / area >= 0.5:
+        #
+        # 但不能把题干一起丢掉：P1 扩框后，长题干可能整行落在标签扩框里。
+        # 图内重复标注都是短行，且不会以 `7.` / `12、` 开头；长行/题号行必须保留。
+        text = line.get("text", "").strip()
+        question_like = bool(re.match(r"^\d{1,3}\s*[.、．)）]", text))
+        # 公式/选项行也可能紧贴参考图（如“已知图象，则 f(x)=…”的四个选项），
+        # 不能因为落在扩框里就当图内标注丢掉；真正的图内标注没有等号/选项标签。
+        formula_or_option = ("=" in text or "\\frac" in text
+                             or bool(re.search(r"\([A-D]\)", text)))
+        if (covered / area >= 0.5 and len(text) <= 24
+                and not question_like and not formula_or_option):
             dropped += 1
         else:
             kept.append(line)
@@ -1168,9 +1201,10 @@ def _is_noise(line: dict) -> bool:
 # ---------------------------------------------------------------- 字号（可选增强）
 
 NATIVE_FIGURE_DPI = 300
-NATIVE_FIGURE_GAP_PT = 6.0
+NATIVE_FIGURE_GAP_PT = 14.0
 NATIVE_FIGURE_MIN_PT = 40.0
 NATIVE_FIGURE_MIN_AREA_PT = 1600.0
+NATIVE_FIGURE_LABEL_PAD_PT = 12.0
 
 
 def _cluster_rects(rects: list[tuple[float, float, float, float]],
@@ -1261,7 +1295,66 @@ def _is_page_background(box: tuple[float, float, float, float],
     return ((x1 - x0) >= page_w * 0.85 and (y1 - y0) >= page_h * 0.85)
 
 
-def _native_figure_boxes(page) -> list[dict]:
+def _expand_box_with_labels(box: list[float], chars: list[dict],
+                            pad: float = 10.0,
+                            far_pad: float = 26.0) -> tuple[list[float], int]:
+    """把图簇 bbox 扩展到紧邻的刻度/图例/轴标题字符。
+
+    散点图的点、坐标轴和刻度文字是不同 PDF 对象；只按矢量路径聚类会把
+    “0”“1”“x”“y”切在框外。普通字号只吸收 ``pad`` 内；轴标题/刻度字号
+    更小（<=9.5pt），允许到 ``far_pad``——竖排的“正确率”常比图框高出一截。
+    后续 ``clip_figures_to_avoid_text`` 仍会把真正压住正文的边界收回来。
+    """
+    x0, top, x1, bottom = box
+    absorbed = 0
+    # 只吸收“短标注”字符。整行公式/题干即使字号小、落在扩框范围内，也不能
+    # 被算成图上标注，否则会把正文行一起吞进图区（实测 2024 全国理 Q8）。
+    groups: dict[float, list[dict]] = {}
+    for ch in chars:
+        try:
+            groups.setdefault(round(float(ch["top"]), 1), []).append(ch)
+        except (KeyError, TypeError, ValueError):
+            continue
+    long_ids: set[int] = set()
+    for group in groups.values():
+        try:
+            span = max(float(c["x1"]) for c in group) - min(float(c["x0"]) for c in group)
+            joined = "".join(str(c.get("text") or "") for c in group).strip()
+        except (KeyError, TypeError, ValueError):
+            continue
+        # 选项标签 (A)/(B)/(C)/(D) 是正文，不是图内标注。
+        if re.fullmatch(r"(?:\([A-D]\)\s*)+", joined):
+            long_ids.update(id(c) for c in group)
+            continue
+        if span > 70 or len(group) > 14:
+            long_ids.update(id(c) for c in group)
+    for ch in chars:
+        if id(ch) in long_ids:
+            continue
+        if str(ch.get("text") or "").strip() in ("(A)", "(B)", "(C)", "(D)"):
+            # 选项标签不是图内标注；把 (C)/(D) 吸进图框会让裁片压住下一题。
+            continue
+        try:
+            cx = (float(ch["x0"]) + float(ch["x1"])) / 2
+            cy = (float(ch["top"]) + float(ch["bottom"])) / 2
+            size = float(ch.get("size") or 10.0)
+        except (KeyError, TypeError, ValueError):
+            continue
+        limit = far_pad if size <= 9.5 else pad
+        if not (x0 - limit <= cx <= x1 + limit
+                and top - limit <= cy <= bottom + limit):
+            continue
+        nx0 = min(x0, float(ch["x0"]))
+        ntop = min(top, float(ch["top"]))
+        nx1 = max(x1, float(ch["x1"]))
+        nbottom = max(bottom, float(ch["bottom"]))
+        if (nx0, ntop, nx1, nbottom) != (x0, top, x1, bottom):
+            absorbed += 1
+        x0, top, x1, bottom = nx0, ntop, nx1, nbottom
+    return [x0, top, x1, bottom], absorbed
+
+
+def _native_figure_boxes(page, exclude_boxes: list[dict] | None = None) -> list[dict]:
     """从 pdfplumber 页面里找真正的图形资源：嵌入图片、矢量图簇。
 
     为什么先做这一步：像素掩膜只能靠"这一块文字很少"猜图形，遇到"图 + 文字"混排
@@ -1269,10 +1362,13 @@ def _native_figure_boxes(page) -> list[dict]:
     一个 141.6pt 高的行盒，渲染时文字被撑开、压到下一节标题。PDF 自己知道哪里是
     `image`、哪里是 `curve/line/rect`，直接用这些资源比猜可靠得多。
 
-    过滤掉装饰性小图（题号旁的图标 12x8pt）和表格（长直线多、格内字符多）。
+    表格由 ``exclude_boxes``（pdfplumber 已确认的表格 bbox）排除，不再用
+    “长直线 + 字符多”猜表格——散点图的网格线/刻度也满足这个条件，会被整块丢掉。
     """
     width, height = page.width, page.height
     boxes: list[dict] = []
+    exclude = [b["bbox_pt"] for b in (exclude_boxes or [])
+               if b.get("bbox_pt") and len(b["bbox_pt"]) == 4]
 
     for image in page.images:
         x0, top = float(image["x0"]), float(image["top"])
@@ -1290,7 +1386,8 @@ def _native_figure_boxes(page) -> list[dict]:
         vector_rects.append((obj["x0"], obj["top"], obj["x1"], obj["bottom"]))
 
     chars = page.chars
-    for x0, top, x1, bottom in _cluster_rects(vector_rects, NATIVE_FIGURE_GAP_PT):
+    clusters = _cluster_rects(vector_rects, NATIVE_FIGURE_GAP_PT)
+    for x0, top, x1, bottom in clusters:
         w, h = x1 - x0, bottom - top
         if w < NATIVE_FIGURE_MIN_PT or h < NATIVE_FIGURE_MIN_PT:
             continue
@@ -1300,27 +1397,22 @@ def _native_figure_boxes(page) -> list[dict]:
             continue
         if w > width * 0.92 and h > height * 0.60:
             continue
-
-        # 表格也由直线组成，但格子里有大量字符；坐标图只有 x/y/F 等少量标注。
-        inside_chars = 0
-        for ch in chars:
-            cx = (ch["x0"] + ch["x1"]) / 2
-            cy = (ch["top"] + ch["bottom"]) / 2
-            if x0 <= cx <= x1 and top <= cy <= bottom:
-                inside_chars += 1
-        long_lines = 0
-        for line in page.lines:
-            lw = abs(line["x1"] - line["x0"])
-            lh = abs(line["bottom"] - line["top"])
-            if max(lw, lh) >= 60:
-                lx = (line["x0"] + line["x1"]) / 2
-                ly = (line["top"] + line["bottom"]) / 2
-                if x0 <= lx <= x1 and top <= ly <= bottom:
-                    long_lines += 1
-        if inside_chars >= 12 and long_lines >= 3:
+        # pdfplumber 已确认的表格不重复当图；散点图没有表格 bbox，不会被误删。
+        if any(min(x1, bx1) - max(x0, bx0) > 0
+               and min(bottom, by1) - max(top, by0) > 0
+               and (min(x1, bx1) - max(x0, bx0))
+               * (min(bottom, by1) - max(top, by0))
+               >= 0.45 * max(1.0, (x1 - x0) * (bottom - top))
+               for bx0, by0, bx1, by1 in exclude):
             continue
-
-        boxes.append({"pt": [x0, top, x1, bottom], "source": "pdf-vector"})
+        expanded, absorbed = _expand_box_with_labels(
+            [x0, top, x1, bottom], chars, NATIVE_FIGURE_LABEL_PAD_PT)
+        boxes.append({
+            "pt": [round(v, 2) for v in expanded],
+            "source": "pdf-vector" + ("+labels" if absorbed else ""),
+            "vector_count": len(clusters),
+            "label_count": absorbed,
+        })
 
     return _merge_native_boxes(boxes)
 
@@ -1436,12 +1528,17 @@ class PdfFontProbe:
             return []
         return self.pages[page_no - 1].chars
 
-    def figure_boxes(self, page_no: int) -> list[dict]:
-        """返回该页原生图形框（图片 / 矢量簇），没有 pdfplumber 时返回空。"""
+    def figure_boxes(self, page_no: int,
+                     exclude_boxes: list[dict] | None = None) -> list[dict]:
+        """返回该页原生图形框（图片 / 矢量簇），没有 pdfplumber 时返回空。
+
+        ``exclude_boxes`` 是已确认表格的 bbox，避免表格被同时当图和表。
+        """
         if not self.pages or page_no > len(self.pages):
             return []
         try:
-            return _native_figure_boxes(self.pages[page_no - 1])
+            return _native_figure_boxes(self.pages[page_no - 1],
+                                        exclude_boxes=exclude_boxes)
         except Exception as exc:  # noqa: BLE001
             if not getattr(self, "_figure_warned", False):
                 log(f"原生图形提取不可用，退回像素检测（{exc}）")
@@ -1713,6 +1810,185 @@ def native_lines_from_chars(chars: list[dict],
         })
     lines.sort(key=lambda l: (l["top"], l["left"]))
     return lines
+
+
+FORMULA_TEXT_MARKERS = set("$\\^_{}=±≤≥≠≈∑∫√")
+
+
+def _looks_formula_text(text: str) -> bool:
+    """原生行是否含公式/数学排版标记。
+
+    这类行即使字符都是“好字符”，原生层也可能把上下标压成普通数字
+    （``x2`` 而不是 ``x^2``），所以仍交给 OCR；只对纯文字行走原生快路。
+    """
+    return any(ch in FORMULA_TEXT_MARKERS for ch in (text or ""))
+
+
+def _color_hex(value) -> str:
+    """pdfplumber 的 non_stroking_color → #RRGGBB（无法判断时返回空串）。"""
+    if value is None:
+        return ""
+    try:
+        vals = list(value) if isinstance(value, (list, tuple)) else [float(value)]
+    except (TypeError, ValueError):
+        return ""
+    vals = [max(0.0, min(1.0, float(v))) for v in vals]
+    if len(vals) == 1:
+        r = g = b = vals[0]
+    elif len(vals) == 3:
+        r, g, b = vals
+    elif len(vals) == 4:
+        c, m, y, k = vals
+        r, g, b = (1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k)
+    else:
+        return ""
+    return "#%02X%02X%02X" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+def _font_family(fontname: str) -> str:
+    """把 PDF 字体名映射成浏览器可用的字体栈（不依赖本机装了什么）。"""
+    name = (fontname or "").lower()
+    if any(k in name for k in ("hei", "sans", "arial", "yahei", "gothic")):
+        return '"Arial","Microsoft YaHei",sans-serif'
+    return '"Times New Roman","SimSun","Songti SC",serif'
+
+
+def audit_fonts(chars: list[dict], lines: list[dict]) -> dict:
+    """统计原生字体与明显乱码字符（PUA / cid / U+FFFD）。"""
+    from collections import Counter
+    fonts = Counter(str(ch.get("fontname") or "") for ch in chars)
+    fonts.pop("", None)
+    pua = cid = replacement = 0
+    for ch in chars:
+        text = str(ch.get("text") or "")
+        if "(cid:" in text:
+            cid += 1
+        if "\ufffd" in text:
+            replacement += 1
+        if any(0xE000 <= ord(c) <= 0xF8FF for c in text):
+            pua += 1
+    garbled = 0
+    garbled_samples: list[dict] = []
+    for line in lines:
+        text = str(line.get("text") or "")
+        if ("(cid:" in text or "\ufffd" in text
+                or any(ord(c) < 32 and c not in "\n\t" for c in text)):
+            garbled += 1
+            if len(garbled_samples) < 5:
+                garbled_samples.append({"ref": line.get("id"), "text": text[:120]})
+    return {
+        "fonts": dict(fonts.most_common(12)),
+        "font_count": len(fonts),
+        "pua_chars": pua,
+        "cid_chars": cid,
+        "replacement_chars": replacement,
+        "garbled_lines": garbled,
+        "garbled_samples": garbled_samples,
+    }
+
+
+def annotate_line_styles(lines: list[dict], chars: list[dict]) -> int:
+    """给每条正文行补 ``style``：字体族、粗体/斜体、颜色。
+
+    原生 PDF 的字体信息比 OCR 可靠；这里只做**样式提示**，不改文本和字号。
+    字符中心落在行盒内的参与统计，按字符数取主导字体。
+    """
+    if not chars:
+        return 0
+    styled = 0
+    for line in lines:
+        x0, x1 = float(line["left"]), float(line["right"])
+        y0, y1 = float(line["top"]), float(line["bottom"])
+        buckets: dict[str, list[dict]] = {}
+        for ch in chars:
+            try:
+                cx = (float(ch["x0"]) + float(ch["x1"])) / 2
+                cy = (float(ch["top"]) + float(ch["bottom"])) / 2
+            except (KeyError, TypeError, ValueError):
+                continue
+            if x0 - 1 <= cx <= x1 + 1 and y0 - 1 <= cy <= y1 + 1:
+                font = str(ch.get("fontname") or "")
+                if font:
+                    buckets.setdefault(font, []).append(ch)
+        if not buckets:
+            continue
+        font, hits = max(buckets.items(), key=lambda kv: len(kv[1]))
+        lower = font.lower()
+        style = {
+            "font_family": _font_family(font),
+            "bold": any(k in lower for k in ("bold", "black", "heavy", "semibold")),
+            "italic": any(k in lower for k in ("italic", "oblique")),
+        }
+        color = _color_hex(hits[0].get("non_stroking_color"))
+        if color:
+            style["color"] = color
+        line["style"] = style
+        styled += 1
+    return styled
+
+
+def _native_fast_safe(text: str) -> bool:
+    """原生快路只接收“看起来就是普通中文”的行。
+
+    数学行的原生文字常常是 ``B(0;(cid:0)1)``、``(C)jOPj...`` 这种退化形式，
+    质量分仍可能是 text；直接跳过 OCR 会把公式变成乱码。中文占比低、带
+    ``(cid:)``/替换符/控制符的一律交回 OCR。
+    """
+    raw = text or ""
+    if "(cid:" in raw or "\ufffd" in raw or any(ord(c) < 32 for c in raw):
+        return False
+    visible = re.sub(r"\s+", "", raw)
+    if len(visible) < 2:
+        return False
+    cjk = len(re.findall(r"[\u4e00-\u9fff]", visible))
+    return cjk >= 2 and cjk / len(visible) >= 0.45
+
+
+def match_native_lines_to_pixels(lines: list[dict], native_lines: list[dict],
+                                 scale: float) -> dict[int, dict]:
+    """把可靠原生行匹配到像素行，供 OCR 前的原生快路使用。
+
+    只返回 ``quality == "text"``、不含公式标记且通过 ``_native_fast_safe``
+    的行；匹配是严格一对一，宁可漏匹配，不把一个原生行同时贴到两个像素行。
+    """
+    best: dict[int, tuple[float, dict]] = {}
+    used: set[int] = set()
+    for nl in native_lines:
+        if nl.get("quality") != "text":
+            continue
+        ntext = _norm_native_text(nl.get("text", ""))
+        if (len(ntext) < 2 or _looks_formula_text(nl.get("text", ""))
+                or not _native_fast_safe(nl.get("text", ""))):
+            continue
+        nx0, nx1 = float(nl["left"]) * scale, float(nl["right"]) * scale
+        ny0, ny1 = float(nl["top"]) * scale, float(nl["bottom"]) * scale
+        nh = max(1.0, ny1 - ny0)
+        for idx, line in enumerate(lines):
+            if idx in used:
+                continue
+            oy0, oy1 = float(line["px_top"]), float(line["px_bottom"])
+            oh = max(1.0, oy1 - oy0)
+            v = min(ny1, oy1) - max(ny0, oy0)
+            if v / min(nh, oh) < 0.45:
+                continue
+            ox0, ox1 = float(line["px_left"]), float(line["px_right"])
+            h = min(nx1, ox1) - max(nx0, ox0)
+            ow = max(1.0, ox1 - ox0)
+            if h / max(1.0, min(nx1 - nx0, ow)) < 0.25:
+                continue
+            score = v / min(nh, oh) + h / max(1.0, nx1 - nx0)
+            prev = best.get(idx)
+            if prev is None or score > prev[0]:
+                best[idx] = (score, nl)
+    out: dict[int, dict] = {}
+    picked: set[int] = set()
+    for idx, (_score, nl) in sorted(best.items(), key=lambda kv: -kv[1][0]):
+        key = id(nl)
+        if key in picked:
+            continue
+        picked.add(key)
+        out[idx] = nl
+    return out
 
 
 def _norm_native_text(text: str) -> str:
@@ -2061,6 +2337,47 @@ def audit_page_coverage(gray: np.ndarray, lines: list[dict], figures: list[dict]
     }
 
 
+def figures_from_uncovered(pil, coverage: dict, existing: list[dict], dpi: int) -> list[dict]:
+    """把“有墨但没被任何行/图盒覆盖”的成片区域补成插图裁片。
+
+    原生图形资源偶尔会漏掉一整张函数图象（实测 2024 全国理 Q7 的参考图没有
+    vector/image 记录），覆盖率审计能看见它，却只剩一个 warning。对面积足够、
+    又不与已有插图重叠的区域直接裁片，比把整张图静默丢掉更安全。
+    """
+    extras: list[dict] = []
+    for region in coverage.get("uncovered_regions", []):
+        w_pt = float(region.get("w_pt") or 0)
+        h_pt = float(region.get("h_pt") or 0)
+        if w_pt < 36 or h_pt < 28 or int(region.get("ink") or 0) < 250:
+            continue
+        px = region.get("px") or []
+        if len(px) != 4:
+            continue
+        x0, y0, x1, y1 = (float(v) for v in px)
+        overlap = False
+        for fig in existing:
+            fpx = fig.get("px") or []
+            if len(fpx) != 4:
+                continue
+            ix = max(0.0, min(x1, float(fpx[2])) - max(x0, float(fpx[0])))
+            iy = max(0.0, min(y1, float(fpx[3])) - max(y0, float(fpx[1])))
+            if ix * iy > 0.35 * max(1.0, (x1 - x0) * (y1 - y0)):
+                overlap = True
+                break
+        if overlap:
+            continue
+        png = crop_box_png(pil, [x0, y0, x1, y1])
+        extras.append({
+            "pt": list(region.get("pt") or []),
+            "px": [int(x0), int(y0), int(x1), int(y1)],
+            "w_pt": round(w_pt, 2),
+            "h_pt": round(h_pt, 2),
+            "source": "coverage-region",
+            "png_base64": base64.b64encode(png).decode("ascii"),
+        })
+    return extras
+
+
 def classify_page(gray: np.ndarray, lines: list[dict], gutters: list[int],
                   chars: list[dict], page_w: float, page_h: float) -> dict:
     """页面类型/方向/文字层标记；给下游决定“空白页、图像页还是正常试卷页”。"""
@@ -2099,9 +2416,10 @@ def build(args) -> dict:
     warnings: list[str] = []
     native_total = {"chars": 0, "lines": 0, "reliable": 0, "matched": 0,
                     "mismatched": 0, "native_only": 0, "ocr_only": 0,
-                    "fallbacks": 0}
+                    "fallbacks": 0, "fast": 0}
     coverage_total = {"ink_pixels": 0, "covered_ink_pixels": 0,
                       "uncovered_regions": 0, "blank_pages": 0}
+    styled_total = 0
     t_start = time.time()
 
     # pypdfium2 是原生库，多线程渲染会 access violation → 渲染串行，OCR 并发
@@ -2119,16 +2437,15 @@ def build(args) -> dict:
             except Exception:  # noqa: BLE001 - 旧版 pdfium 没有这个接口
                 rotation = 0
 
-        native_boxes = (font_probe.figure_boxes(pno)
-                        if font_probe is not None and not args.no_figures else [])
-        gray_for_lines = _mask_figure_areas(gray, native_boxes, scale)
-        if native_boxes:
-            log(f"第 {pno} 页原生图形资源 {len(native_boxes)} 个，已从行投影中剔除")
-
         chars = (font_probe.char_boxes(pno)
                  if font_probe is not None and not args.no_figures else [])
         native_tables = (font_probe.table_boxes(pno)
                          if font_probe is not None and not args.no_figures else [])
+        native_boxes = (font_probe.figure_boxes(pno, exclude_boxes=native_tables)
+                        if font_probe is not None and not args.no_figures else [])
+        gray_for_lines = _mask_figure_areas(gray, native_boxes, scale)
+        if native_boxes:
+            log(f"第 {pno} 页原生图形资源 {len(native_boxes)} 个，已从行投影中剔除")
         gutters = detect_column_gutters(gray, chars=chars, scale=scale)
         column_bounds = [(0, gray.shape[1])]
         if gutters:
@@ -2224,6 +2541,16 @@ def build(args) -> dict:
             native_lines.extend(native_lines_from_chars(
                 col_chars, native_boxes if not args.no_figures else []))
 
+        # 原生快路：可靠的纯文字行不再逐行 OCR；公式行仍走 OCR，避免把
+        # 上下标压成普通数字。没有文字层/质量不够时自动退回全量 OCR。
+        native_fast: dict[int, dict] = {}
+        if args.text_source == "auto" and native_lines:
+            native_fast = match_native_lines_to_pixels(lines, native_lines, scale)
+            for idx in native_fast:
+                lines[idx]["_native_fast"] = True
+            if native_fast:
+                log(f"第 {pno} 页原生快路 {len(native_fast)} 行（跳过 OCR）")
+
         # 兜底：整页只有一条超长行时不硬拆，直接整页 OCR。
         # 注意 0 行不能走这里：空白页/纯图页没有行是正常分类，硬造一条整页行
         # 会调用 OCR 并把空白页误报成“整页解析失败”。
@@ -2232,6 +2559,7 @@ def build(args) -> dict:
                       "px_left": 0, "px_right": gray.shape[1] - 1,
                       "px_height": gray.shape[0], "ink": int((gray < INK_THRESHOLD).sum())}]
             used = "whole-page-fallback"
+            native_fast = {}
             warnings.append(f"第 {pno} 页行检测只得到 1 行，退回整页 OCR")
 
         # 页顶栏首行向左多带一点，救回悬在栏缝里的题号（2025 全国 1 第 16 题）。
@@ -2240,13 +2568,17 @@ def build(args) -> dict:
         col_starts = [b[0] for b in column_bounds]
         page_top_px = min((l["px_top"] for l in lines), default=0)
         task_png = [
-            crop_line(pil, l, 40 if (
+            None if idx in native_fast else crop_line(pil, l, 40 if (
                 col_starts and l["px_top"] <= page_top_px + 8
                 and min(abs(l["px_left"] - s) for s in col_starts) <= 16) else 0)
-            for l in lines
+            for idx, l in enumerate(lines)
         ]
 
         results: list[dict | None] = [None] * len(lines)
+        for idx, nl in native_fast.items():
+            results[idx] = {"text": nl["text"], "finish_reason": "native-text",
+                            "votes": 0, "disagreement": False,
+                            "elapsed_s": 0.0, "native_fast": True}
 
         def work(idx: int) -> None:
             t0 = time.time()
@@ -2271,9 +2603,11 @@ def build(args) -> dict:
                             "disagreement": len(set(texts)) > 1,
                             "elapsed_s": round(time.time() - t0, 2)}
 
-        workers = min(max(1, len(lines)), args.workers)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-            list(pool.map(work, range(len(lines))))
+        pending = [idx for idx in range(len(lines)) if idx not in native_fast]
+        workers = min(max(1, len(pending)), args.workers)
+        if pending:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+                list(pool.map(work, pending))
 
         # 先把 OCR 结果挂到行上，再算坐标/字号（enrich_size 负责填 top/bottom/left/right）
         for line, res in zip(lines, results):
@@ -2337,6 +2671,7 @@ def build(args) -> dict:
                 f"{native_info['matched']} 行，原生独有 {native_info['native_only']}，"
                 f"OCR 独有 {native_info['ocr_only']}")
         native_fallbacks = 0
+        native_fast_used = 0
 
         page_lines = []
         dropped = 0
@@ -2349,7 +2684,10 @@ def build(args) -> dict:
                 tables = [table_by_line[idx]]
                 cleaned = "（表格）"
             text_source = "ocr"
-            if (not cleaned and not tables
+            if line.get("_native_fast") and (cleaned or tables):
+                text_source = "native-text"
+                native_fast_used += 1
+            elif (not cleaned and not tables
                     and line.get("native_quality") == "text"
                     and line.get("native_text")):
                 native_cleaned = clean_ocr_text(line["native_text"])
@@ -2400,6 +2738,14 @@ def build(args) -> dict:
             })
         if dropped:
             log(f"第 {pno} 页丢弃 {dropped} 条图形区幻觉行（超长数字串/孤立字母标签）")
+        native_info["fast"] = native_fast_used
+        styled_lines = annotate_line_styles(page_lines, chars)
+        native_info["styled"] = styled_lines
+        if styled_lines:
+            log(f"第 {pno} 页恢复 {styled_lines} 行原生字体样式")
+        font_audit = audit_fonts(chars, page_lines)
+        if font_audit["garbled_lines"]:
+            log(f"第 {pno} 页发现 {font_audit['garbled_lines']} 行疑似乱码")
 
         # 插图：像素检测出的图形区 → 裁片 → 原位贴回前端
         figures = collect_figures(pil, figure_regions, pw, ph,
@@ -2418,11 +2764,30 @@ def build(args) -> dict:
                     f"（裁片已含图上标注，再叠一份就是重复）")
             # 裁片不能压住正文：把伸进题干的边界收回来
             clipped = clip_figures_to_avoid_text(pil, figures, page_lines, pw, ph)
+            dropped_figs = [f for f in figures if f.get("drop")]
+            if dropped_figs:
+                figures = [f for f in figures if not f.get("drop")]
+                log(f"第 {pno} 页丢弃 {len(dropped_figs)} 个压住正文的矢量碎片")
             if clipped:
                 log(f"第 {pno} 页收缩 {clipped} 张裁片边界（避免压住题干）")
             sizes_text = ", ".join("{:.0f}x{:.0f}pt".format(f["w_pt"], f["h_pt"])
                                    for f in figures)
             log(f"第 {pno} 页还原插图 {len(figures)} 张（{sizes_text}）")
+
+        # 原生字层常保留题号，而 OCR 裁图可能把栏首题号切掉（静安 Q6 的 `6.`）。
+        # 只在行首没有题号时用原生行首补，避免给续行硬塞数字。
+        native_prefixes = 0
+        for line in page_lines:
+            if re.match(r"^\s*\d{1,3}\s*[.、．)）]", line.get("text") or ""):
+                continue
+            native_text = line.get("native_text") or ""
+            qm_native = re.match(r"^\s*(\d{1,3})\s*[.、．)）](?!\d)\s*", native_text)
+            if qm_native:
+                line["text"] = f"{qm_native.group(1)}. {line['text'].lstrip()}"
+                line["native_prefix_restored"] = True
+                native_prefixes += 1
+        if native_prefixes:
+            log(f"第 {pno} 页从原生字层补回 {native_prefixes} 个题号")
 
         restored_prefixes = 0
         for line in page_lines:
@@ -2435,6 +2800,14 @@ def build(args) -> dict:
             log(f"第 {pno} 页从栏缝补回 {restored_prefixes} 个题号")
 
         coverage = audit_page_coverage(gray, page_lines, figures, scale, typical_h_px)
+        fallback_figures = figures_from_uncovered(
+            pil, coverage, figures, args.dpi)
+        if fallback_figures:
+            figures.extend(fallback_figures)
+            coverage = audit_page_coverage(
+                gray, page_lines, figures, scale, typical_h_px)
+            log(f"第 {pno} 页补回 {len(fallback_figures)} 张漏检插图"
+                f"（覆盖率 {coverage['ratio']:.3%}）")
         classification = classify_page(gray, page_lines, gutters, chars, pw, ph)
         classification["rotation"] = rotation
         if coverage.get("uncovered_regions"):
@@ -2495,6 +2868,7 @@ def build(args) -> dict:
             "markdown": "\n".join(l["text"] for l in reading),
             "elapsed_s": round(time.time() - t_page, 2),
             "native_text": native_info,
+            "font_audit": font_audit,
         }
         coverage_total["ink_pixels"] += coverage.get("ink_pixels", 0)
         coverage_total["covered_ink_pixels"] += coverage.get("covered_ink_pixels", 0)
@@ -2510,6 +2884,8 @@ def build(args) -> dict:
         native_total["native_only"] += native_info.get("native_only", 0)
         native_total["ocr_only"] += native_info.get("ocr_only", 0)
         native_total["fallbacks"] += native_fallbacks
+        native_total["fast"] += native_fast_used
+        styled_total += styled_lines
         if not args.no_images:
             buf = io.BytesIO()
             pil.save(buf, "JPEG", quality=72, optimize=True)
@@ -2525,6 +2901,22 @@ def build(args) -> dict:
     all_figures = [f for p in out_pages for f in p.get("figures", [])]
     with_math = sum(1 for l in all_lines
                     if "$" in l["text"] or "\\(" in l["text"] or "\\[" in l["text"])
+    font_audit_total = {"fonts": {}, "font_count": 0, "pua_chars": 0,
+                        "cid_chars": 0, "replacement_chars": 0,
+                        "garbled_lines": 0, "garbled_samples": []}
+    font_counts: dict[str, int] = {}
+    for p in out_pages:
+        fa = p.get("font_audit") or {}
+        for name, count in (fa.get("fonts") or {}).items():
+            font_counts[name] = font_counts.get(name, 0) + int(count)
+        for key in ("pua_chars", "cid_chars", "replacement_chars", "garbled_lines"):
+            font_audit_total[key] += int(fa.get(key) or 0)
+        if len(font_audit_total["garbled_samples"]) < 10:
+            font_audit_total["garbled_samples"].extend(
+                (fa.get("garbled_samples") or [])[:10])
+    font_audit_total["fonts"] = dict(sorted(font_counts.items(),
+                                             key=lambda kv: -kv[1])[:20])
+    font_audit_total["font_count"] = len(font_counts)
     payload = {
         "schema_version": 1,
         "document": {
@@ -2558,7 +2950,10 @@ def build(args) -> dict:
                 "native_only_lines": native_total["native_only"],
                 "ocr_only_lines": native_total["ocr_only"],
                 "fallbacks": native_total["fallbacks"],
+                "fast_path_lines": native_total["fast"],
+                "styled_lines": styled_total,
             },
+            "font_audit": font_audit_total,
         },
         "stats": {
             "pages": len(out_pages),
@@ -2573,6 +2968,14 @@ def build(args) -> dict:
             "native_text_matched": native_total["matched"],
             "native_text_mismatched": native_total["mismatched"],
             "native_text_fallbacks": native_total["fallbacks"],
+            "native_text_fast_path": native_total["fast"],
+            "styled_lines": styled_total,
+            "font_count": font_audit_total["font_count"],
+            "garbled_lines": font_audit_total["garbled_lines"],
+            "text_source_counts": {
+                src: sum(1 for l in all_lines if l.get("text_source") == src)
+                for src in ("ocr", "native-text")
+            },
         },
         "pages": out_pages,
     }
@@ -2687,6 +3090,8 @@ def main() -> int:
                     help="每行识别几次并投票（默认 1；3 可压掉引擎的随机幻觉，代价是 3 倍耗时）")
     ap.add_argument("--no-images", action="store_true", help="不写入页图与插图（JSON 更小）")
     ap.add_argument("--no-figures", action="store_true", help="不还原插图裁片")
+    ap.add_argument("--text-source", choices=("auto", "ocr"), default="auto",
+                    help="auto=可靠原生文字行跳过 OCR；ocr=全部走 OCR")
     ap.add_argument("--no-pdf-font-metrics", action="store_true",
                     help="不用 pdfplumber 读字号（纯扫描件更省事）")
     ap.add_argument("--single-line-fallback", action="store_true", default=True)
