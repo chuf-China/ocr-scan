@@ -157,6 +157,13 @@ layout JSON 的 `lines[]` 仍是自上而下的物理行序，不能直接当阅
 `quality.checks.regions_consistent` 只是区域自洽证据（warning 级），不替代上述硬门；
 `status=fail` 时 `tools/check_exam_json.py` 退出 1。
 
+题号写法有两类：`12.` 和行首「（12）」，小问也从「（1）」数起，所以 `（n）` 只有在 `n`
+大于当前最后一题时才是新题号（详见 `docs/specs/section-and-question-detection.md`）。
+大题标题里的「共 N 小题」用来收口：收满后再出现题号说明小标题整行被吞，此时开
+`inferred` 大题并报 `section_heading_missing` warning；同一标签 + 同一 `共 N 小题` 的标题
+第二次出现视为文末参考答案区，其后不再建题。OCR 丢行首数字/整页打散属真实缺陷，
+只能如实报 `question_number_gap`，不许为过门放宽规则。
+
 ```powershell
 python tools\build_exam_json.py out\exams\2023beijing.layout.json
 python tools\check_exam_json.py out\exams\2023beijing.layout.json

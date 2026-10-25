@@ -57,8 +57,16 @@ SECTION_RE = re.compile(r"^\s*([一二三四五六七八九十]{1,3})\s*[、．.
 # otherwise be read as question 15 plus the text `2 18.8 ...`.
 QUESTION_RE = re.compile(r"^\s*(\d{1,3})\s*[.、．)）](?!\d)\s*(?=\S)")
 SUBQ_RE = re.compile(r"^\s*[（(]\s*(\d{1,2})\s*[)）]\s*(.*)$")
+# 教师版/解析版常把题号写成「（1）（2）」放在行首，`1.` 式反而不出现。它和小问
+# 编号同形，所以只在数字能接在当前题号之后时才算新题：题号单调递增，小问在每个
+# 题内从 1 重新数，必然落在当前题号之前。放宽成“括号数字都是题号”会把解答题的
+# 小问拆成新题，也会让答案区的编号变成重复题号。
+PAREN_QUESTION_RE = re.compile(r"^\s*[（(]\s*(\d{1,3})\s*[)）]\s*(?=\S)")
+# 独立成行的“参考答案”之后是答案与评分，不是题目。`【参考答案】` 是解析版每题
+# 内联的小标题，不能当停止条件，否则会把后半卷的题全丢掉。
+ANSWER_KEY_RE = re.compile(r"^\s*(?:参考答案|答案与解析|答案及评分标准|评分标准)\s*$")
 OPTION_RE = re.compile(
-    r"(?:^|(?<=\s))(?:(?:[（(]\s*([A-D])\s*[)）])|([A-D])\s*[.．])\s*")
+    r"(?:[（(]\s*([A-D])\s*[)）]|(?<![A-Za-z0-9])([A-D])\s*[.．])\s*")
 PAGE_NUMBER_RE = re.compile(r"^\s*(?:第\s*)?\d{1,4}\s*(?:页)?\s*$")
 PAGE_FOOTER_RE = re.compile(r"第\s*\d+\s*页|共\s*\d+\s*页")
 
@@ -74,6 +82,42 @@ DANGLING_STEM_SUFFIXES = (
 
 def _text(line: dict) -> str:
     return (line.get("text") or "").strip()
+
+
+def _paren_number_follows(number: int, questions: list[dict]) -> bool:
+    """`（n）` 能否当新题号。
+
+    题号在一份卷里单调递增（允许 OCR 漏掉一两题造成的 1–5 跳跃），小问在每个
+    题内从 1 重数。因此只要比“当前最后一题”大，就只能是题号；比它小就按小问走。
+    还没有已识别的题时接受 1–30：卷首题目可能整段丢行，把第一道识别到的
+    「（4）」当 Q1 会让后面所有题错位。
+    """
+    if number < 1:
+        return False
+    if not questions:
+        return number <= 30
+    previous = int(questions[-1]["number"])
+    return previous < number <= previous + 5
+
+
+DECLARED_RE = re.compile(r"共\s*(\d{1,3})\s*小?题")
+
+
+def _declared_question_count(title: str) -> int | None:
+    """从大题标题里取“共 N 小题”。
+
+    用它判断当前大题是否已经收满题：OCR 偶尔整行丢掉「二、填空题」这类小标题，
+    后面的题就会挂到上一个选择题大题下，被当成“选择题缺选项”。收满即封口，溢出
+    的题进入一个显式的“小标题缺失”大题（`inferred`），只报 warning，不猜标题。
+    """
+    m = DECLARED_RE.search(title or "")
+    if not m:
+        return None
+    try:
+        count = int(m.group(1))
+    except ValueError:
+        return None
+    return count if 1 <= count <= 60 else None
 
 
 def _line_id(page_no: int, index: int, line: dict) -> str:
@@ -236,6 +280,7 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
         for line in reading_lines(page)
     )
 
+    appendix = False
     for page in pages:
         page_no = int(page.get("page") or 1)
         # IDs are anchored to the layout array, not the reading order: a
@@ -249,9 +294,24 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
             if not text or _is_page_footer(text):
                 continue
             ref = line_ids[id(line)]
+            # 参考答案之后的行照旧占 layout 的一行，但不该进题目/小问（否则答案区的
+            # 题号会造出“重复题号”，解答过程会被拼进最后一题的题干）。
+            if appendix:
+                attached_refs.add(ref)
+                continue
+            if ANSWER_KEY_RE.match(text):
+                appendix = True
+                attached_refs.add(ref)
+                continue
             sec = _section_from(text)
             qm = QUESTION_RE.match(text)
-            if qm:
+            paren_q = False
+            if qm is None:
+                pm = PAREN_QUESTION_RE.match(text)
+                if pm and _paren_number_follows(int(pm.group(1)), questions):
+                    qm = pm
+                    paren_q = True
+            if qm and not paren_q:
                 number = int(qm.group(1))
                 previous = int(questions[-1]["number"]) if questions else None
                 # OCR sometimes prefixes a continuation fragment with a bogus
@@ -274,6 +334,18 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                     text = text[qm.end():].strip()
                     qm = None
             if sec:
+                declared = _declared_question_count(sec[1])
+                # 同一标签、同一「共 N 小题」的大题第二次出现，说明已经进到文末
+                # 参考答案区（实测 eval02：「高三数学参考答案」之后又出现
+                # 一、选择题（共10小题）/二、填空题（共5小题）/三、解答题）。
+                # 那里只有答案，不再建题，否则会多出三个空大题。
+                if declared is not None and any(
+                        s.get("label") == sec[0]
+                        and s.get("declared_questions") == declared
+                        for s in sections):
+                    appendix = True
+                    attached_refs.add(ref)
+                    continue
                 sec_seq += 1
                 current_section = {
                     "id": f"sec-{sec_seq:02d}",
@@ -282,6 +354,8 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                     "pages": [page_no],
                     "question_ids": [],
                 }
+                if declared is not None:
+                    current_section["declared_questions"] = declared
                 sections.append(current_section)
                 current_q = None
                 current_option = None
@@ -289,6 +363,26 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                 attached_refs.add(ref)
                 continue
             if qm and (current_section is not None or not has_sections):
+                # 大题收满（标题里写了“共 N 小题”）后又出现题号：说明中间的小标题
+                # 整行丢了（实测「二、填空题」被吞）。开一个显式的“小标题缺失”大题，
+                # 不猜它的标题，也不让它继承上一个选择题大题的选项要求。
+                if (current_section is not None
+                        and current_section.get("declared_questions")
+                        and len(current_section["question_ids"])
+                        >= int(current_section["declared_questions"])):
+                    sec_seq += 1
+                    current_section = {
+                        "id": f"sec-{sec_seq:02d}",
+                        "label": "",
+                        "title": "",
+                        "pages": [page_no],
+                        "question_ids": [],
+                        "inferred": True,
+                        "reason": "section_heading_missing",
+                    }
+                    sections.append(current_section)
+                    current_option = None
+                    current_sub = None
                 q_seq += 1
                 current_q = _new_question(
                     f"q-{q_seq:03d}", int(qm.group(1)),
@@ -760,6 +854,14 @@ def build_quality(layout: dict, exam: dict) -> dict:
         issues.append(_issue("error", "section_empty",
                              f"大题“{sec.get('label')}、{sec.get('title')}”没有题目",
                              page=(sec.get("pages") or [None])[0]))
+    # 小标题被 OCR 整行吞掉的“补位大题”：题目本身在，只是没有标题文字。
+    # 报 warning 让人知道这里的题号归属是推断的，但不把它当成缺题。
+    for sec in exam.get("sections") or []:
+        if sec.get("inferred"):
+            issues.append(_issue("warning", "section_heading_missing",
+                                 f"第 {len(sec.get('question_ids') or [])} 道题所属大题"
+                                 "的小标题未识别，按上一大题收满后自动分节",
+                                 page=(sec.get("pages") or [None])[0]))
 
     unassigned_figs = (exam.get("unassigned") or {}).get("figures") or []
     for fig in unassigned_figs:

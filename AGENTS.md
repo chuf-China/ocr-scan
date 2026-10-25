@@ -267,6 +267,15 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
     **不能**用"KaTeX 能渲染"或一致性分布代替内容准确率；KaTeX 过门（`formula_quality`）
     仍只回答"结构可解析"，不是公式对错。详见 `ocr_json_app/docs/specs/t2-formula-regions.md`。
 
+25. **题号写法与答案区是结构层的硬骨头**：试卷题号既有 `12.` 也有行首「（12）」，小问同样从
+    「（1）」数起，所以 `（n）` 只有在 `n` 比当前最后一题大（允许 1–5 跳跃）时才是新题号，
+    比它小一律按小问走；不许为了多认几题直接把 `(n)` 全当题号。大题标题里的「共 N 小题」
+    用于收口：收满后再出现题号说明小标题整行被吞，开 `inferred` 大题并报
+    `section_heading_missing` **warning**，不猜标题、不继承选择题的选项要求。同一标签 + 同一
+    `共 N 小题` 的标题第二次出现视为文末参考答案区，其后行不再建题（否则空大题）。这些是
+    结构层的真实缺陷，只能按卷面事实报 `error`/`warning`，**不许**为让某套卷过门放宽正则或
+    写单卷特例。详见 `ocr_json_app/docs/specs/section-and-question-detection.md`。
+
 ## 改哪里 / 怎么改
 
 - **官方流程入口 / 路径**：`run_paddleocr_vl.sh`（WSL 侧，硬编码路径先改）+ `tools/import_paddleocr_json.py`

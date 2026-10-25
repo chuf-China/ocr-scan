@@ -335,6 +335,110 @@ class ExamStructureTests(unittest.TestCase):
         self.assertIn("review_garbled_text",
                       [a["action"] for a in quality["repair"]["actions"]])
 
+    def test_paren_question_numbering(self) -> None:
+        """教师版常见「（1）题干」编号：# 旧正则只认行首数字，会 0 题。"""
+        page = {
+            "page": 1, "width": 595.0, "height": 842.0,
+            "lines": [
+                line("一、选择题：共2小题，每小题4分", 50, 50),
+                line("（1）在复平面内，复数 z 满足", 50, 80),
+                line("(A) 1", 70, 100),
+                line("(B) 2", 70, 120),
+                line("（2）已知向量 a 与 b", 50, 150),
+                line("(A) 3", 70, 170),
+                line("(B) 4", 70, 190),
+                line("二、填空题：共1小题，每小题5分", 50, 220),
+                line("（3）若函数 f(x)=x", 50, 250),
+            ],
+            "figures": [],
+        }
+        exam = es.build_exam({"document": {}, "pages": [page]})
+        self.assertEqual([q["number"] for q in exam["questions"]], [1, 2, 3])
+        self.assertEqual(len(exam["sections"]), 2)
+        self.assertEqual(exam["questions"][2]["section_id"], "sec-02")
+
+    def test_paren_subquestions_are_not_questions(self) -> None:
+        """题内小问也从 (1) 数起：数字小于当前题号时必须是子问。"""
+        page = {
+            "page": 1, "width": 595.0, "height": 842.0,
+            "lines": [
+                line("三、解答题：共1小题，共13分", 50, 50),
+                line("（4）已知函数 f(x)=x^2", 50, 80),
+                line("（1）求导", 70, 100),
+                line("（2）求最值", 70, 120),
+            ],
+            "figures": [],
+        }
+        exam = es.build_exam({"document": {}, "pages": [page]})
+        self.assertEqual([q["number"] for q in exam["questions"]], [4])
+        q4 = exam["questions"][0]
+        self.assertEqual([s["label"] for s in q4["subquestions"]], ["(1)", "(2)"])
+
+    def test_declared_count_splits_lost_section_heading(self) -> None:
+        """小标题整行被 OCR 吞掉：按「共 N 小题」收口并显式标记推断大题。"""
+        page = {
+            "page": 1, "width": 595.0, "height": 842.0,
+            "lines": [
+                line("一、选择题：共2小题，每小题4分", 50, 50),
+                line("（1）第一题", 50, 80),
+                line("(A) 1", 70, 100),
+                line("（2）第二题", 50, 130),
+                line("(A) 2", 70, 150),
+                line("（3）第三题", 50, 200),
+            ],
+            "figures": [],
+        }
+        layout = {"document": {}, "pages": [page]}
+        exam = es.build_exam(layout)
+        quality = es.build_quality(layout, exam)
+        self.assertEqual([q["number"] for q in exam["questions"]], [1, 2, 3])
+        self.assertEqual(len(exam["sections"]), 2)
+        self.assertTrue(exam["sections"][1]["inferred"])
+        self.assertEqual(exam["sections"][1]["question_ids"],
+                         [exam["questions"][2]["id"]])
+        codes = [i["code"] for i in quality["issues"]]
+        self.assertIn("section_heading_missing", codes)
+        self.assertNotIn("section_empty", codes)
+
+    def test_answer_key_section_stops_questions(self) -> None:
+        """文末参考答案区会重复同一组大题标题，不能当成新大题（否则空大题）。"""
+        page = {
+            "page": 1, "width": 595.0, "height": 842.0,
+            "lines": [
+                line("一、选择题：共1小题，每小题4分", 50, 50),
+                line("（1）题干", 50, 80),
+                line("(A) 1", 70, 100),
+                line("高三数学参考答案", 50, 140),
+                line("一、选择题（共1小题，每小题4分）", 50, 170),
+                line("（1）A", 50, 200),
+            ],
+            "figures": [],
+        }
+        layout = {"document": {}, "pages": [page]}
+        exam = es.build_exam(layout)
+        quality = es.build_quality(layout, exam)
+        self.assertEqual([q["number"] for q in exam["questions"]], [1])
+        self.assertEqual(len(exam["sections"]), 1)
+        codes = [i["code"] for i in quality["issues"]
+                 if i["level"] == "error"]
+        self.assertNotIn("section_empty", codes)
+
+    def test_adjacent_option_labels(self) -> None:
+        """选项标签前面紧贴汉字（（A）充分（B）必要）时仍要拆开。"""
+        page = {
+            "page": 1, "width": 595.0, "height": 842.0,
+            "lines": [
+                line("一、选择题：共1小题，每小题4分", 50, 50),
+                line("（1）已知条件甲成立", 50, 80),
+                line("（A）充分不必要条件（B）必要不充分条件", 70, 100),
+            ],
+            "figures": [],
+        }
+        exam = es.build_exam({"document": {}, "pages": [page]})
+        options = exam["questions"][0]["options"]
+        self.assertEqual([o["label"] for o in options], ["A", "B"])
+        self.assertEqual(options[0]["text"], "充分不必要条件")
+
 
 class LayoutRegionTests(unittest.TestCase):
     """T1 区域层：文本 / 公式 / 表格 / 图 / 跨栏 / 幂等 / 题目回链。"""
