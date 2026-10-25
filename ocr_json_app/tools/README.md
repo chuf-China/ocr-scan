@@ -10,7 +10,8 @@
 | `build_exam_json.py` | 版式 JSON → `exam.json` + `quality.json`（题号/选项/小问/图归属） |
 | `run_exam_acceptance.py` | **批量验收**：多份 PDF/JSON → 覆盖率/选项/公式/表格/原生字/样式/乱码/人工动作汇总，硬门失败退出 1 |
 | `check_layout_json.py` | 版式 JSON：页序、坐标是否在页内、行序、幻觉残留；含 `regions` 的产物还校验区域层（id/bbox/枚举/回链/统计一致），含 `formulas` 证据的产物校验公式复核块（来源/dpi/一致性/汇总计数） |
-| `review_formulas.py` | **公式复核（证据模式）**：PP-DocLayout_plus-L 出公式框 → 300dpi 重渲裁片 → PP-FormulaNet_plus-M（CPU 子进程）出 LaTeX → 与现有 OCR 做 `exact/normalized/differs` 比对；只写证据，不改正文 |
+| `review_formulas.py` | **公式复核（证据模式）**：PP-DocLayout_plus-L 出公式框 → 300dpi 重渲裁片 → PP-FormulaNet_plus-M（CPU 子进程）出 LaTeX → 与现有 OCR 做 `exact/normalized/partial/differs` 比对；只写证据，不改正文 |
+| `build_formula_ab.py` | **公式内容级 A/B 材料**：按一致性配额抽样，从原始 PDF 重渲裁片拼成带序号对照图 + `review.md` 明细表，供人工逐条判「模型更好 / 现有更好 / 相同」；只读，不跑模型 |
 | `check_exam_json.py` | **试卷结构门**：题号/选项/图归属/质量；`quality.status=fail` 退出 1；历史产物可加 `--advisory` |
 | `check_render.py` | **裁片是否压正文**、行是否叠字、是否越界 |
 | `check_ocr_json.py` | 结构块 JSON：页码、题号连续性、截断、乱码 |
