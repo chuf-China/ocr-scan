@@ -738,6 +738,17 @@ def test_formula_review() -> None:
         (r"a\geqslant b", r"a\geq b"),
         (r"\sqrt{3}x", r"\sqrt3 x"),
         (r"A\mathrm{~-~}C", r"ABC"[:1] + "-" + "C"),
+        # 粗体只是排版强调：模型给 \boldsymbol/\pmb，现有 OCR 丢粗体，内容仍相同。
+        (r"\boldsymbol{m}=(1,0,-1)", r"m=(1,0,-1)"),
+        (r"\pmb{a}\cdot\pmb{b}=0", r"a\cdot b=0"),
+        # 导数记号：f^{\prime} / f^\prime / f^{'} 与 f' 等价。
+        (r"f^{\prime}(x)=0", r"f'(x)=0"),
+        (r"f^{\prime\prime}(x)", r"f''(x)"),
+        # 模型会把裁片边缘标点单独包成 \text{;}，下标也可能被套一层花括号；
+        # 平行线与上划线也有多种等价写法。
+        (r"a_{_{n}}>a_{_{n-1}}\text{;}", r"a_n>a_{n-1}"),
+        (r"a\parallel b", r"a // b"),
+        (r"z\cdot\stackrel{-}{z}", r"z\cdot\overline{z}"),
     ]
     for left, right in cases:
         check(f"等价归一化：{left[:16]}…",

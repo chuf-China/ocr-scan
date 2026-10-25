@@ -44,9 +44,19 @@ _ALIASES = (
     (r"\\dfrac", r"\\frac"),
     (r"\\tfrac", r"\\frac"),
     (r"\\colon", ":"),          # \colon 与 : 是同一个符号
-    (r"\^\\prime", "'"),        # f^{\prime} 与 f' 是同一个导数记号
     (r"\\,|\\;|\\!|\\ ", ""),
     (r"\\quad|\\qquad", ""),
+    (r"\\prime", "'"),                # f^{\prime} / f^\prime / f'' 用的是同一个导数符号
+    (r"\^\{\s*('{1,3})\s*\}", r"\1"), # 上一步留下的 f^{'} / f^{''} 仍是 f' / f''
+    (r"\^('{1,3})", r"\1"),
+    # 识别器常见的等价写法：`//` 就是平行，`\stackrel{-}{z}` 就是 `\overline{z}`，
+    # `\bar` 与 `\overline` 是同一个上划线，`\bold` 是 llama OCR 对 `\mathbf` 的写法。
+    (r"//", r"\\parallel"),
+    (r"\\stackrel\{-\}\{([^{}]*)\}", r"\\overline{\1}"),
+    (r"\\bar(?![A-Za-z])", r"\\overline"),
+    (r"\\bold(?![A-Za-z])", r"\\mathbf"),
+    # 模型会把裁片边缘的标点单独包成 \text{;}；标点不是公式内容。
+    (r"\\text\{[;；,，.。、·\s]*\}", ""),
 )
 
 # 环境/对齐相关的“写法差异”：`\begin{cases}` 与 `\left\{\begin{aligned}` 是同一个
@@ -57,11 +67,13 @@ _BRACED_TOKEN_RE = re.compile(r"([\^_])\{([^{}\\]{1,3})\}")
 # 只能用于**单参数**命令；`\frac{a}{b}` 的两个参数不能这样折叠。
 _SINGLE_ARG_RE = re.compile(r"\\(sqrt)\{([^{}\\]{1,3})\}")
 _WRAPPER_RE = re.compile(
-    r"\\(?:mathrm|text|textrm|mbox|mathbb|mathsf|mathbf|mathcal|mathit|mathfrak)\{([^{}]*)\}")
+    r"\\(?:boldsymbol|pmb|bm|mathrm|text|textrm|mbox|mathbb|mathsf|mathbf|mathcal|mathit|mathfrak)\{([^{}]*)\}")
 # 只包一个命令的冗余花括号：`{\frac{x^{2}}{m}}` 与 `\frac{x^{2}}{m}` 是同一个东西。
 _REDUNDANT_GROUP_RE = re.compile(r"\{(\\[A-Za-z]+(?:\[[^\]]*\])?(?:\{[^{}]*\})*)\}")
 # 只包短字面量的花括号也是分组符，不是内容：`{:~}`/`{~-~}`/`{(}`。
 _SHORT_GROUP_RE = re.compile(r"\{([^\\{}]{1,4})\}")
+# 嵌套下标折叠后可能剩 `a__n`/`x^^2`：重复的上下标分隔符没有额外语义。
+_REPEATED_SCRIPT_RE = re.compile(r"([\^_])\1+")
 
 
 def extract_math_segments(text: str) -> list[str]:
@@ -97,6 +109,10 @@ def normalize_latex(value: str) -> str:
     for _ in range(2):                          # {\frac{x^{2}}{m}} -> \frac{x^{2}}{m}
         body = _REDUNDANT_GROUP_RE.sub(r"\1", body)
     body = _SHORT_GROUP_RE.sub(r"\1", body)     # {:~} -> :~，{~-~} -> ~-~
+    # 短字面量分组拆掉后可能又露出 `a_{_n}` 这类嵌套下标：再折一次，并把重复的 `_`/`^`
+    # 合并成一个。模型常在裁片里把下标再包一层花括号，实际内容与 `a_n` 相同。
+    body = _BRACED_TOKEN_RE.sub(r"\1\2", body)
+    body = _REPEATED_SCRIPT_RE.sub(r"\1", body)
     body = body.replace(" ", "").replace("\t", "").replace("\n", "")
     return body.rstrip(",.，。;；:：")
 
