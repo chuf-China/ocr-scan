@@ -1,0 +1,1115 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2024天津",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\corpus\\2024天津.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\final25\\2024天津_f2f432.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T06:02:54+0800"
+ },
+ "sections": [
+  {
+   "id": "sec-01",
+   "label": "一",
+   "title": "选择题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-001",
+    "q-002",
+    "q-003",
+    "q-004",
+    "q-005",
+    "q-006",
+    "q-007",
+    "q-008",
+    "q-009"
+   ]
+  },
+  {
+   "id": "sec-02",
+   "label": "二",
+   "title": "填空题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-010",
+    "q-011",
+    "q-012",
+    "q-013",
+    "q-014",
+    "q-015"
+   ]
+  },
+  {
+   "id": "sec-03",
+   "label": "三",
+   "title": "解答题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-016",
+    "q-017",
+    "q-018",
+    "q-019",
+    "q-020"
+   ]
+  }
+ ],
+ "questions": [
+  {
+   "id": "q-001",
+   "number": 1,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知集合 \\(A = \\{1, 2, 3, 4\\}\\), \\(B = \\{2, 3, 4, 5\\}\\), 则 \\(A \\cap B =\\) （）",
+     "page": 1,
+     "ref": "p1-l12"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-001-opt-A",
+     "label": "A",
+     "text": "\\{1, 2, 3, 4\\}",
+     "refs": [
+      "p1-l14"
+     ]
+    },
+    {
+     "id": "q-001-opt-B",
+     "label": "B",
+     "text": "\\{2, 3, 4\\}",
+     "refs": [
+      "p1-l14"
+     ]
+    },
+    {
+     "id": "q-001-opt-C",
+     "label": "C",
+     "text": "\\{2, 4\\}",
+     "refs": [
+      "p1-l14"
+     ]
+    },
+    {
+     "id": "q-001-opt-D",
+     "label": "D",
+     "text": "\\{1\\}",
+     "refs": [
+      "p1-l14"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知集合 \\(A = \\{1, 2, 3, 4\\}\\), \\(B = \\{2, 3, 4, 5\\}\\), 则 \\(A \\cap B =\\) （）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-002",
+   "number": 2,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知 \\(a, b \\in \\mathbb{R}\\), 则“\\(a^3 = b^3\\)”是“\\(3^a = 3^b\\)”的 （ ）",
+     "page": 1,
+     "ref": "p1-l17"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-002-opt-A",
+     "label": "A",
+     "text": "充分不必要条件",
+     "refs": [
+      "p1-l20"
+     ]
+    },
+    {
+     "id": "q-002-opt-B",
+     "label": "B",
+     "text": "必要不充分条件",
+     "refs": [
+      "p1-l20"
+     ]
+    },
+    {
+     "id": "q-002-opt-C",
+     "label": "C",
+     "text": "充要条件",
+     "refs": [
+      "p1-l22"
+     ]
+    },
+    {
+     "id": "q-002-opt-D",
+     "label": "D",
+     "text": "既不充分也不必要条件",
+     "refs": [
+      "p1-l22"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知 \\(a, b \\in \\mathbb{R}\\), 则“\\(a^3 = b^3\\)”是“\\(3^a = 3^b\\)”的 （ ）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-003",
+   "number": 3,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "下列图中, 相关性系数最大的是 ( )",
+     "page": 1,
+     "ref": "p1-l24"
+    },
+    {
+     "text": "\\(y_{\\uparrow}\\)",
+     "page": 1,
+     "ref": "p1-l27"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-003-opt-A",
+     "label": "A",
+     "text": "O x",
+     "refs": [
+      "p1-l32"
+     ]
+    },
+    {
+     "id": "q-003-opt-B",
+     "label": "B",
+     "text": "O x\n\\(y_{\\uparrow}\\)",
+     "refs": [
+      "p1-l32",
+      "p1-l35"
+     ]
+    },
+    {
+     "id": "q-003-opt-C",
+     "label": "C",
+     "text": "O x",
+     "refs": [
+      "p1-l40"
+     ]
+    },
+    {
+     "id": "q-003-opt-D",
+     "label": "D",
+     "text": "O x",
+     "refs": [
+      "p1-l40"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [
+    {
+     "ref": "p1-f1",
+     "page": 1,
+     "bbox_pt": [
+      100.77,
+      287.03,
+      170.35,
+      352.79
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 0.95
+    },
+    {
+     "ref": "p1-f2",
+     "page": 1,
+     "bbox_pt": [
+      270.61,
+      283.05,
+      340.14,
+      352.57
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 1.67
+    },
+    {
+     "ref": "p1-f3",
+     "page": 1,
+     "bbox_pt": [
+      100.77,
+      386.39,
+      170.35,
+      451.66
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 0.95
+    },
+    {
+     "ref": "p1-f4",
+     "page": 1,
+     "bbox_pt": [
+      271.2,
+      382.18,
+      340.72,
+      451.7
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 1.9
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "下列图中, 相关性系数最大的是 ( )\n\\(y_{\\uparrow}\\)",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-004",
+   "number": 4,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "下列函数是偶函数的为 （）",
+     "page": 1,
+     "ref": "p1-l43"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-004-opt-A",
+     "label": "A",
+     "text": "\\( y = \\frac{\\mathrm{e}^{x} - x^{2}}{\\mathrm{e}^{x} + x^{2}} \\)",
+     "refs": [
+      "p1-l44"
+     ]
+    },
+    {
+     "id": "q-004-opt-B",
+     "label": "B",
+     "text": "\\( y = \\frac{\\cos x - x^{2}}{x^{2} + 1} \\)",
+     "refs": [
+      "p1-l44"
+     ]
+    },
+    {
+     "id": "q-004-opt-C",
+     "label": "C",
+     "text": "\\( y = \\frac{\\mathrm{e}^{x} - x}{\\mathrm{e}^{x} + x} \\)",
+     "refs": [
+      "p1-l44"
+     ]
+    },
+    {
+     "id": "q-004-opt-D",
+     "label": "D",
+     "text": "\\( y = \\frac{\\sin x - x}{x^{2} + 1} \\)",
+     "refs": [
+      "p1-l44"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "下列函数是偶函数的为 （）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-005",
+   "number": 5,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "设 \\(a = 4.2^{-0.2}\\), \\(b = 4.2^{0.2}\\), \\(c = \\log_{4.2} 0.2\\), 则 a, b, c 的大小关系为 （）",
+     "page": 1,
+     "ref": "p1-l47"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-005-opt-A",
+     "label": "A",
+     "text": "\\(a < b < c\\)",
+     "refs": [
+      "p1-l50"
+     ]
+    },
+    {
+     "id": "q-005-opt-B",
+     "label": "B",
+     "text": "\\(a < c < b\\)",
+     "refs": [
+      "p1-l50"
+     ]
+    },
+    {
+     "id": "q-005-opt-C",
+     "label": "C",
+     "text": "\\(c < b < a\\)",
+     "refs": [
+      "p1-l50"
+     ]
+    },
+    {
+     "id": "q-005-opt-D",
+     "label": "D",
+     "text": "\\(c < a < b\\)",
+     "refs": [
+      "p1-l50"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设 \\(a = 4.2^{-0.2}\\), \\(b = 4.2^{0.2}\\), \\(c = \\log_{4.2} 0.2\\), 则 a, b, c 的大小关系为 （）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-006",
+   "number": 6,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知 m, n 是两条直线, \\(\\alpha\\) 是一个平面. 下列命题正确的是 ( )",
+     "page": 1,
+     "ref": "p1-l51"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-006-opt-A",
+     "label": "A",
+     "text": "若 \\(m \\parallel \\alpha\\), \\(m \\perp n\\), 则 \\(n \\perp \\alpha\\)",
+     "refs": [
+      "p1-l53"
+     ]
+    },
+    {
+     "id": "q-006-opt-B",
+     "label": "B",
+     "text": "若 \\(m \\perp \\alpha\\), \\(m \\perp n\\), 则 \\(n \\perp \\alpha\\)",
+     "refs": [
+      "p1-l53"
+     ]
+    },
+    {
+     "id": "q-006-opt-C",
+     "label": "C",
+     "text": "若 \\( m \\parallel \\alpha \\), \\( n \\perp \\alpha \\), 则 \\( m \\perp n \\)",
+     "refs": [
+      "p1-l55"
+     ]
+    },
+    {
+     "id": "q-006-opt-D",
+     "label": "D",
+     "text": "若 \\( m \\perp \\alpha \\), \\( n \\perp \\alpha \\), 则 \\( m \\perp n \\)",
+     "refs": [
+      "p1-l55"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知 m, n 是两条直线, \\(\\alpha\\) 是一个平面. 下列命题正确的是 ( )",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-007",
+   "number": 7,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x) = 3\\sin\\left(\\omega x + \\frac{\\pi}{3}\\right)\\) (\\(\\omega > 0\\)) 的最小正周期为 \\(\\pi\\)，则 \\(f(x)\\) 在",
+     "page": 1,
+     "ref": "p1-l57"
+    },
+    {
+     "text": "区间 \\(\\left[-\\frac{\\pi}{12}, \\frac{\\pi}{6}\\right]\\) 上的最小值为 （ ）",
+     "page": 1,
+     "ref": "p1-l58"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-007-opt-A",
+     "label": "A",
+     "text": "\\(-\\frac{3\\sqrt{3}}{2}\\)",
+     "refs": [
+      "p1-l59"
+     ]
+    },
+    {
+     "id": "q-007-opt-B",
+     "label": "B",
+     "text": "\\(-\\frac{3}{2}\\)",
+     "refs": [
+      "p1-l59"
+     ]
+    },
+    {
+     "id": "q-007-opt-C",
+     "label": "C",
+     "text": "0",
+     "refs": [
+      "p1-l59"
+     ]
+    },
+    {
+     "id": "q-007-opt-D",
+     "label": "D",
+     "text": "\\(\\frac{3}{2}\\)",
+     "refs": [
+      "p1-l59"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x) = 3\\sin\\left(\\omega x + \\frac{\\pi}{3}\\right)\\) (\\(\\omega > 0\\)) 的最小正周期为 \\(\\pi\\)，则 \\(f(x)\\) 在\n区间 \\(\\left[-\\frac{\\pi}{12}, \\frac{\\pi}{6}\\right]\\) 上的最小值为 （ ）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-008",
+   "number": 8,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "双曲线 \\(\\frac{x^{2}}{a^{2}} - \\frac{y^{2}}{b^{2}} = 1 (a > 0, b > 0)\\) 的左、右焦点分别为 \\(F_{1}, F_{2}\\)，点 P 在",
+     "page": 1,
+     "ref": "p1-l60"
+    },
+    {
+     "text": "双曲线右支上，直线 \\(PF_2\\) 的斜率为 2。若 \\(\\triangle PF_1F_2\\) 是直角三角形，且面积",
+     "page": 1,
+     "ref": "p1-l61"
+    },
+    {
+     "text": "为 8, 则双曲线的方程为 ( )",
+     "page": 1,
+     "ref": "p1-l62"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-008-opt-A",
+     "label": "A",
+     "text": "\\(\\frac{x^2}{2} - \\frac{y^2}{8} = 1\\)",
+     "refs": [
+      "p1-l63"
+     ]
+    },
+    {
+     "id": "q-008-opt-B",
+     "label": "B",
+     "text": "\\(\\frac{x^2}{4} - \\frac{y^2}{8} = 1\\)",
+     "refs": [
+      "p1-l63"
+     ]
+    },
+    {
+     "id": "q-008-opt-C",
+     "label": "C",
+     "text": "\\(\\frac{x^2}{8} - \\frac{y^2}{2} = 1\\)",
+     "refs": [
+      "p1-l63"
+     ]
+    },
+    {
+     "id": "q-008-opt-D",
+     "label": "D",
+     "text": "\\(\\frac{x^2}{8} - \\frac{y^2}{4} = 1\\)",
+     "refs": [
+      "p1-l63"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "双曲线 \\(\\frac{x^{2}}{a^{2}} - \\frac{y^{2}}{b^{2}} = 1 (a > 0, b > 0)\\) 的左、右焦点分别为 \\(F_{1}, F_{2}\\)，点 P 在\n双曲线右支上，直线 \\(PF_2\\) 的斜率为 2。若 \\(\\triangle PF_1F_2\\) 是直角三角形，且面积\n为 8, 则双曲线的方程为 ( )",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-009",
+   "number": 9,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "在如图五面体中，棱 AD, BE, CF 互相平行，且两两之间的距离均为 1。若",
+     "page": 1,
+     "ref": "p1-l1"
+    },
+    {
+     "text": "AD = 1, BE = 2, CF = 3, 则该五面体的体积为 ( )",
+     "page": 1,
+     "ref": "p1-l4"
+    },
+    {
+     "text": "F",
+     "page": 1,
+     "ref": "p1-l7"
+    },
+    {
+     "text": "A",
+     "page": 1,
+     "ref": "p1-l15"
+    },
+    {
+     "text": "B",
+     "page": 1,
+     "ref": "p1-l18"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-009-opt-A",
+     "label": "A",
+     "text": "\\(\\frac{\\sqrt{3}}{6}\\)",
+     "refs": [
+      "p1-l21"
+     ]
+    },
+    {
+     "id": "q-009-opt-B",
+     "label": "B",
+     "text": "\\(\\frac{\\sqrt{3}}{4} + \\frac{1}{2}\\)",
+     "refs": [
+      "p1-l21"
+     ]
+    },
+    {
+     "id": "q-009-opt-C",
+     "label": "C",
+     "text": "\\(\\frac{\\sqrt{3}}{2}\\)",
+     "refs": [
+      "p1-l21"
+     ]
+    },
+    {
+     "id": "q-009-opt-D",
+     "label": "D",
+     "text": "\\(\\frac{3\\sqrt{3}}{4} - \\frac{1}{2}\\)",
+     "refs": [
+      "p1-l21"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [
+    {
+     "ref": "p1-f5",
+     "page": 1,
+     "bbox_pt": [
+      546.63,
+      100.6,
+      668.66,
+      201.38
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 2.31
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在如图五面体中，棱 AD, BE, CF 互相平行，且两两之间的距离均为 1。若\nAD = 1, BE = 2, CF = 3, 则该五面体的体积为 ( )\nF\nA\nB",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-010",
+   "number": 10,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "i 是虚数单位, 复数 \\((\\sqrt{5} + \\mathrm{i})(\\sqrt{5} - 2\\mathrm{i}) = \\) ___.",
+     "page": 1,
+     "ref": "p1-l26"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "i 是虚数单位, 复数 \\((\\sqrt{5} + \\mathrm{i})(\\sqrt{5} - 2\\mathrm{i}) = \\) ___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-011",
+   "number": 11,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "在 \\(\\left(\\frac{x^{2}}{3}+\\frac{3}{x^{2}}\\right)^{6}\\) 的展开式中，常数项为 ___.",
+     "page": 1,
+     "ref": "p1-l28"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在 \\(\\left(\\frac{x^{2}}{3}+\\frac{3}{x^{2}}\\right)^{6}\\) 的展开式中，常数项为 ___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-012",
+   "number": 12,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知圆 \\((x-1)^2 + y^2 = 25\\) 的圆心与抛物线 \\(y^2 = 2px\\) 的焦点 \\(F\\) 重合，且两",
+     "page": 1,
+     "ref": "p1-l30"
+    },
+    {
+     "text": "曲线在第一象限的交点为 A, 则原点到直线 AF 的距离为 ___.",
+     "page": 1,
+     "ref": "p1-l31"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知圆 \\((x-1)^2 + y^2 = 25\\) 的圆心与抛物线 \\(y^2 = 2px\\) 的焦点 \\(F\\) 重合，且两\n曲线在第一象限的交点为 A, 则原点到直线 AF 的距离为 ___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-013",
+   "number": 13,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "某校组织学生参加农业实践活动，期间安排了劳动技能比赛，比赛共5个",
+     "page": 1,
+     "ref": "p1-l33"
+    },
+    {
+     "text": "项目，分别为整地做畦、旱田播种、作物移栽、田间灌溉、藤架搭建，规定",
+     "page": 1,
+     "ref": "p1-l34"
+    },
+    {
+     "text": "每人参加其中3个项目．假设每人参加每个项目的可能性相同，则甲同学",
+     "page": 1,
+     "ref": "p1-l36"
+    },
+    {
+     "text": "参加“整地做畦”项目的概率为___；已知乙同学参加的3个项目中有“整",
+     "page": 1,
+     "ref": "p1-l37"
+    },
+    {
+     "text": "地做畦”，则他还参加“田间灌溉”项目的概率为___.",
+     "page": 1,
+     "ref": "p1-l38"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "某校组织学生参加农业实践活动，期间安排了劳动技能比赛，比赛共5个\n项目，分别为整地做畦、旱田播种、作物移栽、田间灌溉、藤架搭建，规定\n每人参加其中3个项目．假设每人参加每个项目的可能性相同，则甲同学\n参加“整地做畦”项目的概率为___；已知乙同学参加的3个项目中有“整\n地做畦”，则他还参加“田间灌溉”项目的概率为___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-014",
+   "number": 14,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知正方形 \\(ABCD\\) 的边长为 1, \\(\\overrightarrow{DE} = 2\\overrightarrow{EC}\\). 若 \\(\\overrightarrow{BE} = \\lambda\\overrightarrow{BA} + \\mu\\overrightarrow{BC}\\), 其",
+     "page": 1,
+     "ref": "p1-l39"
+    },
+    {
+     "text": "中 \\(\\lambda\\), \\(\\mu\\) 为实数, 则 \\(\\lambda + \\mu =\\) ___; 设 F 是线段 BE 上的动点, G 为线段",
+     "page": 1,
+     "ref": "p1-l41"
+    },
+    {
+     "text": "AF 的中点, 则 \\(\\overrightarrow{AF} \\cdot \\overrightarrow{DG}\\) 的最小值为___.",
+     "page": 1,
+     "ref": "p1-l42"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知正方形 \\(ABCD\\) 的边长为 1, \\(\\overrightarrow{DE} = 2\\overrightarrow{EC}\\). 若 \\(\\overrightarrow{BE} = \\lambda\\overrightarrow{BA} + \\mu\\overrightarrow{BC}\\), 其\n中 \\(\\lambda\\), \\(\\mu\\) 为实数, 则 \\(\\lambda + \\mu =\\) ___; 设 F 是线段 BE 上的动点, G 为线段\nAF 的中点, 则 \\(\\overrightarrow{AF} \\cdot \\overrightarrow{DG}\\) 的最小值为___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-015",
+   "number": 15,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "设 \\(a \\in \\mathbb{R}\\), 函数 \\(f(x) = 2\\sqrt{x^2 - ax} - |ax - 2| + 1\\). 若 \\(f(x)\\) 恰有一个零点,",
+     "page": 1,
+     "ref": "p1-l45"
+    },
+    {
+     "text": "则 a 的取值范围是 ___.",
+     "page": 1,
+     "ref": "p1-l46"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设 \\(a \\in \\mathbb{R}\\), 函数 \\(f(x) = 2\\sqrt{x^2 - ax} - |ax - 2| + 1\\). 若 \\(f(x)\\) 恰有一个零点,\n则 a 的取值范围是 ___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-016",
+   "number": 16,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "在 \\(\\triangle ABC\\) 中，角 A, B, C 所对的边分别为 a, b, c. 已知 \\(\\cos B = \\frac{9}{16}\\), \\(b = 5\\), \\(\\frac{a}{c} = \\frac{2}{3}\\).",
+     "page": 1,
+     "ref": "p1-l49"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求 \\(a\\) 的值;",
+     "refs": [
+      "p1-l52"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "求 \\(\\sin A\\) 的值;",
+     "refs": [
+      "p1-l54"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "求 \\(\\cos(B-2A)\\) 的值.",
+     "refs": [
+      "p1-l56"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在 \\(\\triangle ABC\\) 中，角 A, B, C 所对的边分别为 a, b, c. 已知 \\(\\cos B = \\frac{9}{16}\\), \\(b = 5\\), \\(\\frac{a}{c} = \\frac{2}{3}\\).",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-017",
+   "number": 17,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "如图，在四棱柱 \\(ABCD-A_1B_1C_1D_1\\) 中，\\(AA_1 \\perp\\) 平面 \\(ABCD\\)，\\(AB \\perp AD\\)，",
+     "page": 1,
+     "ref": "p1-l2"
+    },
+    {
+     "text": "AB // DC, \\(AB = AA_1 = 2\\), \\(AD = DC = 1\\), \\(M\\), \\(N\\) 分别为 \\(DD_1\\), \\(B_1C_1\\) 的",
+     "page": 1,
+     "ref": "p1-l5"
+    },
+    {
+     "text": "中点.",
+     "page": 1,
+     "ref": "p1-l6"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求证: \\(D_1N \\parallel\\) 平面 \\(CB_1M\\);",
+     "refs": [
+      "p1-l8"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "求平面 \\(CB_{1}M\\) 与平面 \\(BB_{1}C_{1}C\\) 夹角的余弦值;",
+     "refs": [
+      "p1-l9"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "求点 B 到平面 \\(CB_{1}M\\) 的距离.\n\\(A_1\\) ___ \\(D_1\\)\n\\(B_{1}\\)\nM\nD\nB",
+     "refs": [
+      "p1-l10",
+      "p1-l13",
+      "p1-l16",
+      "p1-l19",
+      "p1-l25",
+      "p1-l29"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p1-f6",
+     "page": 1,
+     "bbox_pt": [
+      1053.97,
+      170.64,
+      1132.39,
+      293.42
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 1.2
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "如图，在四棱柱 \\(ABCD-A_1B_1C_1D_1\\) 中，\\(AA_1 \\perp\\) 平面 \\(ABCD\\)，\\(AB \\perp AD\\)，\nAB // DC, \\(AB = AA_1 = 2\\), \\(AD = DC = 1\\), \\(M\\), \\(N\\) 分别为 \\(DD_1\\), \\(B_1C_1\\) 的\n中点.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-018",
+   "number": 18,
+   "section_id": "sec-03",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "已知椭圆 \\(\\frac{x^{2}}{a^{2}}+\\frac{y^{2}}{b^{2}}=1\\) (a > b > 0) 的离心率为 \\(\\frac{1}{2}\\). 左顶点为 A, 下顶点为",
+     "page": 2,
+     "ref": "p2-l1"
+    },
+    {
+     "text": "B, 点 C 为线段 OB 的中点 (O 为原点), \\(\\triangle ABC\\) 的面积为 \\(\\frac{3\\sqrt{3}}{2}\\).",
+     "page": 2,
+     "ref": "p2-l6"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求椭圆的方程;",
+     "refs": [
+      "p2-l11"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "过点 C 的动直线与椭圆相交于 P, Q 两点. 在 y 轴上是否存在点 T,\n使得 \\(\\overrightarrow{TP} \\cdot \\overrightarrow{TQ} \\leq 0\\) 恒成立？若存在，求出点 \\(T\\) 纵坐标的取值范围；若不存\n在，请说明理由.",
+     "refs": [
+      "p2-l12",
+      "p2-l13",
+      "p2-l16"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知椭圆 \\(\\frac{x^{2}}{a^{2}}+\\frac{y^{2}}{b^{2}}=1\\) (a > b > 0) 的离心率为 \\(\\frac{1}{2}\\). 左顶点为 A, 下顶点为\nB, 点 C 为线段 OB 的中点 (O 为原点), \\(\\triangle ABC\\) 的面积为 \\(\\frac{3\\sqrt{3}}{2}\\).",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-019",
+   "number": 19,
+   "section_id": "sec-03",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "已知 \\(\\{a_n\\}\\) 为公比大于 0 的等比数列，其前 \\(n\\) 项和为 \\(S_n\\)，且 \\(a_1 = 1\\)，",
+     "page": 2,
+     "ref": "p2-l2"
+    },
+    {
+     "text": "\\(S_{2} = a_{3} - 1.\\)",
+     "page": 2,
+     "ref": "p2-l5"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求 \\(\\{a_{n}\\}\\) 的通项公式及 \\(S_{n}\\);",
+     "refs": [
+      "p2-l7"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "设数列 \\(\\{b_n\\}\\) 满足 \\(b_n = \\begin{cases} k, & n = a_k, \\\\ b_{n-1} + 2k, & a_k < n < a_{k+1}, \\end{cases}\\) 其中 \\(k \\in \\mathbb{N}^*\\).\n① 求证: 当 \\(n = a_{k+1}\\) (\\(k \\in \\mathbb{N}^*\\), 且 \\(k > 1\\)) 时, \\(b_{n-1} \\geq a_k b_n\\);\n\\(S_n\\)\n② 求 \\(\\sum b_{i}\\).\ni=1",
+     "refs": [
+      "p2-l10",
+      "p2-l14",
+      "p2-l15",
+      "p2-l17",
+      "p2-l18"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知 \\(\\{a_n\\}\\) 为公比大于 0 的等比数列，其前 \\(n\\) 项和为 \\(S_n\\)，且 \\(a_1 = 1\\)，\n\\(S_{2} = a_{3} - 1.\\)",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-020",
+   "number": 20,
+   "section_id": "sec-03",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x) = x \\ln x\\).",
+     "page": 2,
+     "ref": "p2-l3"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求曲线 \\( y = f(x) \\) 在点 (1, \\( f(1) \\)) 处的切线方程;",
+     "refs": [
+      "p2-l4"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "若 \\(f(x) \\geqslant a(x - \\sqrt{x})\\) 对任意 \\(x \\in (0, +\\infty)\\) 成立，求实数 \\(a\\) 的值；",
+     "refs": [
+      "p2-l8"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "若 \\(x_1, x_2 \\in (0,1)\\)，求证：\\(|f(x_1) - f(x_2)| \\leqslant |x_1 - x_2|^{\\frac{1}{2}}\\)。",
+     "refs": [
+      "p2-l9"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x) = x \\ln x\\).",
+   "option_mode": "text"
+  }
+ ],
+ "front_matter": [
+  {
+   "text": "2024 普通高等学校招生考试 (天津卷)",
+   "page": 1,
+   "ref": "p1-l3",
+   "reason": "before_first_question"
+  }
+ ],
+ "unassigned": {
+  "figures": [],
+  "tables": [],
+  "lines": []
+ },
+ "stats": {
+  "sections": 3,
+  "questions": 20,
+  "front_matter_lines": 1,
+  "figures_assigned": 6,
+  "figures_unassigned": 0,
+  "tables_assigned": 0,
+  "tables_unassigned": 0,
+  "questions_cross_page": 0,
+  "options": 36,
+  "subquestions": 13
+ }
+}

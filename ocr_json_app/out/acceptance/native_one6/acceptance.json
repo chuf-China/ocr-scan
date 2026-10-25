@@ -1,0 +1,69 @@
+{
+ "generated_at": "2026-10-25T11:57:46",
+ "elapsed_s": 6.0,
+ "thresholds": {
+  "coverage": 0.99,
+  "formula": 0.95,
+  "table": 0.9,
+  "manual_per_page": 1.0
+ },
+ "summary": {
+  "exams": 1,
+  "passed": 0,
+  "failed": 1,
+  "mean_coverage": 1.0,
+  "mean_formula_pass_rate": 1.0,
+  "mean_table_fill_rate": 1.0,
+  "mean_manual_per_page": 0.5,
+  "mean_native_ratio": 0.3846,
+  "mean_style_ratio": 1.0,
+  "total_garbled_lines": 0,
+  "total_questions": 22,
+  "total_options": 46,
+  "total_figures": 2
+ },
+ "exams": [
+  {
+   "input": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\native_one6\\2023新高考1卷_cb7d40.json",
+   "layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\native_one6\\2023新高考1卷_cb7d40.json",
+   "exam": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\native_one6\\2023新高考1卷_cb7d40_ceecdb.exam.json",
+   "quality": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\native_one6\\2023新高考1卷_cb7d40_ceecdb.quality.json",
+   "metrics": {
+    "pages": 2,
+    "lines": 91,
+    "questions": 22,
+    "figures": 2,
+    "sections": 4,
+    "choice_questions": 12,
+    "options_expected": 48,
+    "options_actual": 46,
+    "options_complete": false,
+    "formula_count": 140,
+    "formula_broken": 0,
+    "formula_pass_rate": 1.0,
+    "table_cells": 12,
+    "table_filled": 12,
+    "table_fill_rate": 1.0,
+    "coverage": 1.0,
+    "native_text_lines": 35,
+    "native_ratio": 0.38461538461538464,
+    "native_fast_lines": 36,
+    "styled_lines": 91,
+    "style_ratio": 1.0,
+    "font_count": 13,
+    "garbled_lines": 0,
+    "manual_actions": 1,
+    "manual_per_page": 0.5,
+    "quality_status": "fail",
+    "errors": 1,
+    "warnings": 2
+   },
+   "failures": [
+    "exam_check",
+    "quality_error",
+    "options"
+   ],
+   "pass": false
+  }
+ ]
+}

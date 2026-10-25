@@ -1,0 +1,89 @@
+{
+ "generated_at": "2026-10-25T05:30:17",
+ "elapsed_s": 19.5,
+ "thresholds": {
+  "coverage": 0.99,
+  "formula": 0.95,
+  "table": 0.9,
+  "manual_per_page": 1.0
+ },
+ "summary": {
+  "exams": 2,
+  "passed": 1,
+  "failed": 1,
+  "mean_coverage": 0.9926,
+  "mean_formula_pass_rate": 1.0,
+  "mean_table_fill_rate": 1.0,
+  "mean_manual_per_page": 1.0,
+  "total_questions": 40,
+  "total_options": 40,
+  "total_figures": 7
+ },
+ "exams": [
+  {
+   "input": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe6\\2023新高考2_辽宁_重庆_海南_安徽_吉林_黑龙江_山西_云南_eb31a6.json",
+   "layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe6\\2023新高考2_辽宁_重庆_海南_安徽_吉林_黑龙江_山西_云南_eb31a6.json",
+   "exam": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe6\\2023新高考2_辽宁_重庆_海南_安徽_吉林_黑龙江_山西_云南_eb31a6_c4c2ab.exam.json",
+   "quality": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe6\\2023新高考2_辽宁_重庆_海南_安徽_吉林_黑龙江_山西_云南_eb31a6_c4c2ab.quality.json",
+   "metrics": {
+    "pages": 2,
+    "lines": 90,
+    "questions": 21,
+    "figures": 4,
+    "sections": 4,
+    "choice_questions": 0,
+    "options_expected": 0,
+    "options_actual": 0,
+    "options_complete": true,
+    "formula_count": 137,
+    "formula_broken": 0,
+    "formula_pass_rate": 1.0,
+    "table_cells": 0,
+    "table_filled": 0,
+    "table_fill_rate": 1.0,
+    "coverage": 0.98701,
+    "manual_actions": 3,
+    "manual_per_page": 1.5,
+    "quality_status": "fail",
+    "errors": 1,
+    "warnings": 2
+   },
+   "failures": [
+    "coverage",
+    "manual_actions"
+   ],
+   "pass": false
+  },
+  {
+   "input": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe6\\2024北京_075b62.json",
+   "layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe6\\2024北京_075b62.json",
+   "exam": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe6\\2024北京_075b62_d5af15.exam.json",
+   "quality": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe6\\2024北京_075b62_d5af15.quality.json",
+   "metrics": {
+    "pages": 2,
+    "lines": 106,
+    "questions": 19,
+    "figures": 3,
+    "sections": 3,
+    "choice_questions": 10,
+    "options_expected": 40,
+    "options_actual": 40,
+    "options_complete": true,
+    "formula_count": 150,
+    "formula_broken": 0,
+    "formula_pass_rate": 1.0,
+    "table_cells": 12,
+    "table_filled": 12,
+    "table_fill_rate": 1.0,
+    "coverage": 0.99816,
+    "manual_actions": 1,
+    "manual_per_page": 0.5,
+    "quality_status": "warn",
+    "errors": 0,
+    "warnings": 1
+   },
+   "failures": [],
+   "pass": true
+  }
+ ]
+}

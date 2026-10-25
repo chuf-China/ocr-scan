@@ -1,0 +1,976 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2025上海",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\corpus\\2025上海.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\final24\\2025上海_b68387.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T05:51:39+0800"
+ },
+ "sections": [
+  {
+   "id": "sec-01",
+   "label": "一",
+   "title": "填空题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-001",
+    "q-002",
+    "q-003",
+    "q-004",
+    "q-005",
+    "q-006",
+    "q-007",
+    "q-008",
+    "q-009",
+    "q-010",
+    "q-011",
+    "q-012"
+   ]
+  },
+  {
+   "id": "sec-02",
+   "label": "二",
+   "title": "选择题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-013",
+    "q-014",
+    "q-015",
+    "q-016"
+   ]
+  },
+  {
+   "id": "sec-03",
+   "label": "三",
+   "title": "解答题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-017",
+    "q-018",
+    "q-019",
+    "q-020",
+    "q-021"
+   ]
+  }
+ ],
+ "questions": [
+  {
+   "id": "q-001",
+   "number": 1,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知全集 \\(U = \\{x \\mid 2 \\leqslant x \\leqslant 5, x \\in \\mathbf{R}\\}\\)，若集合 \\(A = \\{x \\mid 2 \\leqslant x < 4, x \\in\\)",
+     "page": 1,
+     "ref": "p1-l12"
+    },
+    {
+     "text": "R}, 则 \\(\\overline{A} = \\) ___.",
+     "page": 1,
+     "ref": "p1-l13"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知全集 \\(U = \\{x \\mid 2 \\leqslant x \\leqslant 5, x \\in \\mathbf{R}\\}\\)，若集合 \\(A = \\{x \\mid 2 \\leqslant x < 4, x \\in\\)\nR}, 则 \\(\\overline{A} = \\) ___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-002",
+   "number": 2,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "设 \\(x \\in \\mathbb{R}\\), 不等式 \\(\\frac{x-1}{x-3} < 0\\) 的解集为___.",
+     "page": 1,
+     "ref": "p1-l15"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设 \\(x \\in \\mathbb{R}\\), 不等式 \\(\\frac{x-1}{x-3} < 0\\) 的解集为___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-003",
+   "number": 3,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "若等差数列 \\(\\{a_n\\}\\) 的首项 \\(a_1 = -3\\)，公差 \\(d = 2\\)，则该数列的前 6 项的和",
+     "page": 1,
+     "ref": "p1-l17"
+    },
+    {
+     "text": "为___.",
+     "page": 1,
+     "ref": "p1-l19"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "若等差数列 \\(\\{a_n\\}\\) 的首项 \\(a_1 = -3\\)，公差 \\(d = 2\\)，则该数列的前 6 项的和\n为___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-004",
+   "number": 4,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "在 \\((2x-1)^{5}\\) 的二项展开式中, \\(x^{3}\\) 项的系数为 ___.",
+     "page": 1,
+     "ref": "p1-l21"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在 \\((2x-1)^{5}\\) 的二项展开式中, \\(x^{3}\\) 项的系数为 ___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-005",
+   "number": 5,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "函数 \\( y = \\cos x \\), \\( x \\in \\left[ -\\frac{\\pi}{2}, \\frac{\\pi}{4} \\right] \\) 的值域为___。",
+     "page": 1,
+     "ref": "p1-l23"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "函数 \\( y = \\cos x \\), \\( x \\in \\left[ -\\frac{\\pi}{2}, \\frac{\\pi}{4} \\right] \\) 的值域为___。",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-006",
+   "number": 6,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "若随机变量 X 的分布为 \\(\\begin{pmatrix} 5 & 6 & 7 \\\\ 0.2 & 0.3 & 0.5 \\end{pmatrix}\\)，则期望 \\(E(X) =\\) ___.",
+     "page": 1,
+     "ref": "p1-l26"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "若随机变量 X 的分布为 \\(\\begin{pmatrix} 5 & 6 & 7 \\\\ 0.2 & 0.3 & 0.5 \\end{pmatrix}\\)，则期望 \\(E(X) =\\) ___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-007",
+   "number": 7,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "在正四棱柱 \\(ABCD-A_1B_1C_1D_1\\) 中, 若 \\(AC = 4\\sqrt{2}\\), \\(BD_1 = 9\\), 则其体积",
+     "page": 1,
+     "ref": "p1-l29"
+    },
+    {
+     "text": "为___.",
+     "page": 1,
+     "ref": "p1-l31"
+    },
+    {
+     "text": "\\(D_{1}\\) ___ \\(C_{1}\\)",
+     "page": 1,
+     "ref": "p1-l33"
+    },
+    {
+     "text": "\\(A_{1}\\)",
+     "page": 1,
+     "ref": "p1-l35"
+    },
+    {
+     "text": "C",
+     "page": 1,
+     "ref": "p1-l38"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [
+    {
+     "ref": "p1-f2",
+     "page": 1,
+     "bbox_pt": [
+      210.07,
+      384.91,
+      263.25,
+      466.0
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 0.91
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在正四棱柱 \\(ABCD-A_1B_1C_1D_1\\) 中, 若 \\(AC = 4\\sqrt{2}\\), \\(BD_1 = 9\\), 则其体积\n为___.\n\\(D_{1}\\) ___ \\(C_{1}\\)\n\\(A_{1}\\)\nC",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-008",
+   "number": 8,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "设 \\(a\\)、\\(b > 0\\)，若 \\(a + \\frac{1}{b} = 1\\)，则 \\(b + \\frac{1}{a}\\) 的最小值为___。",
+     "page": 1,
+     "ref": "p1-l41"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设 \\(a\\)、\\(b > 0\\)，若 \\(a + \\frac{1}{b} = 1\\)，则 \\(b + \\frac{1}{a}\\) 的最小值为___。",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-009",
+   "number": 9,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "有 4 名家长和 2 名儿童去郊游爬山. 若 6 个人要排成一队列, 要求队列的",
+     "page": 1,
+     "ref": "p1-l42"
+    },
+    {
+     "text": "首和尾均是家长，则不同的排列方式共有___种.",
+     "page": 1,
+     "ref": "p1-l44"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "有 4 名家长和 2 名儿童去郊游爬山. 若 6 个人要排成一队列, 要求队列的\n首和尾均是家长，则不同的排列方式共有___种.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-010",
+   "number": 10,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "i 为虚数单位, 若复数 z 满足 \\(z^2 = (\\overline{z})^2\\), 且 \\(|z| \\leq 1\\), 则 \\(|z - 2 - 3i|\\) 的最小",
+     "page": 1,
+     "ref": "p1-l46"
+    },
+    {
+     "text": "值为___.",
+     "page": 1,
+     "ref": "p1-l48"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "i 为虚数单位, 若复数 z 满足 \\(z^2 = (\\overline{z})^2\\), 且 \\(|z| \\leq 1\\), 则 \\(|z - 2 - 3i|\\) 的最小\n值为___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-011",
+   "number": 11,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "小申同学观察发现，生活中有时候影子可以完全投射在斜面上．某斜面上",
+     "page": 1,
+     "ref": "p1-l51"
+    },
+    {
+     "text": "有两根长为 1 米且垂直于水平面放置的杆子，与斜面的接触点分别为 A、",
+     "page": 1,
+     "ref": "p1-l52"
+    },
+    {
+     "text": "B, 它们在阳光的照射下呈现出影子, 阳光可视为平行光, 其中 A 处杆子",
+     "page": 1,
+     "ref": "p1-l53"
+    },
+    {
+     "text": "的影子在水平面上，长度为 0.4 米，B 处杆子的影子完全在斜面上，长度为",
+     "page": 1,
+     "ref": "p1-l54"
+    },
+    {
+     "text": "0.45 米. 则斜面的坡角 \\(\\theta = \\) ___. (结果精确到 0.01°)",
+     "page": 1,
+     "ref": "p1-l55"
+    },
+    {
+     "text": "A",
+     "page": 1,
+     "ref": "p1-l56"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [
+    {
+     "ref": "p1-f3",
+     "page": 1,
+     "bbox_pt": [
+      156.53,
+      687.99,
+      315.27,
+      771.69
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 2.55
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "小申同学观察发现，生活中有时候影子可以完全投射在斜面上．某斜面上\n有两根长为 1 米且垂直于水平面放置的杆子，与斜面的接触点分别为 A、\nB, 它们在阳光的照射下呈现出影子, 阳光可视为平行光, 其中 A 处杆子\n的影子在水平面上，长度为 0.4 米，B 处杆子的影子完全在斜面上，长度为\n0.45 米. 则斜面的坡角 \\(\\theta = \\) ___. (结果精确到 0.01°)\nA",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-012",
+   "number": 12,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知 \\(f(x)=\\begin{cases}1,&x>0,\\\\0,&x=0,\\\\-1,&x<0,\\end{cases}\\) 向量 \\(\\boldsymbol{a},\\boldsymbol{b},\\boldsymbol{c}\\) 是平面内三个不同的单位向量，",
+     "page": 1,
+     "ref": "p1-l1"
+    },
+    {
+     "text": "若 \\(f(a \\cdot b) + f(b \\cdot c) + f(c \\cdot a) = 0\\)，则 \\(|a + b + c|\\) 的取值范围是___。",
+     "page": 1,
+     "ref": "p1-l6"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知 \\(f(x)=\\begin{cases}1,&x>0,\\\\0,&x=0,\\\\-1,&x<0,\\end{cases}\\) 向量 \\(\\boldsymbol{a},\\boldsymbol{b},\\boldsymbol{c}\\) 是平面内三个不同的单位向量，\n若 \\(f(a \\cdot b) + f(b \\cdot c) + f(c \\cdot a) = 0\\)，则 \\(|a + b + c|\\) 的取值范围是___。",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-013",
+   "number": 13,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知事件 \\(A\\)、\\(B\\) 相互独立, 若 \\(P(A) = P(B) = \\frac{1}{2}\\), 则 \\(P(A \\cap B)\\) 的值为()",
+     "page": 1,
+     "ref": "p1-l11"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-013-opt-A",
+     "label": "A",
+     "text": "0",
+     "refs": [
+      "p1-l14"
+     ]
+    },
+    {
+     "id": "q-013-opt-B",
+     "label": "B",
+     "text": "\\(\\frac{1}{4}\\)",
+     "refs": [
+      "p1-l14"
+     ]
+    },
+    {
+     "id": "q-013-opt-C",
+     "label": "C",
+     "text": "\\(\\frac{1}{2}\\)",
+     "refs": [
+      "p1-l14"
+     ]
+    },
+    {
+     "id": "q-013-opt-D",
+     "label": "D",
+     "text": "1",
+     "refs": [
+      "p1-l14"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知事件 \\(A\\)、\\(B\\) 相互独立, 若 \\(P(A) = P(B) = \\frac{1}{2}\\), 则 \\(P(A \\cap B)\\) 的值为()",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-014",
+   "number": 14,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知 \\(a > 0\\) 且 \\(a \\neq 1\\), \\(s \\in \\mathbb{R}\\), 下列各项中, 能推出 \\(a^s > a\\) 的是 ( )",
+     "page": 1,
+     "ref": "p1-l16"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-014-opt-A",
+     "label": "A",
+     "text": "a > 1, s > 0",
+     "refs": [
+      "p1-l18"
+     ]
+    },
+    {
+     "id": "q-014-opt-B",
+     "label": "B",
+     "text": "a > 1, s < 0",
+     "refs": [
+      "p1-l18"
+     ]
+    },
+    {
+     "id": "q-014-opt-C",
+     "label": "C",
+     "text": "0 < a < 1, s > 0",
+     "refs": [
+      "p1-l20"
+     ]
+    },
+    {
+     "id": "q-014-opt-D",
+     "label": "D",
+     "text": "0 < a < 1, s < 0",
+     "refs": [
+      "p1-l20"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知 \\(a > 0\\) 且 \\(a \\neq 1\\), \\(s \\in \\mathbb{R}\\), 下列各项中, 能推出 \\(a^s > a\\) 的是 ( )",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-015",
+   "number": 15,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知点 \\(A(0,1)\\), \\(B(1,2)\\), 若动点 \\(C\\) 在曲线 \\(x^2 - y^2 = 1\\) (\\(x \\geq 1\\), \\(y \\geq 0\\)) 上,",
+     "page": 1,
+     "ref": "p1-l22"
+    },
+    {
+     "text": "则 \\(\\triangle ABC\\) 的面积 （）",
+     "page": 1,
+     "ref": "p1-l24"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-015-opt-A",
+     "label": "A",
+     "text": "有最大值, 无最小值",
+     "refs": [
+      "p1-l25"
+     ]
+    },
+    {
+     "id": "q-015-opt-B",
+     "label": "B",
+     "text": "无最大值, 有最小值",
+     "refs": [
+      "p1-l25"
+     ]
+    },
+    {
+     "id": "q-015-opt-C",
+     "label": "C",
+     "text": "有最大值, 有最小值",
+     "refs": [
+      "p1-l27"
+     ]
+    },
+    {
+     "id": "q-015-opt-D",
+     "label": "D",
+     "text": "无最大值, 无最小值",
+     "refs": [
+      "p1-l27"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知点 \\(A(0,1)\\), \\(B(1,2)\\), 若动点 \\(C\\) 在曲线 \\(x^2 - y^2 = 1\\) (\\(x \\geq 1\\), \\(y \\geq 0\\)) 上,\n则 \\(\\triangle ABC\\) 的面积 （）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-016",
+   "number": 16,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "设 \\(\\lambda \\in \\mathbb{R}\\)，数列 \\(\\{a_n\\}\\)，\\(\\{b_n\\}\\)，\\(\\{c_n\\}\\) 满足 \\(a_n = 10n - 9\\)，\\(b_n = 2^n\\)，",
+     "page": 1,
+     "ref": "p1-l28"
+    },
+    {
+     "text": "\\(c_n = \\lambda a_n + (1 - \\lambda) b_n\\). 若对任意的 \\(\\lambda \\in [0,1]\\), \\(a_n\\), \\(b_n\\), \\(c_n\\) 均能作为三角",
+     "page": 1,
+     "ref": "p1-l30"
+    },
+    {
+     "text": "形的三边长，则满足条件的正整数 n 有 （）",
+     "page": 1,
+     "ref": "p1-l32"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-016-opt-A",
+     "label": "A",
+     "text": "1 个",
+     "refs": [
+      "p1-l34"
+     ]
+    },
+    {
+     "id": "q-016-opt-B",
+     "label": "B",
+     "text": "3 个",
+     "refs": [
+      "p1-l34"
+     ]
+    },
+    {
+     "id": "q-016-opt-C",
+     "label": "C",
+     "text": "4 个",
+     "refs": [
+      "p1-l34"
+     ]
+    },
+    {
+     "id": "q-016-opt-D",
+     "label": "D",
+     "text": "无穷多个",
+     "refs": [
+      "p1-l34"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设 \\(\\lambda \\in \\mathbb{R}\\)，数列 \\(\\{a_n\\}\\)，\\(\\{b_n\\}\\)，\\(\\{c_n\\}\\) 满足 \\(a_n = 10n - 9\\)，\\(b_n = 2^n\\)，\n\\(c_n = \\lambda a_n + (1 - \\lambda) b_n\\). 若对任意的 \\(\\lambda \\in [0,1]\\), \\(a_n\\), \\(b_n\\), \\(c_n\\) 均能作为三角\n形的三边长，则满足条件的正整数 n 有 （）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-017",
+   "number": 17,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "2024 年东京奥运会，中国获得了男子 \\(4 \\times 100\\) 米混合泳接力金牌，以下是",
+     "page": 1,
+     "ref": "p1-l37"
+    },
+    {
+     "text": "历届奥运会男子 \\(4 \\times 100\\) 米混合泳接力项目冠军成绩（单位：秒），数据按照",
+     "page": 1,
+     "ref": "p1-l39"
+    },
+    {
+     "text": "升序排列.",
+     "page": 1,
+     "ref": "p1-l40"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求这组数据的极差与中位数；",
+     "refs": [
+      "p1-l43"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "从这 10 个数据中任选 3 个，求恰有 2 个数据大于 211 的概率；",
+     "refs": [
+      "p1-l45"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "若比赛成绩 y 关于年份 x 的回归方程为 \\(y = -0.311x + \\hat{b}\\)，年份 x 的平\n均数为 2006，请预测 2028 年男子 \\(4 \\times 100\\) 米混合泳接力项目冠军队的成\n绩. (结果精确到 0.01 秒)",
+     "refs": [
+      "p1-l47",
+      "p1-l49",
+      "p1-l50"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p1-f1",
+     "page": 1,
+     "bbox_pt": [
+      501.46,
+      486.22,
+      713.56,
+      520.78
+     ],
+     "source": "table-grid",
+     "distance_pt": 10.58
+    }
+   ],
+   "tables": [
+    {
+     "ref": "p1-t1",
+     "page": 1,
+     "bbox_pt": [
+      503.92,
+      488.17,
+      711.54,
+      518.81
+     ],
+     "headers": [
+      "206.78",
+      "207.46",
+      "207.95",
+      "209.34",
+      "209.35"
+     ],
+     "rows": [
+      [
+       "210.68",
+       "213.73",
+       "214.84",
+       "216.93",
+       "216.93"
+      ]
+     ],
+     "rows_count": 2,
+     "cols_count": 5,
+     "source": "pdf-table-cells",
+     "distance_pt": 12.55
+    }
+   ],
+   "cross_page": false,
+   "stem_text": "2024 年东京奥运会，中国获得了男子 \\(4 \\times 100\\) 米混合泳接力金牌，以下是\n历届奥运会男子 \\(4 \\times 100\\) 米混合泳接力项目冠军成绩（单位：秒），数据按照\n升序排列.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-018",
+   "number": 18,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "如图，点 P 是圆锥的顶点，点 O 是底面圆心，底面直径 AB = 2.",
+     "page": 1,
+     "ref": "p1-l2"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "若直线 PA 与圆锥底面所成角为 \\(\\frac{\\pi}{3}\\)，求圆锥的侧面积；",
+     "refs": [
+      "p1-l3"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "若 Q 是母线 PA 的中点, 点 C、D 在底面圆周上, AC 弧长为 \\(\\frac{\\pi}{3}\\),\nCD // AB, 点 T 在线段 OC 上, 求证: 直线 QT // 平面 PBD.\nP",
+     "refs": [
+      "p1-l5",
+      "p1-l7",
+      "p1-l9"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p1-f4",
+     "page": 1,
+     "bbox_pt": [
+      1016.24,
+      147.01,
+      1133.31,
+      260.9
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 3.97
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "如图，点 P 是圆锥的顶点，点 O 是底面圆心，底面直径 AB = 2.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-019",
+   "number": 19,
+   "section_id": "sec-03",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "设 \\( m \\in \\mathbf{R} \\), \\( f(x) = x^2 - (m+2)x + m \\ln x \\).",
+     "page": 2,
+     "ref": "p2-l2"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "若 \\(f(1)=0\\), 求不等式 \\(f(x)\\leq x^{2}-1\\) 的解集;",
+     "refs": [
+      "p2-l4"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "若 \\( y = f(x) \\) 在区间 \\( (0, +\\infty) \\) 上存在极大值，求 m 的取值范围.",
+     "refs": [
+      "p2-l7"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设 \\( m \\in \\mathbf{R} \\), \\( f(x) = x^2 - (m+2)x + m \\ln x \\).",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-020",
+   "number": 20,
+   "section_id": "sec-03",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "设椭圆 \\(\\Gamma\\): \\(\\frac{x^{2}}{a^{2}} + \\frac{y^{2}}{5} = 1\\) (\\(a > \\sqrt{5}\\)), 点 A 为 \\(\\Gamma\\) 的右顶点, 点 \\(M(0, m)\\) (\\(m > 0\\)).",
+     "page": 2,
+     "ref": "p2-l1"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "若 \\(\\Gamma\\) 的一个焦点是 \\((2,0)\\)，求 \\(\\Gamma\\) 的离心率；",
+     "refs": [
+      "p2-l8"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "设 \\(a = 4\\)，椭圆 \\(\\Gamma\\) 上存在一点 \\(P\\) 满足 \\(\\overrightarrow{PA} = 2\\overrightarrow{MP}\\)，求 \\(m\\) 的值；",
+     "refs": [
+      "p2-l9"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "若线段 \\(AM\\) 的中垂线 \\(l\\) 的斜率为 2, \\(l\\) 与椭圆 \\(\\Gamma\\) 交于 \\(C\\)、\\(D\\) 两点, 且\n\\(\\angle CMD\\) 为钝角，求 a 的取值范围.",
+     "refs": [
+      "p2-l11",
+      "p2-l13"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设椭圆 \\(\\Gamma\\): \\(\\frac{x^{2}}{a^{2}} + \\frac{y^{2}}{5} = 1\\) (\\(a > \\sqrt{5}\\)), 点 A 为 \\(\\Gamma\\) 的右顶点, 点 \\(M(0, m)\\) (\\(m > 0\\)).",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-021",
+   "number": 21,
+   "section_id": "sec-03",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\( y = f(x) \\) 的定义域为 \\(\\mathbb{R}\\)，对于正实数 \\(a\\)，定义集合 \\(M_a =\\)",
+     "page": 2,
+     "ref": "p2-l3"
+    },
+    {
+     "text": "\\(\\{x \\mid f(x + a) = f(x), \\, x \\in \\mathbb{R}\\}.\\)",
+     "page": 2,
+     "ref": "p2-l5"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "设 \\(f(x) = \\sin x\\)，判断 \\(\\frac{\\pi}{3}\\) 是否是 \\(M_\\pi\\) 中的元素，并说明理由；",
+     "refs": [
+      "p2-l6"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "设 \\(f(x)=\\begin{cases}x+2,&x<0,\\\\\\sqrt{x},&x\\geqslant0,\\end{cases}\\) 且 \\(M_a\\neq\\varnothing\\)，求 \\(a\\) 的取值范围；",
+     "refs": [
+      "p2-l10"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "若 \\( y = f(x) \\) 是偶函数, 当 \\( x \\in (0,1] \\) 时, \\( f(x) = 1 - x \\), 且对任意\n\\(a \\in (0,2)\\), 均有 \\(M_a \\subseteq M_2\\). 写出当 \\(x \\in (1,2)\\) 时 \\(f(x)\\) 的表达式, 并证明:\n对任意实数 c, 函数 \\(y = f(x) - c\\) 在区间 \\([-3, 3]\\) 上至多有 9 个零点.",
+     "refs": [
+      "p2-l12",
+      "p2-l14",
+      "p2-l15"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\( y = f(x) \\) 的定义域为 \\(\\mathbb{R}\\)，对于正实数 \\(a\\)，定义集合 \\(M_a =\\)\n\\(\\{x \\mid f(x + a) = f(x), \\, x \\in \\mathbb{R}\\}.\\)",
+   "option_mode": "text"
+  }
+ ],
+ "front_matter": [
+  {
+   "text": "2025 普通高等学校招生考试（上海卷）",
+   "page": 1,
+   "ref": "p1-l4",
+   "reason": "before_first_question"
+  }
+ ],
+ "unassigned": {
+  "figures": [],
+  "tables": [],
+  "lines": []
+ },
+ "stats": {
+  "sections": 3,
+  "questions": 21,
+  "front_matter_lines": 1,
+  "figures_assigned": 4,
+  "figures_unassigned": 0,
+  "tables_assigned": 1,
+  "tables_unassigned": 0,
+  "questions_cross_page": 0,
+  "options": 16,
+  "subquestions": 13
+ }
+}

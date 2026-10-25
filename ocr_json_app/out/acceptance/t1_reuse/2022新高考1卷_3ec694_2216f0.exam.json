@@ -1,0 +1,1564 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2022新高考1卷",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\new3\\2022新高考1卷.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\native_final3\\2022新高考1卷_3ec694.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T12:02:02+0800"
+ },
+ "sections": [
+  {
+   "id": "sec-01",
+   "label": "一",
+   "title": "单选题 p",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-001",
+    "q-002",
+    "q-003",
+    "q-004",
+    "q-005",
+    "q-006",
+    "q-007",
+    "q-008"
+   ]
+  },
+  {
+   "id": "sec-02",
+   "label": "二",
+   "title": "多选题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-009",
+    "q-010",
+    "q-011",
+    "q-012"
+   ]
+  },
+  {
+   "id": "sec-03",
+   "label": "三",
+   "title": "填空题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-013",
+    "q-014",
+    "q-015",
+    "q-016"
+   ]
+  },
+  {
+   "id": "sec-04",
+   "label": "四",
+   "title": "解答题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-017",
+    "q-018",
+    "q-019",
+    "q-020",
+    "q-021",
+    "q-022"
+   ]
+  }
+ ],
+ "questions": [
+  {
+   "id": "q-001",
+   "number": 1,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "若集合 \\(M = \\{x \\mid \\sqrt{x} < 4\\}\\), \\(N = \\{x \\mid 3x \\geqslant 1\\}\\), 则 \\(M \\cap N =\\) （）",
+     "page": 1,
+     "ref": "p1-l13"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-001-opt-A",
+     "label": "A",
+     "text": "\\(\\{x \\mid 0 \\leqslant x < 2\\}\\)",
+     "refs": [
+      "p1-l15"
+     ],
+     "region_refs": [
+      "p1-r15"
+     ]
+    },
+    {
+     "id": "q-001-opt-B",
+     "label": "B",
+     "text": "\\(\\left\\{x \\mid \\frac{1}{3} \\leqslant x < 2\\right\\}\\)",
+     "refs": [
+      "p1-l15"
+     ],
+     "region_refs": [
+      "p1-r15"
+     ]
+    },
+    {
+     "id": "q-001-opt-C",
+     "label": "C",
+     "text": "\\(\\{x \\mid 3 \\leqslant x < 16\\}\\)",
+     "refs": [
+      "p1-l18"
+     ],
+     "region_refs": [
+      "p1-r18"
+     ]
+    },
+    {
+     "id": "q-001-opt-D",
+     "label": "D",
+     "text": "\\(\\left\\{x \\mid \\frac{1}{3} \\leqslant x < 16\\right\\}\\)",
+     "refs": [
+      "p1-l18"
+     ],
+     "region_refs": [
+      "p1-r18"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "若集合 \\(M = \\{x \\mid \\sqrt{x} < 4\\}\\), \\(N = \\{x \\mid 3x \\geqslant 1\\}\\), 则 \\(M \\cap N =\\) （）",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r13",
+    "p1-r15",
+    "p1-r18"
+   ]
+  },
+  {
+   "id": "q-002",
+   "number": 2,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "若 i(1 - z) = 1, 则 \\(z + \\overline{z} =\\) ()",
+     "page": 1,
+     "ref": "p1-l20"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-002-opt-A",
+     "label": "A",
+     "text": "-2",
+     "refs": [
+      "p1-l23"
+     ],
+     "region_refs": [
+      "p1-r23"
+     ]
+    },
+    {
+     "id": "q-002-opt-B",
+     "label": "B",
+     "text": "-1",
+     "refs": [
+      "p1-l23"
+     ],
+     "region_refs": [
+      "p1-r23"
+     ]
+    },
+    {
+     "id": "q-002-opt-C",
+     "label": "C",
+     "text": "1",
+     "refs": [
+      "p1-l23"
+     ],
+     "region_refs": [
+      "p1-r23"
+     ]
+    },
+    {
+     "id": "q-002-opt-D",
+     "label": "D",
+     "text": "2",
+     "refs": [
+      "p1-l23"
+     ],
+     "region_refs": [
+      "p1-r23"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "若 i(1 - z) = 1, 则 \\(z + \\overline{z} =\\) ()",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r20",
+    "p1-r23"
+   ]
+  },
+  {
+   "id": "q-003",
+   "number": 3,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "在 \\(\\triangle ABC\\) 中, 点 \\(D\\) 在边 \\(AB\\) 上, \\(BD = 2DA\\). 记 \\(\\overrightarrow{CA} = m\\), \\(\\overrightarrow{CD} = n\\), 则",
+     "page": 1,
+     "ref": "p1-l24"
+    },
+    {
+     "text": "\\(\\overrightarrow{CB} =\\) ( )",
+     "page": 1,
+     "ref": "p1-l26"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-003-opt-A",
+     "label": "A",
+     "text": "\\(3m - 2n\\)",
+     "refs": [
+      "p1-l27"
+     ],
+     "region_refs": [
+      "p1-r27"
+     ]
+    },
+    {
+     "id": "q-003-opt-B",
+     "label": "B",
+     "text": "\\(-2m + 3n\\)",
+     "refs": [
+      "p1-l27"
+     ],
+     "region_refs": [
+      "p1-r27"
+     ]
+    },
+    {
+     "id": "q-003-opt-C",
+     "label": "C",
+     "text": "\\(3m + 2n\\)",
+     "refs": [
+      "p1-l27"
+     ],
+     "region_refs": [
+      "p1-r27"
+     ]
+    },
+    {
+     "id": "q-003-opt-D",
+     "label": "D",
+     "text": "\\(2m + 3n\\)",
+     "refs": [
+      "p1-l27"
+     ],
+     "region_refs": [
+      "p1-r27"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在 \\(\\triangle ABC\\) 中, 点 \\(D\\) 在边 \\(AB\\) 上, \\(BD = 2DA\\). 记 \\(\\overrightarrow{CA} = m\\), \\(\\overrightarrow{CD} = n\\), 则\n\\(\\overrightarrow{CB} =\\) ( )",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r24",
+    "p1-r26",
+    "p1-r27"
+   ]
+  },
+  {
+   "id": "q-004",
+   "number": 4,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "南水北调工程缓解了北方一些地区水资源短缺问题, 其中一部分水蓄入某",
+     "page": 1,
+     "ref": "p1-l29"
+    },
+    {
+     "text": "水库. 已知该水库水位为海拔 148:5m 时, 相应水面的面积为 140:0km2;",
+     "page": 1,
+     "ref": "p1-l31"
+    },
+    {
+     "text": "水位为海拔157:5m时,相应水面的面积为180:0km2. 将该水库在这两个",
+     "page": 1,
+     "ref": "p1-l32"
+    },
+    {
+     "text": "水位间的形状看作一个p棱台,则该水库水位从海拔148:5m上升到157:5m",
+     "page": 1,
+     "ref": "p1-l34"
+    },
+    {
+     "text": "时，增加的水量约为 \\((\\sqrt{7} \\approx 2.65)\\) ()",
+     "page": 1,
+     "ref": "p1-l36"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-004-opt-A",
+     "label": "A",
+     "text": "\\(1.0 \\times 10^9\\) m\\(^3\\)",
+     "refs": [
+      "p1-l38"
+     ],
+     "region_refs": [
+      "p1-r38"
+     ]
+    },
+    {
+     "id": "q-004-opt-B",
+     "label": "B",
+     "text": "\\(1.2 \\times 10^9\\) m\\(^3\\)",
+     "refs": [
+      "p1-l38"
+     ],
+     "region_refs": [
+      "p1-r38"
+     ]
+    },
+    {
+     "id": "q-004-opt-C",
+     "label": "C",
+     "text": "\\(1.4 \\times 10^9\\) m\\(^3\\)",
+     "refs": [
+      "p1-l38"
+     ],
+     "region_refs": [
+      "p1-r38"
+     ]
+    },
+    {
+     "id": "q-004-opt-D",
+     "label": "D",
+     "text": "\\(1.6 \\times 10^9\\) m\\(^3\\)",
+     "refs": [
+      "p1-l38"
+     ],
+     "region_refs": [
+      "p1-r38"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "南水北调工程缓解了北方一些地区水资源短缺问题, 其中一部分水蓄入某\n水库. 已知该水库水位为海拔 148:5m 时, 相应水面的面积为 140:0km2;\n水位为海拔157:5m时,相应水面的面积为180:0km2. 将该水库在这两个\n水位间的形状看作一个p棱台,则该水库水位从海拔148:5m上升到157:5m\n时，增加的水量约为 \\((\\sqrt{7} \\approx 2.65)\\) ()",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r29",
+    "p1-r31",
+    "p1-r32",
+    "p1-r34",
+    "p1-r36",
+    "p1-r38"
+   ]
+  },
+  {
+   "id": "q-005",
+   "number": 5,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "从 2 至 8 的 7 个整数中随机取 2 个不同的数, 则这 2 个数互质的概率",
+     "page": 1,
+     "ref": "p1-l40"
+    },
+    {
+     "text": "为（）",
+     "page": 1,
+     "ref": "p1-l42"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-005-opt-A",
+     "label": "A",
+     "text": "\\(\\frac{1}{6}\\)",
+     "refs": [
+      "p1-l44"
+     ],
+     "region_refs": [
+      "p1-r44"
+     ]
+    },
+    {
+     "id": "q-005-opt-B",
+     "label": "B",
+     "text": "\\(\\frac{1}{3}\\)",
+     "refs": [
+      "p1-l44"
+     ],
+     "region_refs": [
+      "p1-r44"
+     ]
+    },
+    {
+     "id": "q-005-opt-C",
+     "label": "C",
+     "text": "\\(\\frac{1}{2}\\)",
+     "refs": [
+      "p1-l44"
+     ],
+     "region_refs": [
+      "p1-r44"
+     ]
+    },
+    {
+     "id": "q-005-opt-D",
+     "label": "D",
+     "text": "\\(\\frac{2}{3}\\)",
+     "refs": [
+      "p1-l44"
+     ],
+     "region_refs": [
+      "p1-r44"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "从 2 至 8 的 7 个整数中随机取 2 个不同的数, 则这 2 个数互质的概率\n为（）",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r40",
+    "p1-r42",
+    "p1-r44"
+   ]
+  },
+  {
+   "id": "q-006",
+   "number": 6,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "记函数 \\(f(x) = \\sin\\left(\\omega x + \\frac{\\pi}{4}\\right) + b\\) (\\(\\omega > 0\\)) 的最小正周期为 \\(T\\)，若 \\(\\frac{2\\pi}{3} < T <\\)",
+     "page": 1,
+     "ref": "p1-l49"
+    },
+    {
+     "text": "\\(\\pi\\)，且 \\(y = f(x)\\) 的图象关于点 \\(\\left(\\frac{3\\pi}{2}, 2\\right)\\) 中心对称，则 \\(f\\left(\\frac{\\pi}{2}\\right) =\\) （ ）",
+     "page": 1,
+     "ref": "p1-l52"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-006-opt-A",
+     "label": "A",
+     "text": "1",
+     "refs": [
+      "p1-l55"
+     ],
+     "region_refs": [
+      "p1-r55"
+     ]
+    },
+    {
+     "id": "q-006-opt-B",
+     "label": "B",
+     "text": "\\(\\frac{3}{2}\\)",
+     "refs": [
+      "p1-l55"
+     ],
+     "region_refs": [
+      "p1-r55"
+     ]
+    },
+    {
+     "id": "q-006-opt-C",
+     "label": "C",
+     "text": "\\(\\frac{5}{2}\\)",
+     "refs": [
+      "p1-l55"
+     ],
+     "region_refs": [
+      "p1-r55"
+     ]
+    },
+    {
+     "id": "q-006-opt-D",
+     "label": "D",
+     "text": "3",
+     "refs": [
+      "p1-l55"
+     ],
+     "region_refs": [
+      "p1-r55"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "记函数 \\(f(x) = \\sin\\left(\\omega x + \\frac{\\pi}{4}\\right) + b\\) (\\(\\omega > 0\\)) 的最小正周期为 \\(T\\)，若 \\(\\frac{2\\pi}{3} < T <\\)\n\\(\\pi\\)，且 \\(y = f(x)\\) 的图象关于点 \\(\\left(\\frac{3\\pi}{2}, 2\\right)\\) 中心对称，则 \\(f\\left(\\frac{\\pi}{2}\\right) =\\) （ ）",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r49",
+    "p1-r52",
+    "p1-r55"
+   ]
+  },
+  {
+   "id": "q-007",
+   "number": 7,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "设 \\(a = 0.1e^{0.1}\\), \\(b = \\frac{1}{9}\\), \\(c = -\\ln 0.9\\), 则 ( )",
+     "page": 1,
+     "ref": "p1-l57"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-007-opt-A",
+     "label": "A",
+     "text": "\\(a < b < c\\)",
+     "refs": [
+      "p1-l58"
+     ],
+     "region_refs": [
+      "p1-r58"
+     ]
+    },
+    {
+     "id": "q-007-opt-B",
+     "label": "B",
+     "text": "\\(c < b < a\\)",
+     "refs": [
+      "p1-l58"
+     ],
+     "region_refs": [
+      "p1-r58"
+     ]
+    },
+    {
+     "id": "q-007-opt-C",
+     "label": "C",
+     "text": "\\(c < a < b\\)",
+     "refs": [
+      "p1-l58"
+     ],
+     "region_refs": [
+      "p1-r58"
+     ]
+    },
+    {
+     "id": "q-007-opt-D",
+     "label": "D",
+     "text": "\\(a < c < b\\)",
+     "refs": [
+      "p1-l58"
+     ],
+     "region_refs": [
+      "p1-r58"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设 \\(a = 0.1e^{0.1}\\), \\(b = \\frac{1}{9}\\), \\(c = -\\ln 0.9\\), 则 ( )",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r57",
+    "p1-r58"
+   ]
+  },
+  {
+   "id": "q-008",
+   "number": 8,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知正四棱锥的侧p棱长为 l, 其各顶点都在同一球面上. 若该球的体积为",
+     "page": 1,
+     "ref": "p1-l59"
+    },
+    {
+     "text": "36\\(\\pi\\), 且 \\(3 \\leqslant l \\leqslant 3\\sqrt{3}\\), 则该四棱锥体积的取值范围是 ( )",
+     "page": 1,
+     "ref": "p1-l60"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-008-opt-A",
+     "label": "A",
+     "text": "\\(\\left[18,\\frac{81}{4}\\right]\\)",
+     "refs": [
+      "p1-l61"
+     ],
+     "region_refs": [
+      "p1-r61"
+     ]
+    },
+    {
+     "id": "q-008-opt-B",
+     "label": "B",
+     "text": "\\(\\left[\\frac{27}{4},\\frac{81}{4}\\right]\\)",
+     "refs": [
+      "p1-l61"
+     ],
+     "region_refs": [
+      "p1-r61"
+     ]
+    },
+    {
+     "id": "q-008-opt-C",
+     "label": "C",
+     "text": "\\(\\left[\\frac{27}{4},\\frac{64}{3}\\right]\\)",
+     "refs": [
+      "p1-l61"
+     ],
+     "region_refs": [
+      "p1-r61"
+     ]
+    },
+    {
+     "id": "q-008-opt-D",
+     "label": "D",
+     "text": "\\([18,27]\\)",
+     "refs": [
+      "p1-l61"
+     ],
+     "region_refs": [
+      "p1-r61"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知正四棱锥的侧p棱长为 l, 其各顶点都在同一球面上. 若该球的体积为\n36\\(\\pi\\), 且 \\(3 \\leqslant l \\leqslant 3\\sqrt{3}\\), 则该四棱锥体积的取值范围是 ( )",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r59",
+    "p1-r60",
+    "p1-r61"
+   ]
+  },
+  {
+   "id": "q-009",
+   "number": 9,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知正方体 \\(ABCD-A_1B_1C_1D_1\\)，则 （ ）",
+     "page": 1,
+     "ref": "p1-l63"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-009-opt-A",
+     "label": "A",
+     "text": "直线 \\(BC_{1}\\) 与 \\(DA_{1}\\) 所成的角为 \\(90^{\\circ}\\)",
+     "refs": [
+      "p1-l64"
+     ],
+     "region_refs": [
+      "p1-r64"
+     ]
+    },
+    {
+     "id": "q-009-opt-B",
+     "label": "B",
+     "text": "直线 \\(BC_{1}\\) 与 \\(CA_{1}\\) 所成的角为 \\(90^{\\circ}\\)",
+     "refs": [
+      "p1-l65"
+     ],
+     "region_refs": [
+      "p1-r65"
+     ]
+    },
+    {
+     "id": "q-009-opt-C",
+     "label": "C",
+     "text": "直线BC 与平面BB D D 所成的角为45◦",
+     "refs": [
+      "p1-l66"
+     ],
+     "region_refs": [
+      "p1-r66"
+     ]
+    },
+    {
+     "id": "q-009-opt-D",
+     "label": "D",
+     "text": "直线BC 与平面ABCD 所成的角为45◦",
+     "refs": [
+      "p1-l67"
+     ],
+     "region_refs": [
+      "p1-r67"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知正方体 \\(ABCD-A_1B_1C_1D_1\\)，则 （ ）",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r63",
+    "p1-r64",
+    "p1-r65",
+    "p1-r66",
+    "p1-r67"
+   ]
+  },
+  {
+   "id": "q-010",
+   "number": 10,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x) = x^{3} - x + 1\\)，则 ( )",
+     "page": 1,
+     "ref": "p1-l2"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-010-opt-A",
+     "label": "A",
+     "text": "f(x)有两个极值点",
+     "refs": [
+      "p1-l4"
+     ],
+     "region_refs": [
+      "p1-r4"
+     ]
+    },
+    {
+     "id": "q-010-opt-B",
+     "label": "B",
+     "text": "\\(f(x)\\) 有三个零点",
+     "refs": [
+      "p1-l7"
+     ],
+     "region_refs": [
+      "p1-r7"
+     ]
+    },
+    {
+     "id": "q-010-opt-C",
+     "label": "C",
+     "text": "点 \\((0,1)\\) 是曲线 \\(y = f(x)\\) 的对称中心",
+     "refs": [
+      "p1-l9"
+     ],
+     "region_refs": [
+      "p1-r9"
+     ]
+    },
+    {
+     "id": "q-010-opt-D",
+     "label": "D",
+     "text": "直线 y = 2x 是曲线 \\(y = f(x)\\) 的切线",
+     "refs": [
+      "p1-l11"
+     ],
+     "region_refs": [
+      "p1-r11"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x) = x^{3} - x + 1\\)，则 ( )",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r2",
+    "p1-r4",
+    "p1-r7",
+    "p1-r9",
+    "p1-r11"
+   ]
+  },
+  {
+   "id": "q-011",
+   "number": 11,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知 O 为坐标原点，点 \\(A(1,1)\\) 在抛物线 \\(C: x^2 = 2py\\) (\\(p > 0\\)) 上，过点",
+     "page": 1,
+     "ref": "p1-l14"
+    },
+    {
+     "text": "\\(B(0,-1)\\) 的直线交 C 于 P, Q 两点, 则 ()",
+     "page": 1,
+     "ref": "p1-l16"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-011-opt-A",
+     "label": "A",
+     "text": "C 的准线为 y = -1",
+     "refs": [
+      "p1-l17"
+     ],
+     "region_refs": [
+      "p1-r17"
+     ]
+    },
+    {
+     "id": "q-011-opt-B",
+     "label": "B",
+     "text": "直线 AB 与 C 相切",
+     "refs": [
+      "p1-l17"
+     ],
+     "region_refs": [
+      "p1-r17"
+     ]
+    },
+    {
+     "id": "q-011-opt-C",
+     "label": "C",
+     "text": "\\(|OP| \\cdot |OQ| > |OA|^2\\)",
+     "refs": [
+      "p1-l19"
+     ],
+     "region_refs": [
+      "p1-r19"
+     ]
+    },
+    {
+     "id": "q-011-opt-D",
+     "label": "D",
+     "text": "\\(|BP| \\cdot |BQ| > |BA|^2\\)",
+     "refs": [
+      "p1-l19"
+     ],
+     "region_refs": [
+      "p1-r19"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知 O 为坐标原点，点 \\(A(1,1)\\) 在抛物线 \\(C: x^2 = 2py\\) (\\(p > 0\\)) 上，过点\n\\(B(0,-1)\\) 的直线交 C 于 P, Q 两点, 则 ()",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r14",
+    "p1-r16",
+    "p1-r17",
+    "p1-r19"
+   ]
+  },
+  {
+   "id": "q-012",
+   "number": 12,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x)\\) 及其导函数 \\(f'(x)\\) 的定义域均为 \\(\\mathbb{R}\\)，记 \\(g(x) = f'(x)\\)。若",
+     "page": 1,
+     "ref": "p1-l21"
+    },
+    {
+     "text": "$$f\\left(\\frac{3}{2}-2x\\right), g(2+x)\\text{均为偶函数, 则}\\eqref{eq:g(2+x)}=$$",
+     "page": 1,
+     "ref": "p1-l22"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-012-opt-A",
+     "label": "A",
+     "text": "\\(f(0) = 0\\)",
+     "refs": [
+      "p1-l25"
+     ],
+     "region_refs": [
+      "p1-r25"
+     ]
+    },
+    {
+     "id": "q-012-opt-B",
+     "label": "B",
+     "text": "\\(g\\left(-\\frac{1}{2}\\right) = 0\\)",
+     "refs": [
+      "p1-l25"
+     ],
+     "region_refs": [
+      "p1-r25"
+     ]
+    },
+    {
+     "id": "q-012-opt-C",
+     "label": "C",
+     "text": "\\(f(-1) = f(4)\\)",
+     "refs": [
+      "p1-l25"
+     ],
+     "region_refs": [
+      "p1-r25"
+     ]
+    },
+    {
+     "id": "q-012-opt-D",
+     "label": "D",
+     "text": "\\(g(-1) = g(2)\\)",
+     "refs": [
+      "p1-l25"
+     ],
+     "region_refs": [
+      "p1-r25"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x)\\) 及其导函数 \\(f'(x)\\) 的定义域均为 \\(\\mathbb{R}\\)，记 \\(g(x) = f'(x)\\)。若\n$$f\\left(\\frac{3}{2}-2x\\right), g(2+x)\\text{均为偶函数, 则}\\eqref{eq:g(2+x)}=$$",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r21",
+    "p1-r22",
+    "p1-r25"
+   ]
+  },
+  {
+   "id": "q-013",
+   "number": 13,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "\\((1 - \\frac{y}{x})(x + y)^8\\) 的展开式中 \\(x^2 y^6\\) 的系数为___. (用数字作答)",
+     "page": 1,
+     "ref": "p1-l30"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "\\((1 - \\frac{y}{x})(x + y)^8\\) 的展开式中 \\(x^2 y^6\\) 的系数为___. (用数字作答)",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r30"
+   ]
+  },
+  {
+   "id": "q-014",
+   "number": 14,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "写出与圆 \\(x^{2} + y^{2} = 1\\) 和 \\((x - 3)^{2} + (y - 4)^{2} = 16\\) 都相切的一条直线的方",
+     "page": 1,
+     "ref": "p1-l33"
+    },
+    {
+     "text": "程___.",
+     "page": 1,
+     "ref": "p1-l35"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "写出与圆 \\(x^{2} + y^{2} = 1\\) 和 \\((x - 3)^{2} + (y - 4)^{2} = 16\\) 都相切的一条直线的方\n程___.",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r33",
+    "p1-r35"
+   ]
+  },
+  {
+   "id": "q-015",
+   "number": 15,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "若曲线 \\( y = (x + a)e^x \\) 有两条过坐标原点的切线, 则 \\( a \\) 的取值范围是___.",
+     "page": 1,
+     "ref": "p1-l37"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "若曲线 \\( y = (x + a)e^x \\) 有两条过坐标原点的切线, 则 \\( a \\) 的取值范围是___.",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r37"
+   ]
+  },
+  {
+   "id": "q-016",
+   "number": 16,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知椭圆 C: \\(\\frac{x^{2}}{a^{2}}+\\frac{y^{2}}{b^{2}}=1\\) (a > b > 0), C 的上顶点为 A, 两个焦点为",
+     "page": 1,
+     "ref": "p1-l39"
+    },
+    {
+     "text": "F , F , 离心率为 1. 过 F 且垂直于 AF 的直线与 C 交于 D, E 两点,",
+     "page": 1,
+     "ref": "p1-l41"
+    },
+    {
+     "text": "\\(|DE| = 6\\), 则 \\(\\triangle ADE\\) 的周长是___.",
+     "page": 1,
+     "ref": "p1-l45"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知椭圆 C: \\(\\frac{x^{2}}{a^{2}}+\\frac{y^{2}}{b^{2}}=1\\) (a > b > 0), C 的上顶点为 A, 两个焦点为\nF , F , 离心率为 1. 过 F 且垂直于 AF 的直线与 C 交于 D, E 两点,\n\\(|DE| = 6\\), 则 \\(\\triangle ADE\\) 的周长是___.",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r39",
+    "p1-r41",
+    "p1-r45"
+   ]
+  },
+  {
+   "id": "q-017",
+   "number": 17,
+   "section_id": "sec-04",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "记 \\(S_n\\) 为数列 \\(\\{a_n\\}\\) 的前 \\(n\\) 项和，已知 \\(a_1 = 1\\)，\\(\\left\\{\\frac{S_n}{a_n}\\right\\}\\) 是公差为 \\(\\frac{1}{3}\\) 的等差数列。",
+     "page": 1,
+     "ref": "p1-l51"
+    },
+    {
+     "text": "数列.",
+     "page": 1,
+     "ref": "p1-l54"
+    },
+    {
+     "text": "(1) 求 \\(\\{a_{n}\\}\\) 的通项公式;\n(2) 证明：\\(\\frac{1}{a_{1}}+\\frac{1}{a_{2}}+\\cdots+\\frac{1}{a_{n}}<2\\).",
+     "page": 1,
+     "ref": "p1-l56"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "记 \\(S_n\\) 为数列 \\(\\{a_n\\}\\) 的前 \\(n\\) 项和，已知 \\(a_1 = 1\\)，\\(\\left\\{\\frac{S_n}{a_n}\\right\\}\\) 是公差为 \\(\\frac{1}{3}\\) 的等差数列。\n数列.\n(1) 求 \\(\\{a_{n}\\}\\) 的通项公式;\n(2) 证明：\\(\\frac{1}{a_{1}}+\\frac{1}{a_{2}}+\\cdots+\\frac{1}{a_{n}}<2\\).",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r51",
+    "p1-r54",
+    "p1-r56"
+   ]
+  },
+  {
+   "id": "q-018",
+   "number": 18,
+   "section_id": "sec-04",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "记 \\(\\triangle ABC\\) 的内角 \\(A, B, C\\) 的对边分别为 \\(a, b, c\\)，已知 \\(\\frac{\\cos A}{1 + \\sin A} =\\)",
+     "page": 1,
+     "ref": "p1-l1"
+    },
+    {
+     "text": "\\(\\sin 2B\\)",
+     "page": 1,
+     "ref": "p1-l5"
+    },
+    {
+     "text": "\\(1 + \\cos 2B\\)",
+     "page": 1,
+     "ref": "p1-l6"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "若 \\(C = \\frac{2\\pi}{3}\\)，求 B;",
+     "refs": [
+      "p1-l8"
+     ],
+     "region_refs": [
+      "p1-r8"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "求 \\(\\frac{a^{2}+b^{2}}{c^{2}}\\) 的最小值.",
+     "refs": [
+      "p1-l10"
+     ],
+     "region_refs": [
+      "p1-r10"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "记 \\(\\triangle ABC\\) 的内角 \\(A, B, C\\) 的对边分别为 \\(a, b, c\\)，已知 \\(\\frac{\\cos A}{1 + \\sin A} =\\)\n\\(\\sin 2B\\)\n\\(1 + \\cos 2B\\)",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r1",
+    "p1-r5",
+    "p1-r6",
+    "p1-r8",
+    "p1-r10"
+   ]
+  },
+  {
+   "id": "q-019",
+   "number": 19,
+   "section_id": "sec-04",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "如图, 直三棱柱 \\(ABC-A_1B_1C_1\\) 的体积为 4, \\(\\triangle A_1BC\\) 的面积为 \\(2\\sqrt{2}\\).",
+     "page": 1,
+     "ref": "p1-l43"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求 A 到平面 \\(A_{1}BC\\) 的距离;",
+     "refs": [
+      "p1-l46"
+     ],
+     "region_refs": [
+      "p1-r46"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "设 D 为 \\(A_1C\\) 的中点, \\(AA_1 = AB\\), 平面 \\(A_1BC \\perp\\) 平面 \\(ABB_1A_1\\), 求二\n面角 A-BD-C 的正弦值.\n\\(A_{1}\\)___\\(C_{1}\\)",
+     "refs": [
+      "p1-l47",
+      "p1-l50",
+      "p1-l53"
+     ],
+     "region_refs": [
+      "p1-r47",
+      "p1-r50",
+      "p1-r53"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p1-f1",
+     "page": 1,
+     "bbox_pt": [
+      1053.74,
+      535.46,
+      1133.62,
+      628.63
+     ],
+     "source": "pdf-vector+labels",
+     "distance_pt": 1.22,
+     "region_id": "p1-r69"
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "如图, 直三棱柱 \\(ABC-A_1B_1C_1\\) 的体积为 4, \\(\\triangle A_1BC\\) 的面积为 \\(2\\sqrt{2}\\).",
+   "option_mode": "text",
+   "region_refs": [
+    "p1-r43",
+    "p1-r46",
+    "p1-r47",
+    "p1-r50",
+    "p1-r53"
+   ]
+  },
+  {
+   "id": "q-020",
+   "number": 20,
+   "section_id": "sec-04",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "一医疗团队为研究某地的一种地方性疾病与当地居民的卫生习惯 (卫生习",
+     "page": 2,
+     "ref": "p2-l2"
+    },
+    {
+     "text": "惯分为良好和不够良好两类) 的关系, 在已患该疾病的病例中随机调查了",
+     "page": 2,
+     "ref": "p2-l4"
+    },
+    {
+     "text": "100 例 (称为病例组), 同时在未患该疾病的人群中随机调查了 100 人 (称",
+     "page": 2,
+     "ref": "p2-l7"
+    },
+    {
+     "text": "为对照组),得到如下数据:",
+     "page": 2,
+     "ref": "p2-l10"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "能否有99%的把握认为该疾病群体与末患该疾病群体的卫生习惯有差\n异？",
+     "refs": [
+      "p2-l13",
+      "p2-l14"
+     ],
+     "region_refs": [
+      "p2-r13",
+      "p2-r14"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "从该地的人群中任选一人, A 表示事件“选到的人卫生习惯不够良好”,\nB 表示事件“选到的人患有该疾病”, j 与 j 的比值是卫生\n习惯不够良好对患该疾病风险程度的一项度量指标,记该指标为R.\n① 证明：\\( R = \\frac{P(A \\mid B)}{P(\\overline{A} \\mid B)} \\cdot \\frac{P(\\overline{A} \\mid \\overline{B})}{P(A \\mid \\overline{B})}; \\)\n②利用该调査数据, 给出 P(AjB), P(AjB) 的估计值, 并利用①的\n结果给出R的估计值.",
+     "refs": [
+      "p2-l15",
+      "p2-l16",
+      "p2-l17",
+      "p2-l18",
+      "p2-l19",
+      "p2-l20"
+     ],
+     "region_refs": [
+      "p2-r15",
+      "p2-r16",
+      "p2-r17",
+      "p2-r18",
+      "p2-r19",
+      "p2-r20"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p2-f1",
+     "page": 2,
+     "bbox_pt": [
+      167.47,
+      127.68,
+      304.24,
+      179.51
+     ],
+     "source": "table-grid",
+     "distance_pt": 12.97,
+     "region_id": "p2-r23"
+    },
+    {
+     "ref": "p2-f2",
+     "page": 2,
+     "bbox_pt": [
+      67.43,
+      326.86,
+      247.62,
+      385.92
+     ],
+     "source": "pdf-vector+labels",
+     "distance_pt": 2.38,
+     "region_id": "p2-r24"
+    }
+   ],
+   "tables": [
+    {
+     "ref": "p2-t1",
+     "page": 2,
+     "bbox_pt": [
+      170.12,
+      130.25,
+      301.69,
+      176.8
+     ],
+     "headers": [
+      "___",
+      "不够良好",
+      "良好"
+     ],
+     "rows": [
+      [
+       "病例组",
+       "40",
+       "60"
+      ],
+      [
+       "对照组",
+       "10",
+       "90"
+      ]
+     ],
+     "rows_count": 3,
+     "cols_count": 3,
+     "source": "pdf-table-cells",
+     "distance_pt": 15.68,
+     "region_id": "p2-r22"
+    }
+   ],
+   "cross_page": false,
+   "stem_text": "一医疗团队为研究某地的一种地方性疾病与当地居民的卫生习惯 (卫生习\n惯分为良好和不够良好两类) 的关系, 在已患该疾病的病例中随机调查了\n100 例 (称为病例组), 同时在未患该疾病的人群中随机调查了 100 人 (称\n为对照组),得到如下数据:",
+   "option_mode": "text",
+   "region_refs": [
+    "p2-r2",
+    "p2-r4",
+    "p2-r7",
+    "p2-r10",
+    "p2-r13",
+    "p2-r14",
+    "p2-r15",
+    "p2-r16",
+    "p2-r17",
+    "p2-r18",
+    "p2-r19",
+    "p2-r20"
+   ]
+  },
+  {
+   "id": "q-021",
+   "number": 21,
+   "section_id": "sec-04",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "已知点 \\(A(2,1)\\) 在双曲线 \\(C: \\frac{x^{2}}{a^{2}} - \\frac{y^{2}}{a^{2}-1} = 1 (a > 1)\\) 上，直线 \\(l\\) 交 \\(C\\) 于",
+     "page": 2,
+     "ref": "p2-l1"
+    },
+    {
+     "text": "P,Q两点,直线AP,AQ的斜率之和为0.",
+     "page": 2,
+     "ref": "p2-l6"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求 l 的斜率;",
+     "refs": [
+      "p2-l9"
+     ],
+     "region_refs": [
+      "p2-r9"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "若 \\(\\tan\\angle PAQ = 2\\sqrt{2}\\)，求 \\(\\triangle PAQ\\) 的面积.",
+     "refs": [
+      "p2-l12"
+     ],
+     "region_refs": [
+      "p2-r12"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知点 \\(A(2,1)\\) 在双曲线 \\(C: \\frac{x^{2}}{a^{2}} - \\frac{y^{2}}{a^{2}-1} = 1 (a > 1)\\) 上，直线 \\(l\\) 交 \\(C\\) 于\nP,Q两点,直线AP,AQ的斜率之和为0.",
+   "option_mode": "text",
+   "region_refs": [
+    "p2-r1",
+    "p2-r6",
+    "p2-r9",
+    "p2-r12"
+   ]
+  },
+  {
+   "id": "q-022",
+   "number": 22,
+   "section_id": "sec-04",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x) = \\mathrm{e}^{x} - ax\\) 和 \\(g(x) = ax - \\ln x\\) 有相同的最小值.",
+     "page": 2,
+     "ref": "p2-l3"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求 \\(a\\);",
+     "refs": [
+      "p2-l5"
+     ],
+     "region_refs": [
+      "p2-r5"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "证明：存在直线 y = b，其与两条曲线 \\( y = f(x) \\) 和 \\( y = g(x) \\) 共有三个\n不同的交点,并且从左到右的三个交点的横坐标成等差数列.",
+     "refs": [
+      "p2-l8",
+      "p2-l11"
+     ],
+     "region_refs": [
+      "p2-r8",
+      "p2-r11"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x) = \\mathrm{e}^{x} - ax\\) 和 \\(g(x) = ax - \\ln x\\) 有相同的最小值.",
+   "option_mode": "text",
+   "region_refs": [
+    "p2-r3",
+    "p2-r5",
+    "p2-r8",
+    "p2-r11"
+   ]
+  }
+ ],
+ "front_matter": [
+  {
+   "text": "2022 普通高等学校招生考试 (新高考 I)",
+   "page": 1,
+   "ref": "p1-l3",
+   "reason": "before_first_question",
+   "region_refs": [
+    "p1-r3"
+   ]
+  }
+ ],
+ "unassigned": {
+  "figures": [],
+  "tables": [],
+  "lines": []
+ },
+ "stats": {
+  "sections": 4,
+  "questions": 22,
+  "front_matter_lines": 1,
+  "figures_assigned": 3,
+  "figures_unassigned": 0,
+  "tables_assigned": 1,
+  "tables_unassigned": 0,
+  "questions_cross_page": 0,
+  "options": 48,
+  "subquestions": 10,
+  "regions": 93,
+  "question_region_refs": 82
+ }
+}

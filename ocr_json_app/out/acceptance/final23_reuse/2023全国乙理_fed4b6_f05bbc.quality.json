@@ -1,0 +1,65 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2023全国乙理",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\2023全国乙理.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\final22\\2023全国乙理_fed4b6.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T05:44:10+0800"
+ },
+ "summary": {
+  "status": "pass",
+  "errors": 0,
+  "warnings": 0,
+  "questions": 23,
+  "sections": 3,
+  "figures_assigned": 5,
+  "figures_unassigned": 0,
+  "missing_question_numbers": [],
+  "duplicate_question_numbers": [],
+  "content_truncated": 0,
+  "content_truncated_samples": [],
+  "empty_sections": 0,
+  "line_overflow": 0,
+  "line_overlaps": 0,
+  "coverage_ratio": 1.0,
+  "uncovered_regions": 0,
+  "formula_count": 126,
+  "formula_lines": 52,
+  "formula_broken": 0,
+  "formula_suspicious": 0,
+  "formula_samples": [],
+  "tables": 1,
+  "tables_unassigned": 0
+ },
+ "checks": {
+  "question_numbers_complete": true,
+  "question_numbers_unique": true,
+  "all_questions_have_stem": true,
+  "all_questions_have_options": true,
+  "content_consistency_ok": true,
+  "all_figures_assigned": true,
+  "all_tables_structured": true,
+  "geometry_ok": true,
+  "page_coverage_ok": true,
+  "formula_structure_ok": true
+ },
+ "repair": {
+  "actions": [],
+  "counts": {
+   "auto_candidate": 0,
+   "manual": 0,
+   "blocked": 0
+  },
+  "total": 0,
+  "auto_executed": false,
+  "note": "auto_candidate 只是允许重试，执行前仍应保留原 JSON；manual 不得自动补内容"
+ },
+ "issues": []
+}

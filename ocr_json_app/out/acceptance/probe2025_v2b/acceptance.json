@@ -1,0 +1,57 @@
+{
+ "generated_at": "2026-10-25T05:19:01",
+ "elapsed_s": 0.1,
+ "thresholds": {
+  "coverage": 0.99,
+  "formula": 0.95,
+  "table": 0.9,
+  "manual_per_page": 1.0
+ },
+ "summary": {
+  "exams": 1,
+  "passed": 0,
+  "failed": 1,
+  "mean_coverage": 0.999,
+  "mean_formula_pass_rate": 1.0,
+  "mean_table_fill_rate": 1.0,
+  "mean_manual_per_page": 0.5,
+  "total_questions": 19,
+  "total_options": 44,
+  "total_figures": 3
+ },
+ "exams": [
+  {
+   "input": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe2025_v2.json",
+   "layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe2025_v2.json",
+   "exam": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe2025_v2b\\probe2025_v2_19970a.exam.json",
+   "quality": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe2025_v2b\\probe2025_v2_19970a.quality.json",
+   "metrics": {
+    "pages": 2,
+    "lines": 81,
+    "questions": 19,
+    "figures": 3,
+    "sections": 4,
+    "choice_questions": 11,
+    "options_expected": 44,
+    "options_actual": 44,
+    "options_complete": true,
+    "formula_count": 108,
+    "formula_broken": 0,
+    "formula_pass_rate": 1.0,
+    "table_cells": 31,
+    "table_filled": 31,
+    "table_fill_rate": 1.0,
+    "coverage": 0.99898,
+    "manual_actions": 1,
+    "manual_per_page": 0.5,
+    "quality_status": "warn",
+    "errors": 0,
+    "warnings": 1
+   },
+   "failures": [
+    "render_check"
+   ],
+   "pass": false
+  }
+ ]
+}

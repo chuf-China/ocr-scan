@@ -1,0 +1,97 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2023北京卷",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\2023北京卷.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\final20\\2023北京卷_9024e7.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T05:35:03+0800"
+ },
+ "summary": {
+  "status": "fail",
+  "errors": 1,
+  "warnings": 1,
+  "questions": 19,
+  "sections": 3,
+  "figures_assigned": 3,
+  "figures_unassigned": 0,
+  "missing_question_numbers": [
+   19,
+   20
+  ],
+  "duplicate_question_numbers": [],
+  "content_truncated": 0,
+  "content_truncated_samples": [],
+  "empty_sections": 0,
+  "line_overflow": 0,
+  "line_overlaps": 0,
+  "coverage_ratio": 0.49917,
+  "uncovered_regions": 1,
+  "formula_count": 140,
+  "formula_lines": 51,
+  "formula_broken": 0,
+  "formula_suspicious": 0,
+  "formula_samples": [],
+  "tables": 1,
+  "tables_unassigned": 0
+ },
+ "checks": {
+  "question_numbers_complete": false,
+  "question_numbers_unique": true,
+  "all_questions_have_stem": true,
+  "all_questions_have_options": true,
+  "content_consistency_ok": true,
+  "all_figures_assigned": true,
+  "all_tables_structured": true,
+  "geometry_ok": true,
+  "page_coverage_ok": false,
+  "formula_structure_ok": true
+ },
+ "repair": {
+  "actions": [
+   {
+    "code": "question_number_gap",
+    "action": "manual_review",
+    "mode": "manual",
+    "reason": "未登记的问题类型，默认人工复核",
+    "target": null,
+    "message": "题号不连续，缺 [19, 20]"
+   },
+   {
+    "code": "page_uncovered_ink",
+    "action": "review_uncovered_region",
+    "mode": "manual",
+    "reason": "未覆盖墨迹可能是插图标注/表格框线/漏行，需看原图定位",
+    "target": 2,
+    "message": "第 2 页有 1 处未覆盖墨迹（覆盖率 49.92%），可能漏行/漏图"
+   }
+  ],
+  "counts": {
+   "auto_candidate": 0,
+   "manual": 2,
+   "blocked": 0
+  },
+  "total": 2,
+  "auto_executed": false,
+  "note": "auto_candidate 只是允许重试，执行前仍应保留原 JSON；manual 不得自动补内容"
+ },
+ "issues": [
+  {
+   "level": "error",
+   "code": "question_number_gap",
+   "message": "题号不连续，缺 [19, 20]"
+  },
+  {
+   "level": "warning",
+   "code": "page_uncovered_ink",
+   "message": "第 2 页有 1 处未覆盖墨迹（覆盖率 49.92%），可能漏行/漏图",
+   "page": 2
+  }
+ ]
+}

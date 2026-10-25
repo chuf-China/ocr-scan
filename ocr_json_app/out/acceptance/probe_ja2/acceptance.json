@@ -1,0 +1,55 @@
+{
+ "generated_at": "2026-10-25T05:39:40",
+ "elapsed_s": 6.6,
+ "thresholds": {
+  "coverage": 0.99,
+  "formula": 0.95,
+  "table": 0.9,
+  "manual_per_page": 1.0
+ },
+ "summary": {
+  "exams": 1,
+  "passed": 1,
+  "failed": 0,
+  "mean_coverage": 0.9974,
+  "mean_formula_pass_rate": 1.0,
+  "mean_table_fill_rate": 1.0,
+  "mean_manual_per_page": 0.0,
+  "total_questions": 21,
+  "total_options": 16,
+  "total_figures": 5
+ },
+ "exams": [
+  {
+   "input": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe_ja2\\静安区2026届高三一模数学试卷_d28a1b.json",
+   "layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe_ja2\\静安区2026届高三一模数学试卷_d28a1b.json",
+   "exam": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe_ja2\\静安区2026届高三一模数学试卷_d28a1b_b3cd35.exam.json",
+   "quality": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\probe_ja2\\静安区2026届高三一模数学试卷_d28a1b_b3cd35.quality.json",
+   "metrics": {
+    "pages": 6,
+    "lines": 77,
+    "questions": 21,
+    "figures": 5,
+    "sections": 3,
+    "choice_questions": 4,
+    "options_expected": 16,
+    "options_actual": 16,
+    "options_complete": true,
+    "formula_count": 153,
+    "formula_broken": 0,
+    "formula_pass_rate": 1.0,
+    "table_cells": 10,
+    "table_filled": 10,
+    "table_fill_rate": 1.0,
+    "coverage": 0.99742,
+    "manual_actions": 0,
+    "manual_per_page": 0.0,
+    "quality_status": "warn",
+    "errors": 0,
+    "warnings": 1
+   },
+   "failures": [],
+   "pass": true
+  }
+ ]
+}

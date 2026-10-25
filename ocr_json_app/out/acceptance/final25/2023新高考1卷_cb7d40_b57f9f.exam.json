@@ -1,0 +1,1266 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2023新高考1卷",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\2023新高考1卷.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\final24\\2023新高考1卷_cb7d40.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T05:49:36+0800"
+ },
+ "sections": [
+  {
+   "id": "sec-01",
+   "label": "一",
+   "title": "单选题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-001",
+    "q-002",
+    "q-003",
+    "q-004",
+    "q-005",
+    "q-006",
+    "q-007",
+    "q-008"
+   ]
+  },
+  {
+   "id": "sec-02",
+   "label": "二",
+   "title": "多选题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-009",
+    "q-010",
+    "q-011",
+    "q-012"
+   ]
+  },
+  {
+   "id": "sec-03",
+   "label": "三",
+   "title": "填空题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-013",
+    "q-014",
+    "q-015",
+    "q-016"
+   ]
+  },
+  {
+   "id": "sec-04",
+   "label": "四",
+   "title": "解答题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-017",
+    "q-018",
+    "q-019",
+    "q-020",
+    "q-021",
+    "q-022"
+   ]
+  }
+ ],
+ "questions": [
+  {
+   "id": "q-001",
+   "number": 1,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知集合 \\(M = \\{-2, -1, 0, 1, 2\\}\\), \\(N = \\{x \\mid x^2 - x - 6 \\geq 0\\}\\), 则",
+     "page": 1,
+     "ref": "p1-l12"
+    },
+    {
+     "text": "\\(M \\cap N =\\) ( )",
+     "page": 1,
+     "ref": "p1-l14"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-001-opt-A",
+     "label": "A",
+     "text": "\\(\\{-2, -1, 0, 1\\}\\)",
+     "refs": [
+      "p1-l17"
+     ]
+    },
+    {
+     "id": "q-001-opt-B",
+     "label": "B",
+     "text": "\\(\\{0, 1, 2\\}\\)",
+     "refs": [
+      "p1-l17"
+     ]
+    },
+    {
+     "id": "q-001-opt-C",
+     "label": "C",
+     "text": "\\(\\{-2\\}\\)",
+     "refs": [
+      "p1-l19"
+     ]
+    },
+    {
+     "id": "q-001-opt-D",
+     "label": "D",
+     "text": "\\(\\{2\\}\\)",
+     "refs": [
+      "p1-l19"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知集合 \\(M = \\{-2, -1, 0, 1, 2\\}\\), \\(N = \\{x \\mid x^2 - x - 6 \\geq 0\\}\\), 则\n\\(M \\cap N =\\) ( )",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-002",
+   "number": 2,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知 \\(z = \\frac{1 - \\mathrm{i}}{2 + 2\\mathrm{i}}\\)，则 \\(z - \\overline{z} =\\) （）",
+     "page": 1,
+     "ref": "p1-l22"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-002-opt-A",
+     "label": "A",
+     "text": "\\(-i\\)",
+     "refs": [
+      "p1-l25"
+     ]
+    },
+    {
+     "id": "q-002-opt-B",
+     "label": "B",
+     "text": "\\(i\\)",
+     "refs": [
+      "p1-l25"
+     ]
+    },
+    {
+     "id": "q-002-opt-C",
+     "label": "C",
+     "text": "0",
+     "refs": [
+      "p1-l25"
+     ]
+    },
+    {
+     "id": "q-002-opt-D",
+     "label": "D",
+     "text": "1",
+     "refs": [
+      "p1-l25"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知 \\(z = \\frac{1 - \\mathrm{i}}{2 + 2\\mathrm{i}}\\)，则 \\(z - \\overline{z} =\\) （）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-003",
+   "number": 3,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知向量 \\(\\boldsymbol{a} = (1,1)\\), \\(\\boldsymbol{b} = (1,-1)\\). 若 \\((\\boldsymbol{a} + \\lambda \\boldsymbol{b}) \\perp (\\boldsymbol{a} + \\mu \\boldsymbol{b})\\), 则 （ ）",
+     "page": 1,
+     "ref": "p1-l28"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-003-opt-A",
+     "label": "A",
+     "text": "\\(\\lambda + \\mu = 1\\)",
+     "refs": [
+      "p1-l30"
+     ]
+    },
+    {
+     "id": "q-003-opt-B",
+     "label": "B",
+     "text": "\\(\\lambda + \\mu = -1\\)",
+     "refs": [
+      "p1-l30"
+     ]
+    },
+    {
+     "id": "q-003-opt-C",
+     "label": "C",
+     "text": "\\(\\lambda\\mu = 1\\)",
+     "refs": [
+      "p1-l30"
+     ]
+    },
+    {
+     "id": "q-003-opt-D",
+     "label": "D",
+     "text": "\\(\\lambda\\mu = -1\\)",
+     "refs": [
+      "p1-l30"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知向量 \\(\\boldsymbol{a} = (1,1)\\), \\(\\boldsymbol{b} = (1,-1)\\). 若 \\((\\boldsymbol{a} + \\lambda \\boldsymbol{b}) \\perp (\\boldsymbol{a} + \\mu \\boldsymbol{b})\\), 则 （ ）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-004",
+   "number": 4,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "设函数 \\(f(x) = 2^{x(x-a)}\\) 在区间 \\((0,1)\\) 单调递减，则 \\(a\\) 的取值范围是 （ ）",
+     "page": 1,
+     "ref": "p1-l33"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-004-opt-A",
+     "label": "A",
+     "text": "\\((-\\infty,-2]\\)",
+     "refs": [
+      "p1-l35"
+     ]
+    },
+    {
+     "id": "q-004-opt-B",
+     "label": "B",
+     "text": "\\([-2,0)\\)",
+     "refs": [
+      "p1-l35"
+     ]
+    },
+    {
+     "id": "q-004-opt-C",
+     "label": "C",
+     "text": "\\((0,2]\\)",
+     "refs": [
+      "p1-l35"
+     ]
+    },
+    {
+     "id": "q-004-opt-D",
+     "label": "D",
+     "text": "\\([2,+\\infty)\\)",
+     "refs": [
+      "p1-l35"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设函数 \\(f(x) = 2^{x(x-a)}\\) 在区间 \\((0,1)\\) 单调递减，则 \\(a\\) 的取值范围是 （ ）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-005",
+   "number": 5,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "设椭圆 \\(C_1: \\frac{x^2}{a^2} + y^2 = 1\\) (\\(a > 1\\)), \\(C_2: \\frac{x^2}{4} + y^2 = 1\\) 的离心率分别为 \\(e_1\\), \\(e_2\\).",
+     "page": 1,
+     "ref": "p1-l37"
+    },
+    {
+     "text": "若 \\(e_2 = \\sqrt{3}e_1\\)，则 \\(a =\\) （）",
+     "page": 1,
+     "ref": "p1-l39"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-005-opt-A",
+     "label": "A",
+     "text": "\\(\\frac{2\\sqrt{3}}{3}\\)",
+     "refs": [
+      "p1-l41"
+     ]
+    },
+    {
+     "id": "q-005-opt-B",
+     "label": "B",
+     "text": "\\(\\sqrt{2}\\)",
+     "refs": [
+      "p1-l41"
+     ]
+    },
+    {
+     "id": "q-005-opt-C",
+     "label": "C",
+     "text": "\\(\\sqrt{3}\\)",
+     "refs": [
+      "p1-l41"
+     ]
+    },
+    {
+     "id": "q-005-opt-D",
+     "label": "D",
+     "text": "\\(\\sqrt{6}\\)",
+     "refs": [
+      "p1-l41"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设椭圆 \\(C_1: \\frac{x^2}{a^2} + y^2 = 1\\) (\\(a > 1\\)), \\(C_2: \\frac{x^2}{4} + y^2 = 1\\) 的离心率分别为 \\(e_1\\), \\(e_2\\).\n若 \\(e_2 = \\sqrt{3}e_1\\)，则 \\(a =\\) （）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-006",
+   "number": 6,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "过点 \\((0, -2)\\) 与圆 \\(x^{2} + y^{2} - 4x - 1 = 0\\) 相切的两条直线的夹角为 \\(\\alpha\\)，则",
+     "page": 1,
+     "ref": "p1-l44"
+    },
+    {
+     "text": "\\(\\sin \\alpha =\\) ___ ()",
+     "page": 1,
+     "ref": "p1-l47"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-006-opt-A",
+     "label": "A",
+     "text": "1",
+     "refs": [
+      "p1-l50"
+     ]
+    },
+    {
+     "id": "q-006-opt-B",
+     "label": "B",
+     "text": "\\(\\frac{\\sqrt{15}}{4}\\)",
+     "refs": [
+      "p1-l50"
+     ]
+    },
+    {
+     "id": "q-006-opt-C",
+     "label": "C",
+     "text": "\\(\\frac{\\sqrt{10}}{4}\\)",
+     "refs": [
+      "p1-l50"
+     ]
+    },
+    {
+     "id": "q-006-opt-D",
+     "label": "D",
+     "text": "\\(\\frac{\\sqrt{6}}{4}\\)",
+     "refs": [
+      "p1-l50"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "过点 \\((0, -2)\\) 与圆 \\(x^{2} + y^{2} - 4x - 1 = 0\\) 相切的两条直线的夹角为 \\(\\alpha\\)，则\n\\(\\sin \\alpha =\\) ___ ()",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-007",
+   "number": 7,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "记 \\(S_n\\) 为数列 \\(\\{a_n\\}\\) 的前 \\(n\\) 项和，设甲: \\(\\{a_n\\}\\) 为等差数列；乙: \\(\\left\\{\\frac{S_n}{n}\\right\\}\\) 为等",
+     "page": 1,
+     "ref": "p1-l53"
+    },
+    {
+     "text": "差数列，则 （）",
+     "page": 1,
+     "ref": "p1-l56"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-007-opt-A",
+     "label": "A",
+     "text": "甲是乙的充分条件但不是必要条件",
+     "refs": [
+      "p1-l58"
+     ]
+    },
+    {
+     "id": "q-007-opt-B",
+     "label": "B",
+     "text": "甲是乙的必要条件但不是充分条件",
+     "refs": [
+      "p1-l60"
+     ]
+    },
+    {
+     "id": "q-007-opt-C",
+     "label": "C",
+     "text": "甲是乙的充要条件",
+     "refs": [
+      "p1-l62"
+     ]
+    },
+    {
+     "id": "q-007-opt-D",
+     "label": "D",
+     "text": "甲既不是乙的充分条件也不是乙的必要条件",
+     "refs": [
+      "p1-l63"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "记 \\(S_n\\) 为数列 \\(\\{a_n\\}\\) 的前 \\(n\\) 项和，设甲: \\(\\{a_n\\}\\) 为等差数列；乙: \\(\\left\\{\\frac{S_n}{n}\\right\\}\\) 为等\n差数列，则 （）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-008",
+   "number": 8,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知 \\(\\sin(\\alpha - \\beta) = \\frac{1}{3}\\), \\(\\cos \\alpha \\sin \\beta = \\frac{1}{6}\\), 则 \\(\\cos(2\\alpha + 2\\beta) =\\) （ ）",
+     "page": 1,
+     "ref": "p1-l65"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-008-opt-A",
+     "label": "A",
+     "text": "\\(\\frac{7}{9}\\)",
+     "refs": [
+      "p1-l68"
+     ]
+    },
+    {
+     "id": "q-008-opt-B",
+     "label": "B",
+     "text": "\\(\\frac{1}{9}\\)",
+     "refs": [
+      "p1-l68"
+     ]
+    },
+    {
+     "id": "q-008-opt-C",
+     "label": "C",
+     "text": "\\(-\\frac{1}{9}\\)",
+     "refs": [
+      "p1-l68"
+     ]
+    },
+    {
+     "id": "q-008-opt-D",
+     "label": "D",
+     "text": "\\(-\\frac{7}{9}\\)",
+     "refs": [
+      "p1-l68"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知 \\(\\sin(\\alpha - \\beta) = \\frac{1}{3}\\), \\(\\cos \\alpha \\sin \\beta = \\frac{1}{6}\\), 则 \\(\\cos(2\\alpha + 2\\beta) =\\) （ ）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-009",
+   "number": 9,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "有一组样本数据 \\(x_1, x_2, \\cdots, x_6\\)，其中 \\(x_1\\) 是最小值，\\(x_6\\) 是最大值，则 （ ）",
+     "page": 1,
+     "ref": "p1-l72"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-009-opt-A",
+     "label": "A",
+     "text": "\\(x_2\\), \\(x_3\\), \\(x_4\\), \\(x_5\\) 的平均数等于 \\(x_1\\), \\(x_2\\), \\(\\cdots\\), \\(x_6\\) 的平均数",
+     "refs": [
+      "p1-l73"
+     ]
+    },
+    {
+     "id": "q-009-opt-B",
+     "label": "B",
+     "text": "\\(x_{2}, x_{3}, x_{4}, x_{5}\\) 的中位数等于 \\(x_{1}, x_{2}, \\cdots, x_{6}\\) 的中位数",
+     "refs": [
+      "p1-l74"
+     ]
+    },
+    {
+     "id": "q-009-opt-C",
+     "label": "C",
+     "text": "\\(x_2\\), \\(x_3\\), \\(x_4\\), \\(x_5\\) 的标准差不小于 \\(x_1\\), \\(x_2\\), \\(\\cdots\\), \\(x_6\\) 的标准差",
+     "refs": [
+      "p1-l75"
+     ]
+    },
+    {
+     "id": "q-009-opt-D",
+     "label": "D",
+     "text": "\\(x_{2}, x_{3}, x_{4}, x_{5}\\) 的极差不大于 \\(x_{1}, x_{2}, \\cdots, x_{6}\\) 的极差",
+     "refs": [
+      "p1-l76"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "有一组样本数据 \\(x_1, x_2, \\cdots, x_6\\)，其中 \\(x_1\\) 是最小值，\\(x_6\\) 是最大值，则 （ ）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-010",
+   "number": 10,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "噪声污染问题越来越受到重视. 用声压级来度量声音的强弱, 定义声压级",
+     "page": 1,
+     "ref": "p1-l1"
+    },
+    {
+     "text": "\\(L_P = 20 \\times \\lg \\frac{p}{p_0}\\), 其中常数 \\(p_0\\) (\\(p_0 > 0\\)) 是听觉下限阈值, \\(p\\) 是实际声压. 下",
+     "page": 1,
+     "ref": "p1-l3"
+    },
+    {
+     "text": "表为不同声源的声压级：",
+     "page": 1,
+     "ref": "p1-l7"
+    },
+    {
+     "text": "已知在距离燃油汽车，混合动力汽车，电动汽车10 m处测得实际声压分别",
+     "page": 1,
+     "ref": "p1-l16"
+    },
+    {
+     "text": "为 \\(p_1, p_2, p_3\\)，则 （）",
+     "page": 1,
+     "ref": "p1-l18"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-010-opt-A",
+     "label": "A",
+     "text": "\\(p_1 \\geqslant p_2\\)",
+     "refs": [
+      "p1-l21"
+     ]
+    },
+    {
+     "id": "q-010-opt-B",
+     "label": "B",
+     "text": "\\(p_2 > 10p_3\\)",
+     "refs": [
+      "p1-l21"
+     ]
+    },
+    {
+     "id": "q-010-opt-C",
+     "label": "C",
+     "text": "\\(p_3 = 100p_0\\)",
+     "refs": [
+      "p1-l21"
+     ]
+    },
+    {
+     "id": "q-010-opt-D",
+     "label": "D",
+     "text": "\\(p_1 \\leqslant 100p_2\\)",
+     "refs": [
+      "p1-l21"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [
+    {
+     "ref": "p1-f1",
+     "page": 1,
+     "bbox_pt": [
+      488.5,
+      111.36,
+      726.52,
+      177.59
+     ],
+     "source": "table-grid",
+     "distance_pt": 9.13
+    }
+   ],
+   "tables": [
+    {
+     "ref": "p1-t1",
+     "page": 1,
+     "bbox_pt": [
+      490.69,
+      113.34,
+      724.76,
+      175.49
+     ],
+     "headers": [
+      "声源",
+      "与声源的距离 /m",
+      "声压级 / dB"
+     ],
+     "rows": [
+      [
+       "燃油汽车",
+       "10",
+       "60～90"
+      ],
+      [
+       "混合动力汽车",
+       "10",
+       "50～60"
+      ],
+      [
+       "电动汽车",
+       "10",
+       "40"
+      ]
+     ],
+     "rows_count": 4,
+     "cols_count": 3,
+     "source": "pdf-table-cells",
+     "distance_pt": 11.23
+    }
+   ],
+   "cross_page": false,
+   "stem_text": "噪声污染问题越来越受到重视. 用声压级来度量声音的强弱, 定义声压级\n\\(L_P = 20 \\times \\lg \\frac{p}{p_0}\\), 其中常数 \\(p_0\\) (\\(p_0 > 0\\)) 是听觉下限阈值, \\(p\\) 是实际声压. 下\n表为不同声源的声压级：\n已知在距离燃油汽车，混合动力汽车，电动汽车10 m处测得实际声压分别\n为 \\(p_1, p_2, p_3\\)，则 （）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-011",
+   "number": 11,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x)\\) 的定义域为 \\(\\mathbf{R}\\), \\(f(xy) = y^2 f(x) + x^2 f(y)\\), 则 ( )",
+     "page": 1,
+     "ref": "p1-l24"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-011-opt-A",
+     "label": "A",
+     "text": "\\(f(0) = 0\\)",
+     "refs": [
+      "p1-l26"
+     ]
+    },
+    {
+     "id": "q-011-opt-B",
+     "label": "B",
+     "text": "\\(f(1) = 0\\)",
+     "refs": [
+      "p1-l26"
+     ]
+    },
+    {
+     "id": "q-011-opt-C",
+     "label": "C",
+     "text": "\\(f(x)\\) 是偶函数",
+     "refs": [
+      "p1-l29"
+     ]
+    },
+    {
+     "id": "q-011-opt-D",
+     "label": "D",
+     "text": "x = 0 为 \\(f(x)\\) 的极小值点",
+     "refs": [
+      "p1-l29"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x)\\) 的定义域为 \\(\\mathbf{R}\\), \\(f(xy) = y^2 f(x) + x^2 f(y)\\), 则 ( )",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-012",
+   "number": 12,
+   "section_id": "sec-02",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "下列物体中，能被整体放入棱长为 1（单位：m）的正方体容器（容器壁厚度",
+     "page": 1,
+     "ref": "p1-l31"
+    },
+    {
+     "text": "忽略不计）内的有（）",
+     "page": 1,
+     "ref": "p1-l32"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-012-opt-A",
+     "label": "A",
+     "text": "直径为 0.99 m 的球体",
+     "refs": [
+      "p1-l34"
+     ]
+    },
+    {
+     "id": "q-012-opt-B",
+     "label": "B",
+     "text": "所有棱长均为 \\(1.4 \\, m\\) 的四面体",
+     "refs": [
+      "p1-l36"
+     ]
+    },
+    {
+     "id": "q-012-opt-C",
+     "label": "C",
+     "text": "底面直径为 0.01 m，高为 1.8 m 的圆柱体",
+     "refs": [
+      "p1-l38"
+     ]
+    },
+    {
+     "id": "q-012-opt-D",
+     "label": "D",
+     "text": "底面直径为 1.2 m, 高为 0.01 m 的圆柱体",
+     "refs": [
+      "p1-l40"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "下列物体中，能被整体放入棱长为 1（单位：m）的正方体容器（容器壁厚度\n忽略不计）内的有（）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-013",
+   "number": 13,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "某学校开设了4门体育类选修课和4门艺术类选修课，学生需从这8门课",
+     "page": 1,
+     "ref": "p1-l43"
+    },
+    {
+     "text": "中选修2门或3门课，并且每类选修课至少选修1门，则不同的选课方案",
+     "page": 1,
+     "ref": "p1-l46"
+    },
+    {
+     "text": "共有___种.（用数字作答）",
+     "page": 1,
+     "ref": "p1-l49"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "某学校开设了4门体育类选修课和4门艺术类选修课，学生需从这8门课\n中选修2门或3门课，并且每类选修课至少选修1门，则不同的选课方案\n共有___种.（用数字作答）",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-014",
+   "number": 14,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "在正四棱台 \\(ABCD-A_1B_1C_1D_1\\) 中, \\(AB = 2\\), \\(A_1B_1 = 1\\), \\(AA_1 = \\sqrt{2}\\), 则",
+     "page": 1,
+     "ref": "p1-l52"
+    },
+    {
+     "text": "该棱台的体积为___.",
+     "page": 1,
+     "ref": "p1-l54"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在正四棱台 \\(ABCD-A_1B_1C_1D_1\\) 中, \\(AB = 2\\), \\(A_1B_1 = 1\\), \\(AA_1 = \\sqrt{2}\\), 则\n该棱台的体积为___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-015",
+   "number": 15,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x) = \\cos \\omega x - 1\\) (\\(\\omega > 0\\)) 在区间 \\([0, 2\\pi]\\)，有且仅有 3 个零点，则",
+     "page": 1,
+     "ref": "p1-l55"
+    },
+    {
+     "text": "ω 的取值范围是___.",
+     "page": 1,
+     "ref": "p1-l57"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x) = \\cos \\omega x - 1\\) (\\(\\omega > 0\\)) 在区间 \\([0, 2\\pi]\\)，有且仅有 3 个零点，则\nω 的取值范围是___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-016",
+   "number": 16,
+   "section_id": "sec-03",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知双曲线 \\(C: \\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1 (a > 0, b > 0)\\) 的左、右焦点分别为 \\(F_1, F_2\\).",
+     "page": 1,
+     "ref": "p1-l59"
+    },
+    {
+     "text": "点 A 在 C 上, 点 B 在 y 轴上, \\(\\overrightarrow{F_1A} \\perp \\overrightarrow{F_1B}\\), \\(\\overrightarrow{F_2A} = -\\frac{2}{3}\\overrightarrow{F_2B}\\), 则 C 的离心",
+     "page": 1,
+     "ref": "p1-l61"
+    },
+    {
+     "text": "率为___.",
+     "page": 1,
+     "ref": "p1-l64"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知双曲线 \\(C: \\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1 (a > 0, b > 0)\\) 的左、右焦点分别为 \\(F_1, F_2\\).\n点 A 在 C 上, 点 B 在 y 轴上, \\(\\overrightarrow{F_1A} \\perp \\overrightarrow{F_1B}\\), \\(\\overrightarrow{F_2A} = -\\frac{2}{3}\\overrightarrow{F_2B}\\), 则 C 的离心\n率为___.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-017",
+   "number": 17,
+   "section_id": "sec-04",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知在 \\(\\triangle ABC\\) 中, \\(A + B = 3C\\), \\(2\\sin(A - C) = \\sin B\\).",
+     "page": 1,
+     "ref": "p1-l67"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求 \\(\\sin A\\);",
+     "refs": [
+      "p1-l69"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "设 AB = 5，求 AB 边上的高.",
+     "refs": [
+      "p1-l70"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知在 \\(\\triangle ABC\\) 中, \\(A + B = 3C\\), \\(2\\sin(A - C) = \\sin B\\).",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-018",
+   "number": 18,
+   "section_id": "sec-04",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "如图，在正四棱柱 \\(ABCD-A_1B_1C_1D_1\\) 中，\\(AB = 2\\)，\\(AA_1 = 4\\)。点 \\(A_2\\)，\\(B_2\\)，",
+     "page": 1,
+     "ref": "p1-l2"
+    },
+    {
+     "text": "\\(C_{2}, D_{2}\\) 分别在棱 \\(AA_{1}, BB_{1}, CC_{1}, DD_{1}\\) 上，\\(AA_{2}=1, BB_{2}=DD_{2}=2,\\)",
+     "page": 1,
+     "ref": "p1-l5"
+    },
+    {
+     "text": "\\(CC_{2}=3.\\)",
+     "page": 1,
+     "ref": "p1-l6"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "证明：\\(B_2C_2 \\parallel A_2D_2\\);",
+     "refs": [
+      "p1-l8"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "点 P 在棱 \\(BB_{1}\\) 上，当二面角 \\(P-A_{2}C_{2}-D_{2}\\) 为 \\(150^{\\circ}\\) 时，求 \\(B_{2}P\\).\n\\(C_{1}\\) ___ \\(B_{1}\\)\n\\(D_{1}\\)\nP\n\\(B_{2}\\)\nD₂\nB",
+     "refs": [
+      "p1-l9",
+      "p1-l11",
+      "p1-l13",
+      "p1-l15",
+      "p1-l20",
+      "p1-l23",
+      "p1-l27"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p1-f2",
+     "page": 1,
+     "bbox_pt": [
+      1054.11,
+      155.52,
+      1131.84,
+      288.94
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 0.96
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "如图，在正四棱柱 \\(ABCD-A_1B_1C_1D_1\\) 中，\\(AB = 2\\)，\\(AA_1 = 4\\)。点 \\(A_2\\)，\\(B_2\\)，\n\\(C_{2}, D_{2}\\) 分别在棱 \\(AA_{1}, BB_{1}, CC_{1}, DD_{1}\\) 上，\\(AA_{2}=1, BB_{2}=DD_{2}=2,\\)\n\\(CC_{2}=3.\\)",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-019",
+   "number": 19,
+   "section_id": "sec-04",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x) = a(\\mathrm{e}^{x} + a) - x\\).",
+     "page": 1,
+     "ref": "p1-l45"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "讨论 \\(f(x)\\) 的单调性;",
+     "refs": [
+      "p1-l48"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "证明：当 a > 0 时，求证：\\(f(x) > 2\\ln a + \\frac{3}{2}\\).",
+     "refs": [
+      "p1-l51"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x) = a(\\mathrm{e}^{x} + a) - x\\).",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-020",
+   "number": 20,
+   "section_id": "sec-04",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "设等差数列 \\(\\{a_n\\}\\) 的公差为 \\(d\\)，且 \\(d > 1\\)。令 \\(b_n = \\frac{n^2 + n}{a_n}\\)，记 \\(S_n\\)，\\(T_n\\) 分别",
+     "page": 2,
+     "ref": "p2-l1"
+    },
+    {
+     "text": "为数列 \\(\\{a_{n}\\}\\)，\\(\\{b_{n}\\}\\) 的前 n 项和.",
+     "page": 2,
+     "ref": "p2-l5"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "若 \\(3a_2 = 3a_1 + a_3\\), \\(S_3 + T_3 = 21\\), 求 \\(\\{a_n\\}\\) 的通项公式;",
+     "refs": [
+      "p2-l8"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "若 \\(\\{b_{n}\\}\\) 为等差数列，且 \\(S_{99} - T_{99} = 99\\)，求 d.",
+     "refs": [
+      "p2-l11"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设等差数列 \\(\\{a_n\\}\\) 的公差为 \\(d\\)，且 \\(d > 1\\)。令 \\(b_n = \\frac{n^2 + n}{a_n}\\)，记 \\(S_n\\)，\\(T_n\\) 分别\n为数列 \\(\\{a_{n}\\}\\)，\\(\\{b_{n}\\}\\) 的前 n 项和.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-021",
+   "number": 21,
+   "section_id": "sec-04",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "甲、乙两人投篮，每次由其中一人投篮，规则如下：若命中则此人继续投篮，",
+     "page": 2,
+     "ref": "p2-l3"
+    },
+    {
+     "text": "若未命中则换为对方投篮.无论之前投篮情况如何,甲每次投篮的命中率",
+     "page": 2,
+     "ref": "p2-l4"
+    },
+    {
+     "text": "均为 0.6，乙每次投篮的命中率均为 0.8。由抽签决定第 1 次投篮的人选，",
+     "page": 2,
+     "ref": "p2-l7"
+    },
+    {
+     "text": "第1次投篮的人是甲、乙的概率各为0.5.",
+     "page": 2,
+     "ref": "p2-l10"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求第2次投篮的人是乙的概率;",
+     "refs": [
+      "p2-l13"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "求第 i 次投篮的人是甲的概率;",
+     "refs": [
+      "p2-l15"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "已知: 若随机变量 \\(X_i\\) 服从两点分布, 且 \\(P(X_i = 1) = 1 - P(X_i = 0) =\\)\nq_i, i = 1, 2, \\cdots, n, 则 \\(E\\left(\\sum_{i=1}^{n} X_i\\right) = \\sum_{i=1}^{n} q_i\\). 记前 n 次 (即从第 1 次到第 n\n次投篮）中甲投篮的次数为 Y，求 \\(E(Y)\\).",
+     "refs": [
+      "p2-l16",
+      "p2-l17",
+      "p2-l18"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "甲、乙两人投篮，每次由其中一人投篮，规则如下：若命中则此人继续投篮，\n若未命中则换为对方投篮.无论之前投篮情况如何,甲每次投篮的命中率\n均为 0.6，乙每次投篮的命中率均为 0.8。由抽签决定第 1 次投篮的人选，\n第1次投篮的人是甲、乙的概率各为0.5.",
+   "option_mode": "text"
+  },
+  {
+   "id": "q-022",
+   "number": 22,
+   "section_id": "sec-04",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "在直角坐标系 xOy 中, 点 P 到 x 轴的距离等于点 P 到点 \\(\\left(0,\\frac{1}{2}\\right)\\) 的距离,",
+     "page": 2,
+     "ref": "p2-l2"
+    },
+    {
+     "text": "记动点 P 的轨迹为 W.",
+     "page": 2,
+     "ref": "p2-l6"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求 W 的方程;",
+     "refs": [
+      "p2-l9"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "已知矩形 ABCD 有三个顶点在 W 上, 证明: 矩形 ABCD 的周长大\n于 \\(3\\sqrt{3}\\).",
+     "refs": [
+      "p2-l12",
+      "p2-l14"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在直角坐标系 xOy 中, 点 P 到 x 轴的距离等于点 P 到点 \\(\\left(0,\\frac{1}{2}\\right)\\) 的距离,\n记动点 P 的轨迹为 W.",
+   "option_mode": "text"
+  }
+ ],
+ "front_matter": [
+  {
+   "text": "2023 普通高等学校招生考试 (新高考 I)",
+   "page": 1,
+   "ref": "p1-l4",
+   "reason": "before_first_question"
+  }
+ ],
+ "unassigned": {
+  "figures": [],
+  "tables": [],
+  "lines": []
+ },
+ "stats": {
+  "sections": 4,
+  "questions": 22,
+  "front_matter_lines": 1,
+  "figures_assigned": 2,
+  "figures_unassigned": 0,
+  "tables_assigned": 1,
+  "tables_unassigned": 0,
+  "questions_cross_page": 0,
+  "options": 48,
+  "subquestions": 13
+ }
+}

@@ -1,0 +1,97 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2024全国文(西藏,四川,内蒙古,陕西,青海,宁夏)",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\corpus\\2024全国文(西藏,四川,内蒙古,陕西,青海,宁夏).pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\final21\\2024全国文_西藏_四川_内蒙古_陕西_青海_宁夏_f80257.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T05:41:24+0800"
+ },
+ "summary": {
+  "status": "warn",
+  "errors": 0,
+  "warnings": 2,
+  "questions": 23,
+  "sections": 3,
+  "figures_assigned": 4,
+  "figures_unassigned": 2,
+  "missing_question_numbers": [],
+  "duplicate_question_numbers": [],
+  "content_truncated": 0,
+  "content_truncated_samples": [],
+  "empty_sections": 0,
+  "line_overflow": 0,
+  "line_overlaps": 0,
+  "coverage_ratio": 1.0,
+  "uncovered_regions": 0,
+  "formula_count": 120,
+  "formula_lines": 55,
+  "formula_broken": 0,
+  "formula_suspicious": 0,
+  "formula_samples": [],
+  "tables": 1,
+  "tables_unassigned": 0
+ },
+ "checks": {
+  "question_numbers_complete": true,
+  "question_numbers_unique": true,
+  "all_questions_have_stem": true,
+  "all_questions_have_options": true,
+  "content_consistency_ok": true,
+  "all_figures_assigned": false,
+  "all_tables_structured": true,
+  "geometry_ok": true,
+  "page_coverage_ok": true,
+  "formula_structure_ok": true
+ },
+ "repair": {
+  "actions": [
+   {
+    "code": "figure_unassigned",
+    "action": "attach_figure",
+    "mode": "manual",
+    "reason": "插图归属需要人工确认题号",
+    "target": "p1-f4",
+    "message": "图 p1-f4 未归属到题目"
+   },
+   {
+    "code": "figure_unassigned",
+    "action": "attach_figure",
+    "mode": "manual",
+    "reason": "插图归属需要人工确认题号",
+    "target": "p1-f5",
+    "message": "图 p1-f5 未归属到题目"
+   }
+  ],
+  "counts": {
+   "auto_candidate": 0,
+   "manual": 2,
+   "blocked": 0
+  },
+  "total": 2,
+  "auto_executed": false,
+  "note": "auto_candidate 只是允许重试，执行前仍应保留原 JSON；manual 不得自动补内容"
+ },
+ "issues": [
+  {
+   "level": "warning",
+   "code": "figure_unassigned",
+   "message": "图 p1-f4 未归属到题目",
+   "page": 1,
+   "ref": "p1-f4"
+  },
+  {
+   "level": "warning",
+   "code": "figure_unassigned",
+   "message": "图 p1-f5 未归属到题目",
+   "page": 1,
+   "ref": "p1-f5"
+  }
+ ]
+}

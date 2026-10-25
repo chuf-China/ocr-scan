@@ -1,0 +1,95 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "静安区2026届高三一模数学试卷",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\静安区2026届高三一模数学试卷.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\native_final3\\静安区2026届高三一模数学试卷_d28a1b.json",
+  "subject": "数学",
+  "pages": 6,
+  "page_size_pt": [
+   595.3,
+   841.9
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T12:02:06+0800"
+ },
+ "summary": {
+  "status": "warn",
+  "errors": 0,
+  "warnings": 1,
+  "questions": 21,
+  "sections": 3,
+  "figures_assigned": 5,
+  "figures_unassigned": 0,
+  "missing_question_numbers": [],
+  "duplicate_question_numbers": [],
+  "content_truncated": 0,
+  "content_truncated_samples": [],
+  "empty_sections": 0,
+  "line_overflow": 0,
+  "line_overlaps": 0,
+  "coverage_ratio": 0.99396,
+  "uncovered_regions": 0,
+  "formula_count": 86,
+  "formula_lines": 28,
+  "formula_broken": 0,
+  "formula_suspicious": 0,
+  "formula_samples": [],
+  "tables": 1,
+  "tables_unassigned": 0,
+  "garbled_lines": 0,
+  "font_count": 8,
+  "regions": 83,
+  "region_types": {
+   "text": 49,
+   "formula": 28,
+   "table": 2,
+   "figure": 4
+  },
+  "region_problems": 0,
+  "region_refs_unresolved": 0
+ },
+ "checks": {
+  "question_numbers_complete": true,
+  "question_numbers_unique": true,
+  "all_questions_have_stem": true,
+  "all_questions_have_options": true,
+  "content_consistency_ok": true,
+  "text_clean_ok": true,
+  "all_figures_assigned": true,
+  "all_tables_structured": true,
+  "geometry_ok": true,
+  "page_coverage_ok": true,
+  "formula_structure_ok": true,
+  "regions_consistent": true
+ },
+ "repair": {
+  "actions": [
+   {
+    "code": "table_empty_cell",
+    "action": "reocr_table_cell",
+    "mode": "auto_candidate",
+    "reason": "空单元格通常是裁切/超时导致，可只重跑该格 OCR；不改变表格结构",
+    "target": "p3-t1",
+    "message": "第 17 题表格有空单元格（4x3）"
+   }
+  ],
+  "counts": {
+   "auto_candidate": 1,
+   "manual": 0,
+   "blocked": 0
+  },
+  "total": 1,
+  "auto_executed": false,
+  "note": "auto_candidate 只是允许重试，执行前仍应保留原 JSON；manual 不得自动补内容"
+ },
+ "issues": [
+  {
+   "level": "warning",
+   "code": "table_empty_cell",
+   "message": "第 17 题表格有空单元格（4x3）",
+   "page": 3,
+   "ref": "p3-t1"
+  }
+ ]
+}

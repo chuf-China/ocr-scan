@@ -1,0 +1,57 @@
+{
+ "generated_at": "2026-10-25T06:00:52",
+ "elapsed_s": 0.6,
+ "thresholds": {
+  "coverage": 0.99,
+  "formula": 0.95,
+  "table": 0.9,
+  "manual_per_page": 1.0
+ },
+ "summary": {
+  "exams": 1,
+  "passed": 0,
+  "failed": 1,
+  "mean_coverage": 0.0,
+  "mean_formula_pass_rate": 0.0,
+  "mean_table_fill_rate": 0.0,
+  "mean_manual_per_page": 0.0,
+  "total_questions": 0,
+  "total_options": 0,
+  "total_figures": 0
+ },
+ "exams": [
+  {
+   "input": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\corpus\\2025全国1(山东,广东,湖南,湖北,河北,江苏,福建,浙江,河南,江西,安徽).pdf",
+   "layout": null,
+   "exam": null,
+   "quality": null,
+   "metrics": {
+    "pages": 0,
+    "lines": 0,
+    "questions": 0,
+    "figures": 0,
+    "sections": 0,
+    "choice_questions": 0,
+    "options_expected": 0,
+    "options_actual": 0,
+    "options_complete": false,
+    "formula_count": 0,
+    "formula_broken": 0,
+    "formula_pass_rate": 0.0,
+    "table_cells": 0,
+    "table_filled": 0,
+    "table_fill_rate": 0.0,
+    "coverage": 0.0,
+    "manual_actions": 0,
+    "manual_per_page": 0.0,
+    "quality_status": "error",
+    "errors": 1,
+    "warnings": 0
+   },
+   "failures": [
+    "layout_pipeline_exit_1"
+   ],
+   "pass": false
+  }
+ ]
+}

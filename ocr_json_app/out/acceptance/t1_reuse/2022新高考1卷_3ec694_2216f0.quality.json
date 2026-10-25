@@ -1,0 +1,78 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2022新高考1卷",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\new3\\2022新高考1卷.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\native_final3\\2022新高考1卷_3ec694.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T12:02:02+0800"
+ },
+ "summary": {
+  "status": "pass",
+  "errors": 0,
+  "warnings": 0,
+  "questions": 22,
+  "sections": 4,
+  "figures_assigned": 3,
+  "figures_unassigned": 0,
+  "missing_question_numbers": [],
+  "duplicate_question_numbers": [],
+  "content_truncated": 0,
+  "content_truncated_samples": [],
+  "empty_sections": 0,
+  "line_overflow": 0,
+  "line_overlaps": 0,
+  "coverage_ratio": 0.99861,
+  "uncovered_regions": 0,
+  "formula_count": 128,
+  "formula_lines": 51,
+  "formula_broken": 0,
+  "formula_suspicious": 0,
+  "formula_samples": [],
+  "tables": 1,
+  "tables_unassigned": 0,
+  "garbled_lines": 0,
+  "font_count": 13,
+  "regions": 93,
+  "region_types": {
+   "text": 37,
+   "formula": 52,
+   "table": 2,
+   "figure": 2
+  },
+  "region_problems": 0,
+  "region_refs_unresolved": 0
+ },
+ "checks": {
+  "question_numbers_complete": true,
+  "question_numbers_unique": true,
+  "all_questions_have_stem": true,
+  "all_questions_have_options": true,
+  "content_consistency_ok": true,
+  "text_clean_ok": true,
+  "all_figures_assigned": true,
+  "all_tables_structured": true,
+  "geometry_ok": true,
+  "page_coverage_ok": true,
+  "formula_structure_ok": true,
+  "regions_consistent": true
+ },
+ "repair": {
+  "actions": [],
+  "counts": {
+   "auto_candidate": 0,
+   "manual": 0,
+   "blocked": 0
+  },
+  "total": 0,
+  "auto_executed": false,
+  "note": "auto_candidate 只是允许重试，执行前仍应保留原 JSON；manual 不得自动补内容"
+ },
+ "issues": []
+}

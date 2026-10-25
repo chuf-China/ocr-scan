@@ -1,0 +1,987 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "静安区2026届高三一模数学试卷",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\静安区2026届高三一模数学试卷.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\final22\\静安区2026届高三一模数学试卷_d28a1b.json",
+  "subject": "数学",
+  "pages": 6,
+  "page_size_pt": [
+   595.3,
+   841.9
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T05:46:38+0800"
+ },
+ "sections": [
+  {
+   "id": "sec-01",
+   "label": "一",
+   "title": "填空题 (本大题共 12 题，1-6 每题 4 分，7-12 每题 5 分，共 54 分)",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-001",
+    "q-002",
+    "q-003",
+    "q-004",
+    "q-005",
+    "q-006",
+    "q-007",
+    "q-008",
+    "q-009",
+    "q-010",
+    "q-011",
+    "q-012"
+   ]
+  },
+  {
+   "id": "sec-02",
+   "label": "二",
+   "title": "选择题 (本大题共4题，第13、14题各4分，第15、16题各5分，共18",
+   "pages": [
+    2
+   ],
+   "question_ids": [
+    "q-013",
+    "q-014",
+    "q-015",
+    "q-016"
+   ]
+  },
+  {
+   "id": "sec-03",
+   "label": "三",
+   "title": "解答题 (本大题共 5 题, 共 \\(14+14+14+18+18=78\\) 分)",
+   "pages": [
+    3
+   ],
+   "question_ids": [
+    "q-017",
+    "q-018",
+    "q-019",
+    "q-020",
+    "q-021"
+   ]
+  }
+ ],
+ "questions": [
+  {
+   "id": "q-001",
+   "number": 1,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知全集是实数集 \\(\\mathbb{R}\\)，集合 \\(M = \\{x \\mid (x-3)(x+2) \\geq 0\\}\\)，则集合 \\(M\\) 的补集 \\(C_R M =\\) ___.",
+     "page": 1,
+     "ref": "p1-l3"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知全集是实数集 \\(\\mathbb{R}\\)，集合 \\(M = \\{x \\mid (x-3)(x+2) \\geq 0\\}\\)，则集合 \\(M\\) 的补集 \\(C_R M =\\) ___."
+  },
+  {
+   "id": "q-002",
+   "number": 2,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知椭圆的标准方程为 \\(\\frac{x^2}{9} + \\frac{y^2}{25} = 1\\)，则该椭圆的长轴的长等于___.",
+     "page": 1,
+     "ref": "p1-l4"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知椭圆的标准方程为 \\(\\frac{x^2}{9} + \\frac{y^2}{25} = 1\\)，则该椭圆的长轴的长等于___."
+  },
+  {
+   "id": "q-003",
+   "number": 3,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知直线 \\(l_1: 3x - \\sqrt{3}y + 10 = 0\\) 与 \\(l_2: x - \\sqrt{3}y = 0\\)，则直线 \\(l_1\\) 与 \\(l_2\\) 的夹角大小是",
+     "page": 1,
+     "ref": "p1-l5"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知直线 \\(l_1: 3x - \\sqrt{3}y + 10 = 0\\) 与 \\(l_2: x - \\sqrt{3}y = 0\\)，则直线 \\(l_1\\) 与 \\(l_2\\) 的夹角大小是"
+  },
+  {
+   "id": "q-004",
+   "number": 4,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知复数 \\(z\\) 满足 \\((3 - \\mathrm{i})z = 3 + \\mathrm{i}\\)（其中 \\(\\mathrm{i}\\) 为虚数单位），则复数 \\(z =\\) ___.",
+     "page": 1,
+     "ref": "p1-l6"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知复数 \\(z\\) 满足 \\((3 - \\mathrm{i})z = 3 + \\mathrm{i}\\)（其中 \\(\\mathrm{i}\\) 为虚数单位），则复数 \\(z =\\) ___."
+  },
+  {
+   "id": "q-005",
+   "number": 5,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知 \\(a\\) 是第四象限角，\\(\\cos a = \\frac{3}{5}\\)，则 \\(\\tan 2a =\\) ___",
+     "page": 1,
+     "ref": "p1-l7"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知 \\(a\\) 是第四象限角，\\(\\cos a = \\frac{3}{5}\\)，则 \\(\\tan 2a =\\) ___"
+  },
+  {
+   "id": "q-006",
+   "number": 6,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "设等差数列 \\(\\left\\{a_{n}\\right\\}\\) 的前 \\(n\\) 项和为 \\(S_{n}\\)（\\(n\\) 为正整数），首项 \\(a_{1} = \\frac{3}{2}\\)，\\(a_{6} = 9\\)，则",
+     "page": 1,
+     "ref": "p1-l8"
+    },
+    {
+     "text": "\\(S_7 = \\) _____ .",
+     "page": 1,
+     "ref": "p1-l9"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设等差数列 \\(\\left\\{a_{n}\\right\\}\\) 的前 \\(n\\) 项和为 \\(S_{n}\\)（\\(n\\) 为正整数），首项 \\(a_{1} = \\frac{3}{2}\\)，\\(a_{6} = 9\\)，则\n\\(S_7 = \\) _____ ."
+  },
+  {
+   "id": "q-007",
+   "number": 7,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知圆柱的底面圆的半径与球的半径相等，若圆柱的表面积与球的表面积也相等，则圆",
+     "page": 1,
+     "ref": "p1-l10"
+    },
+    {
+     "text": "柱的体积 \\(V_1\\) 与球的体积 \\(V_2\\) 之比 \\(V_1:V_2 =\\) ___。",
+     "page": 1,
+     "ref": "p1-l11"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知圆柱的底面圆的半径与球的半径相等，若圆柱的表面积与球的表面积也相等，则圆\n柱的体积 \\(V_1\\) 与球的体积 \\(V_2\\) 之比 \\(V_1:V_2 =\\) ___。"
+  },
+  {
+   "id": "q-008",
+   "number": 8,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x)=\\begin{cases} f(x+1), & x<4 \\\\ \\left(\\frac{1}{3}\\right)^x, & x\\geq4 \\end{cases}\\)，则 \\(f(\\log_35)=\\)___。",
+     "page": 1,
+     "ref": "p1-l12"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x)=\\begin{cases} f(x+1), & x<4 \\\\ \\left(\\frac{1}{3}\\right)^x, & x\\geq4 \\end{cases}\\)，则 \\(f(\\log_35)=\\)___。"
+  },
+  {
+   "id": "q-009",
+   "number": 9,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "抛物线具有如下的光学性质：所有平行于抛物线对称轴的入射光线经抛物线反射后都过",
+     "page": 1,
+     "ref": "p1-l13"
+    },
+    {
+     "text": "这条抛物线的焦点；设抛物线的方程为 \\(y^2 = 12x\\)，一束光线从平行于其对称轴方向射向抛",
+     "page": 1,
+     "ref": "p1-l14"
+    },
+    {
+     "text": "物线，光线所在直线交抛物线 \\(y^2 = 12x\\) 于一点，这点的纵坐标为 12，则这束光线经过抛物",
+     "page": 1,
+     "ref": "p1-l15"
+    },
+    {
+     "text": "线反射后所在直线的一个法向量为 ___.",
+     "page": 1,
+     "ref": "p1-l16"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "抛物线具有如下的光学性质：所有平行于抛物线对称轴的入射光线经抛物线反射后都过\n这条抛物线的焦点；设抛物线的方程为 \\(y^2 = 12x\\)，一束光线从平行于其对称轴方向射向抛\n物线，光线所在直线交抛物线 \\(y^2 = 12x\\) 于一点，这点的纵坐标为 12，则这束光线经过抛物\n线反射后所在直线的一个法向量为 ___."
+  },
+  {
+   "id": "q-010",
+   "number": 10,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "在 \\(ABC\\) 中，将角 \\(A, B, C\\) 所对边的边长分别记作 \\(a, b, c\\)。设 \\(b = \\sqrt{2}c - a\\)。若 \\(c = 1\\)，",
+     "page": 1,
+     "ref": "p1-l17"
+    },
+    {
+     "text": "\\(\\cos C = \\frac{1}{5}\\)，则 \\(ABC\\) 的面积为___.",
+     "page": 1,
+     "ref": "p1-l18"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在 \\(ABC\\) 中，将角 \\(A, B, C\\) 所对边的边长分别记作 \\(a, b, c\\)。设 \\(b = \\sqrt{2}c - a\\)。若 \\(c = 1\\)，\n\\(\\cos C = \\frac{1}{5}\\)，则 \\(ABC\\) 的面积为___."
+  },
+  {
+   "id": "q-011",
+   "number": 11,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "如图, 已知 \\(AB\\) 是半圆 \\(O\\) 的直径, 直径长为 2, 点 \\(C, D\\) 均在半圆 \\(O\\) 上, 且都不与点 \\(A, B\\)",
+     "page": 1,
+     "ref": "p1-l19"
+    },
+    {
+     "text": "重合，\\(A, B, C, D\\) 四点依次按照逆时针方向排列。若 \\(CD\\) 的长为 \\(\\sqrt{2}\\)，则 \\(\\overrightarrow{AC} \\cdot \\overrightarrow{BD}\\) 的取值范",
+     "page": 1,
+     "ref": "p1-l20"
+    },
+    {
+     "text": "围为___.",
+     "page": 1,
+     "ref": "p1-l21"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "如图, 已知 \\(AB\\) 是半圆 \\(O\\) 的直径, 直径长为 2, 点 \\(C, D\\) 均在半圆 \\(O\\) 上, 且都不与点 \\(A, B\\)\n重合，\\(A, B, C, D\\) 四点依次按照逆时针方向排列。若 \\(CD\\) 的长为 \\(\\sqrt{2}\\)，则 \\(\\overrightarrow{AC} \\cdot \\overrightarrow{BD}\\) 的取值范\n围为___."
+  },
+  {
+   "id": "q-012",
+   "number": 12,
+   "section_id": "sec-01",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "设 \\(y = f(x)\\) 是定义在 \\(\\mathbb{R}\\) 上的偶函数，对任意的 \\(x \\in \\mathbb{R}\\)，都有 \\(f(-x) = f(x + 4)\\)，且",
+     "page": 2,
+     "ref": "p2-l1"
+    },
+    {
+     "text": "当 \\(x \\in [-2,0]\\) 时， \\(f(x)=\\left(\\frac{1}{2}\\right)^x-1\\). 设 \\(g(x)=f(x)-\\log_a(x+2), (a>1)\\)，若函数",
+     "page": 2,
+     "ref": "p2-l2"
+    },
+    {
+     "text": "\\(y = g(x)\\) 在左开右闭区间 \\((-2,6]\\) 上恰有 3 个不同的零点，则实数 \\(a\\) 的取值范围是",
+     "page": 2,
+     "ref": "p2-l3"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "设 \\(y = f(x)\\) 是定义在 \\(\\mathbb{R}\\) 上的偶函数，对任意的 \\(x \\in \\mathbb{R}\\)，都有 \\(f(-x) = f(x + 4)\\)，且\n当 \\(x \\in [-2,0]\\) 时， \\(f(x)=\\left(\\frac{1}{2}\\right)^x-1\\). 设 \\(g(x)=f(x)-\\log_a(x+2), (a>1)\\)，若函数\n\\(y = g(x)\\) 在左开右闭区间 \\((-2,6]\\) 上恰有 3 个不同的零点，则实数 \\(a\\) 的取值范围是"
+  },
+  {
+   "id": "q-013",
+   "number": 13,
+   "section_id": "sec-02",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "在三维空间中，下列命题是真命题的一个是（）",
+     "page": 2,
+     "ref": "p2-l6"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-013-opt-A",
+     "label": "A",
+     "text": "垂直于同一条直线的两条直线平行",
+     "refs": [
+      "p2-l7"
+     ]
+    },
+    {
+     "id": "q-013-opt-B",
+     "label": "B",
+     "text": "垂直于同一个平面的两个平面平行",
+     "refs": [
+      "p2-l8"
+     ]
+    },
+    {
+     "id": "q-013-opt-C",
+     "label": "C",
+     "text": "若一条直线垂直于一个平面，另一条直线与这个平面平行，则这两条直线互相垂直",
+     "refs": [
+      "p2-l9"
+     ]
+    },
+    {
+     "id": "q-013-opt-D",
+     "label": "D",
+     "text": "若两个平面分别平行于两条互相垂直的直线，则这两个平面互相垂直",
+     "refs": [
+      "p2-l10"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在三维空间中，下列命题是真命题的一个是（）"
+  },
+  {
+   "id": "q-014",
+   "number": 14,
+   "section_id": "sec-02",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "如图，已知某频率分布直方图形成“右拖尾”形态，则下列结论正确的是（）",
+     "page": 2,
+     "ref": "p2-l11"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-014-opt-A",
+     "label": "A",
+     "text": "众数 = 平均数 = 中位数",
+     "refs": [
+      "p2-l12"
+     ]
+    },
+    {
+     "id": "q-014-opt-B",
+     "label": "B",
+     "text": "众数 < 中位数 < 平均数",
+     "refs": [
+      "p2-l12"
+     ]
+    },
+    {
+     "id": "q-014-opt-C",
+     "label": "C",
+     "text": "众数 < 平均数 < 中位数",
+     "refs": [
+      "p2-l13"
+     ]
+    },
+    {
+     "id": "q-014-opt-D",
+     "label": "D",
+     "text": "中位数 < 平均数 < 众数",
+     "refs": [
+      "p2-l13"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [
+    {
+     "ref": "p2-f2",
+     "page": 2,
+     "bbox_pt": [
+      90.0,
+      476.16,
+      222.72,
+      548.88
+     ],
+     "source": "pdf-image",
+     "distance_pt": 9.36
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "如图，已知某频率分布直方图形成“右拖尾”形态，则下列结论正确的是（）"
+  },
+  {
+   "id": "q-015",
+   "number": 15,
+   "section_id": "sec-02",
+   "pages": [
+    2
+   ],
+   "stem": [
+    {
+     "text": "若数列 \\(\\{a_n\\}\\) 满足 \\(a_{n+1} = \\log_m a_n (m > 1\\) 且 \\(m \\in \\mathbb{Z})\\)，则称数列 \\(\\{a_n\\}\\) 为“对数 \\(m\\) 底数列”。已",
+     "page": 2,
+     "ref": "p2-l14"
+    },
+    {
+     "text": "知正项数列 \\(\\{a_n\\}\\) 是“对数 2 底数列”且 \\(a_5 = 1\\)，则当 \\(n \\geqslant 2\\) 且 \\(n \\in \\mathbb{N}^*\\) 时，\\(\\frac{4^{a_2 + a_3 + \\cdots + a_n}}{a_2^2 \\cdots a_{n-1}^2} = \\) （ ）",
+     "page": 2,
+     "ref": "p2-l15"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-015-opt-A",
+     "label": "A",
+     "text": "\\(2^{12}\\)",
+     "refs": [
+      "p2-l16"
+     ]
+    },
+    {
+     "id": "q-015-opt-B",
+     "label": "B",
+     "text": "\\(2^{16}\\)",
+     "refs": [
+      "p2-l16"
+     ]
+    },
+    {
+     "id": "q-015-opt-C",
+     "label": "C",
+     "text": "\\(2^{32}\\)",
+     "refs": [
+      "p2-l16"
+     ]
+    },
+    {
+     "id": "q-015-opt-D",
+     "label": "D",
+     "text": "\\(2^{64}\\)",
+     "refs": [
+      "p2-l16"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "若数列 \\(\\{a_n\\}\\) 满足 \\(a_{n+1} = \\log_m a_n (m > 1\\) 且 \\(m \\in \\mathbb{Z})\\)，则称数列 \\(\\{a_n\\}\\) 为“对数 \\(m\\) 底数列”。已\n知正项数列 \\(\\{a_n\\}\\) 是“对数 2 底数列”且 \\(a_5 = 1\\)，则当 \\(n \\geqslant 2\\) 且 \\(n \\in \\mathbb{N}^*\\) 时，\\(\\frac{4^{a_2 + a_3 + \\cdots + a_n}}{a_2^2 \\cdots a_{n-1}^2} = \\) （ ）"
+  },
+  {
+   "id": "q-016",
+   "number": 16,
+   "section_id": "sec-02",
+   "pages": [
+    2,
+    3
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x) = \\ln(x+1) + \\frac{ax}{x+1} (a \\in \\mathbb{R})\\)；现有下述两个结论：",
+     "page": 2,
+     "ref": "p2-l17"
+    },
+    {
+     "text": "①若 \\(y = f(x)\\) 在区间 \\((-1, 0)\\) 内恰有一个零点，则 \\(a\\) 的取值范围是 \\((-1, 0)\\)；",
+     "page": 2,
+     "ref": "p2-l18"
+    },
+    {
+     "text": "②若 \\(a > 0\\)，则方程 \\(f'(x) - f(x) = \\frac{\\sqrt{5} - 1}{2} - \\ln \\frac{\\sqrt{5} + 1}{2}\\) 的解为 \\(x = \\frac{-1 \\pm \\sqrt{5}}{2}\\)；则下列说法",
+     "page": 3,
+     "ref": "p3-l1"
+    },
+    {
+     "text": "正确的是（）",
+     "page": 3,
+     "ref": "p3-l2"
+    }
+   ],
+   "options": [
+    {
+     "id": "q-016-opt-A",
+     "label": "A",
+     "text": "结论\\(^{①}\\)和\\(^{②}\\)均正确",
+     "refs": [
+      "p3-l3"
+     ]
+    },
+    {
+     "id": "q-016-opt-B",
+     "label": "B",
+     "text": "结论\\(^{①}\\)正确，结论\\(^{②}\\)错误",
+     "refs": [
+      "p3-l3"
+     ]
+    },
+    {
+     "id": "q-016-opt-C",
+     "label": "C",
+     "text": "结论\\(^{①}\\)错误，结论\\(^{②}\\)正确",
+     "refs": [
+      "p3-l4"
+     ]
+    },
+    {
+     "id": "q-016-opt-D",
+     "label": "D",
+     "text": "结论\\(^{①}\\)和\\(^{②}\\)均错误",
+     "refs": [
+      "p3-l4"
+     ]
+    }
+   ],
+   "subquestions": [],
+   "figures": [
+    {
+     "ref": "p2-f1",
+     "page": 2,
+     "bbox_pt": [
+      90.0,
+      75.72,
+      212.28,
+      146.28
+     ],
+     "source": "pdf-image",
+     "distance_pt": 0.0
+    }
+   ],
+   "tables": [],
+   "cross_page": true,
+   "stem_text": "已知函数 \\(f(x) = \\ln(x+1) + \\frac{ax}{x+1} (a \\in \\mathbb{R})\\)；现有下述两个结论：\n①若 \\(y = f(x)\\) 在区间 \\((-1, 0)\\) 内恰有一个零点，则 \\(a\\) 的取值范围是 \\((-1, 0)\\)；\n②若 \\(a > 0\\)，则方程 \\(f'(x) - f(x) = \\frac{\\sqrt{5} - 1}{2} - \\ln \\frac{\\sqrt{5} + 1}{2}\\) 的解为 \\(x = \\frac{-1 \\pm \\sqrt{5}}{2}\\)；则下列说法\n正确的是（）"
+  },
+  {
+   "id": "q-017",
+   "number": 17,
+   "section_id": "sec-03",
+   "pages": [
+    3
+   ],
+   "stem": [
+    {
+     "text": "为开展社区与学校教育共建活动，某地区教育系统从 A、B 两所学校的 5 名教师志愿者",
+     "page": 3,
+     "ref": "p3-l6"
+    },
+    {
+     "text": "中随机抽调2人到某社区为居民开展“义务教育咨询”活动.",
+     "page": 3,
+     "ref": "p3-l7"
+    },
+    {
+     "text": "已知 \\(A\\)、\\(B\\) 两所学校中的志愿者学科分布如下：",
+     "page": 3,
+     "ref": "p3-l8"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "假设 \\(A\\) 学校语文 \\(a\\) 老师、数学 \\(b\\)、\\(c\\) 老师，\\(B\\) 学校语文 \\(d\\) 老师、数学 \\(e\\) 老师，列出“从 \\(A\\)\nB两所学校的5名教师志愿者中随机抽调2人”的样本空间；",
+     "refs": [
+      "p3-l9",
+      "p3-l10"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "求事件“抽到的2人恰好都是语文老师”的概率;",
+     "refs": [
+      "p3-l11"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "求事件“抽到的2人中，恰好有1名语文老师1名数学老师，且这2人恰好来自同一所\n学校”的概率.",
+     "refs": [
+      "p3-l12",
+      "p3-l13"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p3-f1",
+     "page": 3,
+     "bbox_pt": [
+      81.07,
+      280.31,
+      228.33,
+      416.63
+     ],
+     "source": "table-grid",
+     "distance_pt": 4.79
+    }
+   ],
+   "tables": [
+    {
+     "ref": "p3-t1",
+     "page": 3,
+     "bbox_pt": [
+      84.0,
+      282.96,
+      225.75,
+      414.06
+     ],
+     "headers": [
+      ".",
+      "学科",
+      ""
+     ],
+     "rows": [
+      [
+       "",
+       "语文",
+       "数学"
+      ],
+      [
+       "A 学校",
+       "1",
+       "2"
+      ],
+      [
+       "B 学校",
+       "1",
+       "1"
+      ]
+     ],
+     "rows_count": 4,
+     "cols_count": 3,
+     "source": "pdf-table-cells",
+     "distance_pt": 7.44
+    }
+   ],
+   "cross_page": false,
+   "stem_text": "为开展社区与学校教育共建活动，某地区教育系统从 A、B 两所学校的 5 名教师志愿者\n中随机抽调2人到某社区为居民开展“义务教育咨询”活动.\n已知 \\(A\\)、\\(B\\) 两所学校中的志愿者学科分布如下："
+  },
+  {
+   "id": "q-018",
+   "number": 18,
+   "section_id": "sec-03",
+   "pages": [
+    4
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(f(x) = 4\\sin\\left(\\omega x + \\frac{\\pi}{4}\\right) \\cdot \\cos\\omega x - \\sqrt{2}\\) (\\(\\omega > 0\\)).",
+     "page": 4,
+     "ref": "p4-l1"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "将函数 \\(y = f(x)\\) 化为 \\(y = A \\sin(kx + \\varphi)\\left(A > 0, k > 0, |\\varphi| \\leq \\frac{\\pi}{2}\\right)\\) 的形式，并指出这个\n函数的振幅和初始相位；",
+     "refs": [
+      "p4-l2",
+      "p4-l3"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "若函数 \\( y = f(x) \\) 的最小正周期为 \\( \\pi \\)，求 \\( \\omega \\) 的值并求函数 \\( y = f(x) \\) 的值域.",
+     "refs": [
+      "p4-l4"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(f(x) = 4\\sin\\left(\\omega x + \\frac{\\pi}{4}\\right) \\cdot \\cos\\omega x - \\sqrt{2}\\) (\\(\\omega > 0\\))."
+  },
+  {
+   "id": "q-019",
+   "number": 19,
+   "section_id": "sec-03",
+   "pages": [
+    4
+   ],
+   "stem": [
+    {
+     "text": "已知正四棱柱 \\(ABCD-A_1B_1C_1D_1\\) 的底面边长为 1，点 \\(E\\)、\\(F\\) 分别在边 \\(AD\\)、\\(CD\\) 上，",
+     "page": 4,
+     "ref": "p4-l5"
+    },
+    {
+     "text": "且 \\(AE = \\frac{2}{3}\\)，\\(CF = \\frac{2}{3}\\).",
+     "page": 4,
+     "ref": "p4-l6"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "证明：\\(AC \\parallel\\) 平面 \\(B_{1}EF\\)；",
+     "refs": [
+      "p4-l7"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "若 \\(AA_{1}=2\\)，求直线 \\(BB_{1}\\) 与平面 \\(B_{1}EF\\) 所成角的正弦值.",
+     "refs": [
+      "p4-l8"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p4-f1",
+     "page": 4,
+     "bbox_pt": [
+      90.0,
+      418.56,
+      183.72,
+      567.84
+     ],
+     "source": "pdf-image",
+     "distance_pt": 13.92
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知正四棱柱 \\(ABCD-A_1B_1C_1D_1\\) 的底面边长为 1，点 \\(E\\)、\\(F\\) 分别在边 \\(AD\\)、\\(CD\\) 上，\n且 \\(AE = \\frac{2}{3}\\)，\\(CF = \\frac{2}{3}\\)."
+  },
+  {
+   "id": "q-020",
+   "number": 20,
+   "section_id": "sec-03",
+   "pages": [
+    5
+   ],
+   "stem": [
+    {
+     "text": "在平面直角坐标系 xOy 中，已知双曲线 \\(\\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1 (a > 0, b > 0)\\) 的焦距为 4，点",
+     "page": 5,
+     "ref": "p5-l1"
+    },
+    {
+     "text": "\\((\\sqrt{6},1)\\)在「上.",
+     "page": 5,
+     "ref": "p5-l2"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "求双曲线厂的方程;",
+     "refs": [
+      "p5-l3"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "设直线 \\( l \\) 的斜率为 \\( \\frac{1}{2} \\)，\\( l \\) 交双曲线 \\( \\Gamma \\) 于 \\( P \\)、\\( Q \\) 两点，且与圆 \\( x^2 + y^2 = 4 \\) 相切，切点位\n于x轴上方，求\\(\\overrightarrow{OP}\\cdot\\overrightarrow{OQ}\\)的值；",
+     "refs": [
+      "p5-l4",
+      "p5-l5"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "如图，设过双曲线Γ的左焦点 \\(F_1\\) 的直线 AB 交Γ的左支于点 A、B，过Γ的右焦点 \\(F_2\\)\n的直线 CD 交「的右支于点 C 、D ，若直线 CD // AB ，且四边形 ABCD 的面积为 \\(4\\sqrt{6}\\) ，\n求直线 AB 的方程.",
+     "refs": [
+      "p5-l6",
+      "p5-l7",
+      "p5-l8"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p5-f1",
+     "page": 5,
+     "bbox_pt": [
+      90.0,
+      153.36,
+      219.72,
+      240.36
+     ],
+     "source": "pdf-image",
+     "distance_pt": 10.2
+    }
+   ],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "在平面直角坐标系 xOy 中，已知双曲线 \\(\\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1 (a > 0, b > 0)\\) 的焦距为 4，点\n\\((\\sqrt{6},1)\\)在「上."
+  },
+  {
+   "id": "q-021",
+   "number": 21,
+   "section_id": "sec-03",
+   "pages": [
+    6
+   ],
+   "stem": [
+    {
+     "text": "已知函数 \\(y = f(x)\\) (\\(x \\in \\mathbb{R}\\)) 的图象关于点 \\((m, n)\\) 成中心对称的充要条件是",
+     "page": 6,
+     "ref": "p6-l1"
+    },
+    {
+     "text": "\\(g(x) = f(x + m) - n\\) (\\(x \\in \\mathbb{R}\\)) 是奇函数；如果一个函数 \\(y = f(x)\\) 的图象关于点 \\((m, n)\\) 成",
+     "page": 6,
+     "ref": "p6-l2"
+    },
+    {
+     "text": "中心对称，则称这个函数是点\\((m,n)\\)奇函数，其中点\\((m,n)\\)为对称中心；设函数",
+     "page": 6,
+     "ref": "p6-l3"
+    },
+    {
+     "text": "\\(f(x) = x(x-1)(x-a)\\), \\(x \\in \\mathbb{R}\\).",
+     "page": 6,
+     "ref": "p6-l4"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "若函数 \\( y = f(x) \\) 是点 \\((1,0)\\) 奇函数，求实数 \\(a\\) 的值；",
+     "refs": [
+      "p6-l5"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "证明：对于任意给定的实数 \\(a\\)，函数 \\(y = f(x)\\) 存在两个极值点；若 \\(x = a\\) 是 \\(y = f(x)\\)\n的极小值点，求出 \\(y = f(x)\\) 的所有极值点；",
+     "refs": [
+      "p6-l6",
+      "p6-l7"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "若 x = a 是 \\(y = f(x)\\) 的极大值点，函数 \\(y = f(x)\\) 是否是点 \\((m, n)\\) 奇函数？若是，求\n出对称中心\\((m,n)\\)；若不是，请说明理由.",
+     "refs": [
+      "p6-l8",
+      "p6-l9"
+     ]
+    }
+   ],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "已知函数 \\(y = f(x)\\) (\\(x \\in \\mathbb{R}\\)) 的图象关于点 \\((m, n)\\) 成中心对称的充要条件是\n\\(g(x) = f(x + m) - n\\) (\\(x \\in \\mathbb{R}\\)) 是奇函数；如果一个函数 \\(y = f(x)\\) 的图象关于点 \\((m, n)\\) 成\n中心对称，则称这个函数是点\\((m,n)\\)奇函数，其中点\\((m,n)\\)为对称中心；设函数\n\\(f(x) = x(x-1)(x-a)\\), \\(x \\in \\mathbb{R}\\)."
+  }
+ ],
+ "front_matter": [
+  {
+   "text": "静安区 2026 届高三一模数学试卷",
+   "page": 1,
+   "ref": "p1-l1",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "分）",
+   "page": 2,
+   "ref": "p2-l5",
+   "reason": "before_first_question"
+  }
+ ],
+ "unassigned": {
+  "figures": [],
+  "tables": [],
+  "lines": []
+ },
+ "stats": {
+  "sections": 3,
+  "questions": 21,
+  "front_matter_lines": 2,
+  "figures_assigned": 5,
+  "figures_unassigned": 0,
+  "tables_assigned": 1,
+  "tables_unassigned": 0,
+  "questions_cross_page": 1,
+  "options": 16,
+  "subquestions": 13
+ }
+}

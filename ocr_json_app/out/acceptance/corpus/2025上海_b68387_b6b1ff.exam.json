@@ -1,0 +1,409 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2025上海",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\corpus\\2025上海.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\corpus\\2025上海_b68387.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T05:21:21+0800"
+ },
+ "sections": [
+  {
+   "id": "sec-01",
+   "label": "三",
+   "title": "解答题",
+   "pages": [
+    1
+   ],
+   "question_ids": [
+    "q-001",
+    "q-002",
+    "q-003",
+    "q-004"
+   ]
+  }
+ ],
+ "questions": [
+  {
+   "id": "q-001",
+   "number": 17,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "2024 年东京奥运会，中国获得了男子 \\(4 \\times 100\\) 米混合泳接力金牌，以下是",
+     "page": 1,
+     "ref": "p1-l17"
+    },
+    {
+     "text": "C 历届奥运会男子 \\(4 \\times 100\\) 米混合泳接力项目冠军成绩（单位：秒），数据按照",
+     "page": 1,
+     "ref": "p1-l18"
+    },
+    {
+     "text": "A B 升序排列.",
+     "page": 1,
+     "ref": "p1-l19"
+    },
+    {
+     "text": "（表格）",
+     "page": 1,
+     "ref": "p1-l20"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [
+    {
+     "ref": "p1-f1",
+     "page": 1,
+     "bbox_pt": [
+      501.46,
+      486.22,
+      713.56,
+      520.78
+     ],
+     "source": "table-grid",
+     "distance_pt": 0.0
+    },
+    {
+     "ref": "p1-f2",
+     "page": 1,
+     "bbox_pt": [
+      210.07,
+      384.91,
+      263.25,
+      466.0
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 0.0
+    }
+   ],
+   "tables": [
+    {
+     "ref": "p1-t1",
+     "page": 1,
+     "bbox_pt": [
+      503.92,
+      488.17,
+      711.54,
+      518.81
+     ],
+     "headers": [
+      "206.78",
+      "207.46",
+      "207.95",
+      "209.34",
+      "209.35"
+     ],
+     "rows": [
+      [
+       "210.68",
+       "213.73",
+       "214.84",
+       "216.93",
+       "216.93"
+      ]
+     ],
+     "rows_count": 2,
+     "cols_count": 5,
+     "source": "pdf-table-cells",
+     "distance_pt": 0.0
+    }
+   ],
+   "cross_page": false,
+   "stem_text": "2024 年东京奥运会，中国获得了男子 \\(4 \\times 100\\) 米混合泳接力金牌，以下是\nC 历届奥运会男子 \\(4 \\times 100\\) 米混合泳接力项目冠军成绩（单位：秒），数据按照\nA B 升序排列.\n（表格）"
+  },
+  {
+   "id": "q-002",
+   "number": 9,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "有 4 名家长和 2 名儿童去郊游爬山。若 6 个人要排成一队列，要求队列的首和尾均是家长，则不同的排列方式共有___种。\n(1) 求这组数据的极差与中位数；\n(2) 从这 10 个数据中任选 3 个，求恰有 2 个数据大于 211 的概率；",
+     "page": 1,
+     "ref": "p1-l21"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "有 4 名家长和 2 名儿童去郊游爬山。若 6 个人要排成一队列，要求队列的首和尾均是家长，则不同的排列方式共有___种。\n(1) 求这组数据的极差与中位数；\n(2) 从这 10 个数据中任选 3 个，求恰有 2 个数据大于 211 的概率；"
+  },
+  {
+   "id": "q-003",
+   "number": 10,
+   "section_id": "sec-01",
+   "pages": [
+    1
+   ],
+   "stem": [
+    {
+     "text": "i 为虚数单位, 若复数 z 满足 \\(z^2 = (\\overline{z})^2\\), 且 \\(|z| \\leq 1\\), 则 \\(|z - 2 - 3i|\\) 的最小值. (3) 若比赛成绩 y 关于年份 x 的回归方程为 \\(y = -0.311x + \\hat{b}\\), 年份 x 的平",
+     "page": 1,
+     "ref": "p1-l22"
+    },
+    {
+     "text": "值为___. 均数为2006, 请预测2028年男子\\(4\\times100\\)米混合泳接力项目冠军队的成",
+     "page": 1,
+     "ref": "p1-l23"
+    }
+   ],
+   "options": [],
+   "subquestions": [],
+   "figures": [],
+   "tables": [],
+   "cross_page": false,
+   "stem_text": "i 为虚数单位, 若复数 z 满足 \\(z^2 = (\\overline{z})^2\\), 且 \\(|z| \\leq 1\\), 则 \\(|z - 2 - 3i|\\) 的最小值. (3) 若比赛成绩 y 关于年份 x 的回归方程为 \\(y = -0.311x + \\hat{b}\\), 年份 x 的平\n值为___. 均数为2006, 请预测2028年男子\\(4\\times100\\)米混合泳接力项目冠军队的成"
+  },
+  {
+   "id": "q-004",
+   "number": 11,
+   "section_id": "sec-01",
+   "pages": [
+    1,
+    2
+   ],
+   "stem": [
+    {
+     "text": "小申同学观察发现，生活中有时候影子可以完全投射在斜面上．某斜面上 绩.（结果精确到0.01秒）",
+     "page": 1,
+     "ref": "p1-l24"
+    },
+    {
+     "text": "有两根长为 1 米且垂直于水平面放置的杆子，与斜面的接触点分别为 A、",
+     "page": 1,
+     "ref": "p1-l25"
+    },
+    {
+     "text": "B, 它们在阳光的照射下呈现出影子, 阳光可视为平行光, 其中 A 处杆子",
+     "page": 1,
+     "ref": "p1-l26"
+    },
+    {
+     "text": "的影子在水平面上，长度为 0.4 米，B 处杆子的影子完全在斜面上，长度为",
+     "page": 1,
+     "ref": "p1-l27"
+    },
+    {
+     "text": "0.45 米. 则斜面的坡角 \\(\\theta = \\) ___. (结果精确到 0.01°)",
+     "page": 1,
+     "ref": "p1-l28"
+    },
+    {
+     "text": "A",
+     "page": 1,
+     "ref": "p1-l29"
+    },
+    {
+     "text": "如图，点 P 是圆锥的顶点，点 O 是底面圆心，底面直径 AB = 2.",
+     "page": 1,
+     "ref": "p1-l2"
+    }
+   ],
+   "options": [],
+   "subquestions": [
+    {
+     "label": "(1)",
+     "text": "若直线 PA 与圆锥底面所成角为 \\(\\frac{\\pi}{3}\\)，求圆锥的侧面积；",
+     "refs": [
+      "p1-l3"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "若 Q 是母线 PA 的中点, 点 C、D 在底面圆周上, AC 弧长为 \\(\\frac{\\pi}{3}\\),\nCD // AB, 点 T 在线段 OC 上, 求证: 直线 QT // 平面 PBD.\nP\n设 \\( m \\in \\mathbf{R} \\), \\( f(x) = x^2 - (m+2)x + m \\ln x \\).",
+     "refs": [
+      "p1-l4",
+      "p1-l6",
+      "p1-l8",
+      "p2-l2"
+     ]
+    },
+    {
+     "label": "(1)",
+     "text": "若 \\(f(1)=0\\), 求不等式 \\(f(x)\\leq x^{2}-1\\) 的解集;",
+     "refs": [
+      "p2-l4"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "若 \\( y = f(x) \\) 在区间 \\( (0, +\\infty) \\) 上存在极大值，求 m 的取值范围.\n设椭圆 \\(\\Gamma\\): \\(\\frac{x^{2}}{a^{2}} + \\frac{y^{2}}{5} = 1\\) (\\(a > \\sqrt{5}\\)), 点 A 为 \\(\\Gamma\\) 的右顶点, 点 \\(M(0, m)\\) (\\(m > 0\\)).",
+     "refs": [
+      "p2-l7",
+      "p2-l1"
+     ]
+    },
+    {
+     "label": "(1)",
+     "text": "若 \\(\\Gamma\\) 的一个焦点是 \\((2,0)\\)，求 \\(\\Gamma\\) 的离心率；",
+     "refs": [
+      "p2-l8"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "设 \\(a = 4\\)，椭圆 \\(\\Gamma\\) 上存在一点 \\(P\\) 满足 \\(\\overrightarrow{PA} = 2\\overrightarrow{MP}\\)，求 \\(m\\) 的值；",
+     "refs": [
+      "p2-l9"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "若线段 \\(AM\\) 的中垂线 \\(l\\) 的斜率为 2, \\(l\\) 与椭圆 \\(\\Gamma\\) 交于 \\(C\\)、\\(D\\) 两点, 且\n\\(\\angle CMD\\) 为钝角，求 a 的取值范围.\n已知函数 \\( y = f(x) \\) 的定义域为 \\(\\mathbb{R}\\)，对于正实数 \\(a\\)，定义集合 \\(M_a =\\)\n\\(\\{x \\mid f(x + a) = f(x), \\, x \\in \\mathbb{R}\\}.\\)",
+     "refs": [
+      "p2-l11",
+      "p2-l13",
+      "p2-l3",
+      "p2-l5"
+     ]
+    },
+    {
+     "label": "(1)",
+     "text": "设 \\(f(x) = \\sin x\\)，判断 \\(\\frac{\\pi}{3}\\) 是否是 \\(M_\\pi\\) 中的元素，并说明理由；",
+     "refs": [
+      "p2-l6"
+     ]
+    },
+    {
+     "label": "(2)",
+     "text": "设 \\(f(x)=\\begin{cases}x+2,&x<0,\\\\\\sqrt{x},&x\\geqslant0,\\end{cases}\\) 且 \\(M_a\\neq\\varnothing\\)，求 \\(a\\) 的取值范围；",
+     "refs": [
+      "p2-l10"
+     ]
+    },
+    {
+     "label": "(3)",
+     "text": "若 \\( y = f(x) \\) 是偶函数, 当 \\( x \\in (0,1] \\) 时, \\( f(x) = 1 - x \\), 且对任意\n\\(a \\in (0,2)\\), 均有 \\(M_a \\subseteq M_2\\). 写出当 \\(x \\in (1,2)\\) 时 \\(f(x)\\) 的表达式, 并证明:\n对任意实数 c, 函数 \\(y = f(x) - c\\) 在区间 \\([-3, 3]\\) 上至多有 9 个零点.",
+     "refs": [
+      "p2-l12",
+      "p2-l14",
+      "p2-l15"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "ref": "p1-f3",
+     "page": 1,
+     "bbox_pt": [
+      156.53,
+      687.99,
+      315.27,
+      771.69
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 2.55
+    },
+    {
+     "ref": "p1-f4",
+     "page": 1,
+     "bbox_pt": [
+      1016.24,
+      147.01,
+      1133.31,
+      260.9
+     ],
+     "source": "pdf-vector",
+     "distance_pt": 0.0
+    }
+   ],
+   "tables": [],
+   "cross_page": true,
+   "stem_text": "小申同学观察发现，生活中有时候影子可以完全投射在斜面上．某斜面上 绩.（结果精确到0.01秒）\n有两根长为 1 米且垂直于水平面放置的杆子，与斜面的接触点分别为 A、\nB, 它们在阳光的照射下呈现出影子, 阳光可视为平行光, 其中 A 处杆子\n的影子在水平面上，长度为 0.4 米，B 处杆子的影子完全在斜面上，长度为\n0.45 米. 则斜面的坡角 \\(\\theta = \\) ___. (结果精确到 0.01°)\nA\n如图，点 P 是圆锥的顶点，点 O 是底面圆心，底面直径 AB = 2."
+  }
+ ],
+ "front_matter": [
+  {
+   "text": "2025 普通高等学校招生考试（上海卷）\n12. 已知 \\(f(x)=\\left\\{\\begin{aligned}&1,&x>0,\\\\ &0,&x=0,\\\\ &-1,&x<0,\\end{aligned}\\right.\\) 向量 \\(\\boldsymbol{a},\\boldsymbol{b},\\boldsymbol{c}\\) 是平面内三个不同的单位向量，",
+   "page": 1,
+   "ref": "p1-l1",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "若 \\(f(a \\cdot b) + f(b \\cdot c) + f(c \\cdot a) = 0\\)，则 \\(|a + b + c|\\) 的取值范围是___。",
+   "page": 1,
+   "ref": "p1-l5",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "一、填空题\n二、选择题",
+   "page": 1,
+   "ref": "p1-l7",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "1. 已知全集 \\(U = \\{x \\mid 2 \\leqslant x \\leqslant 5, x \\in \\mathbf{R}\\}\\)，若集合 \\(A = \\{x \\mid 2 \\leqslant x < 4, x \\in \\mathbf{R}\\}\\)，则 \\(P(A \\cap B)\\) 的值为( )\n(A) 0\n(B) \\(\\frac{1}{4}\\)\n(C) \\(\\frac{1}{2}\\)\n(D) 1\n2. 设 \\(x \\in \\mathbf{R}\\)，不等式 \\(\\frac{x-1}{x-3} < 0\\) 的解集为___。\n14. 已知 \\(a > 0\\) 且 \\(a \\neq 1\\)，\\(s \\in \\mathbf{R}\\)，下列各项中，能推出 \\(a^s > a\\) 的是 ( )",
+   "page": 1,
+   "ref": "p1-l9",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "3. 若等差数列 \\(\\{a_n\\}\\) 的首项 \\(a_1 = -3\\)，公差 \\(d = 2\\)，则该数列的前 6 项的和为___。\n(A) \\(a > 1, s > 0\\)\n(B) \\(a > 1, s < 0\\)\n(C) \\(0 < a < 1, s > 0\\)\n(D) \\(0 < a < 1, s < 0\\)",
+   "page": 1,
+   "ref": "p1-l10",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "4. 在 \\((2x-1)^5\\) 的二项展开式中, \\(x^3\\) 项的系数为___.\n5. 函数 \\(y = \\cos x\\), \\(x \\in \\left[-\\frac{\\pi}{2}, \\frac{\\pi}{4}\\right]\\) 的值域为___.\n15. 已知点 \\(A(0,1)\\), \\(B(1,2)\\), 若动点 \\(C\\) 在曲线 \\(x^2 - y^2 = 1\\) (\\(x \\geq 1\\), \\(y \\geq 0\\)) 上, 则 \\(\\triangle ABC\\) 的面积 ()",
+   "page": 1,
+   "ref": "p1-l11",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "6. 若随机变量 X 的分布为 \\(\\begin{pmatrix} 5 & 6 & 7 \\\\ 0.2 & 0.3 & 0.5 \\end{pmatrix}\\)，则期望 \\(E(X) =\\) ___.\n\n(A) 有最大值, 无最小值\n(B) 无最大值, 有最小值\n(C) 有最大值, 有最小值\n(D) 无最大值, 无最小值",
+   "page": 1,
+   "ref": "p1-l12",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "7. 在正四棱柱 \\(ABCD - A_1B_1C_1D_1\\) 中, 若 \\(AC = 4\\sqrt{2}\\), \\(BD_1 = 9\\), 则其体积 16. 设 \\(\\lambda \\in \\mathbb{R}\\), 数列 \\(\\{a_n\\}\\), \\(\\{b_n\\}\\), \\(\\{c_n\\}\\) 满足 \\(a_n = 10n - 9\\), \\(b_n = 2^n\\),",
+   "page": 1,
+   "ref": "p1-l13",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "为_____.\n\\(c_n = \\lambda a_n + (1 - \\lambda) b_n\\). 若对任意的 \\(\\lambda \\in [0,1]\\), \\(a_n\\), \\(b_n\\), \\(c_n\\) 均能作为三角形的三边长，则满足条件的正整数 \\(n\\) 有 ( )",
+   "page": 1,
+   "ref": "p1-l14",
+   "reason": "before_first_question"
+  },
+  {
+   "text": "\\(A_1\\) (A) 1 个 (B) 3 个 (C) 4 个 (D) 无穷多个",
+   "page": 1,
+   "ref": "p1-l15",
+   "reason": "before_first_question"
+  }
+ ],
+ "unassigned": {
+  "figures": [],
+  "tables": [],
+  "lines": []
+ },
+ "stats": {
+  "sections": 1,
+  "questions": 4,
+  "front_matter_lines": 10,
+  "figures_assigned": 4,
+  "figures_unassigned": 0,
+  "tables_assigned": 1,
+  "tables_unassigned": 0,
+  "questions_cross_page": 1,
+  "options": 0,
+  "subquestions": 10
+ }
+}

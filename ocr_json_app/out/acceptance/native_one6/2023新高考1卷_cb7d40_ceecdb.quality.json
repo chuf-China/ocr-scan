@@ -1,0 +1,114 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2023新高考1卷",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\2023新高考1卷.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\native_one6\\2023新高考1卷_cb7d40.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T11:57:46+0800"
+ },
+ "summary": {
+  "status": "fail",
+  "errors": 1,
+  "warnings": 2,
+  "questions": 22,
+  "sections": 4,
+  "figures_assigned": 2,
+  "figures_unassigned": 0,
+  "missing_question_numbers": [],
+  "duplicate_question_numbers": [],
+  "content_truncated": 0,
+  "content_truncated_samples": [],
+  "empty_sections": 0,
+  "line_overflow": 0,
+  "line_overlaps": 0,
+  "coverage_ratio": 1.0,
+  "uncovered_regions": 0,
+  "formula_count": 140,
+  "formula_lines": 51,
+  "formula_broken": 0,
+  "formula_suspicious": 0,
+  "formula_samples": [],
+  "tables": 3,
+  "tables_unassigned": 0,
+  "garbled_lines": 0,
+  "font_count": 13
+ },
+ "checks": {
+  "question_numbers_complete": true,
+  "question_numbers_unique": true,
+  "all_questions_have_stem": true,
+  "all_questions_have_options": true,
+  "content_consistency_ok": true,
+  "text_clean_ok": true,
+  "all_figures_assigned": true,
+  "all_tables_structured": true,
+  "geometry_ok": true,
+  "page_coverage_ok": true,
+  "formula_structure_ok": true
+ },
+ "repair": {
+  "actions": [
+   {
+    "code": "choice_options_incomplete",
+    "action": "review_question_region",
+    "mode": "manual",
+    "reason": "选项缺失可能是裁切/换行，不能自动补选项",
+    "target": "q-012",
+    "message": "第 12 题（多选题）只有 2 个选项"
+   },
+   {
+    "code": "table_empty_cell",
+    "action": "reocr_table_cell",
+    "mode": "auto_candidate",
+    "reason": "空单元格通常是裁切/超时导致，可只重跑该格 OCR；不改变表格结构",
+    "target": "p1-l33-t1",
+    "message": "第 12 题表格有空单元格（NonexNone）"
+   },
+   {
+    "code": "table_empty_cell",
+    "action": "reocr_table_cell",
+    "mode": "auto_candidate",
+    "reason": "空单元格通常是裁切/超时导致，可只重跑该格 OCR；不改变表格结构",
+    "target": "p1-l35-t1",
+    "message": "第 12 题表格有空单元格（NonexNone）"
+   }
+  ],
+  "counts": {
+   "auto_candidate": 2,
+   "manual": 1,
+   "blocked": 0
+  },
+  "total": 3,
+  "auto_executed": false,
+  "note": "auto_candidate 只是允许重试，执行前仍应保留原 JSON；manual 不得自动补内容"
+ },
+ "issues": [
+  {
+   "level": "error",
+   "code": "choice_options_incomplete",
+   "message": "第 12 题（多选题）只有 2 个选项",
+   "ref": "q-012"
+  },
+  {
+   "level": "warning",
+   "code": "table_empty_cell",
+   "message": "第 12 题表格有空单元格（NonexNone）",
+   "page": 1,
+   "ref": "p1-l33-t1"
+  },
+  {
+   "level": "warning",
+   "code": "table_empty_cell",
+   "message": "第 12 题表格有空单元格（NonexNone）",
+   "page": 1,
+   "ref": "p1-l35-t1"
+  }
+ ]
+}

@@ -1,0 +1,81 @@
+{
+ "schema_version": 1,
+ "document": {
+  "title": "2024上海",
+  "source_pdf": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\data\\exams\\corpus\\2024上海.pdf",
+  "source_layout": "C:\\Users\\Administrator\\Desktop\\ocr\\ocr scan\\ocr_json_app\\out\\acceptance\\corpus\\2024上海_6a2c0d.json",
+  "subject": "数学",
+  "pages": 2,
+  "page_size_pt": [
+   1190.55,
+   841.89
+  ],
+  "engine": "llama.cpp/paddleocr-vl",
+  "generated_at": "2026-10-25T05:20:27+0800"
+ },
+ "summary": {
+  "status": "warn",
+  "errors": 0,
+  "warnings": 1,
+  "questions": 21,
+  "sections": 3,
+  "figures_assigned": 4,
+  "figures_unassigned": 0,
+  "missing_question_numbers": [],
+  "duplicate_question_numbers": [],
+  "content_truncated": 0,
+  "content_truncated_samples": [],
+  "empty_sections": 0,
+  "line_overflow": 0,
+  "line_overlaps": 0,
+  "coverage_ratio": 0.99804,
+  "uncovered_regions": 1,
+  "formula_count": 135,
+  "formula_lines": 47,
+  "formula_broken": 0,
+  "formula_suspicious": 0,
+  "formula_samples": [],
+  "tables": 2,
+  "tables_unassigned": 0
+ },
+ "checks": {
+  "question_numbers_complete": true,
+  "question_numbers_unique": true,
+  "all_questions_have_stem": true,
+  "all_questions_have_options": true,
+  "content_consistency_ok": true,
+  "all_figures_assigned": true,
+  "all_tables_structured": true,
+  "geometry_ok": true,
+  "page_coverage_ok": false,
+  "formula_structure_ok": true
+ },
+ "repair": {
+  "actions": [
+   {
+    "code": "page_uncovered_ink",
+    "action": "review_uncovered_region",
+    "mode": "manual",
+    "reason": "未覆盖墨迹可能是插图标注/表格框线/漏行，需看原图定位",
+    "target": 1,
+    "message": "第 1 页有 1 处未覆盖墨迹（覆盖率 99.80%），可能漏行/漏图"
+   }
+  ],
+  "counts": {
+   "auto_candidate": 0,
+   "manual": 1,
+   "blocked": 0
+  },
+  "total": 1,
+  "auto_executed": false,
+  "note": "auto_candidate 只是允许重试，执行前仍应保留原 JSON；manual 不得自动补内容"
+ },
+ "issues": [
+  {
+   "level": "warning",
+   "code": "page_uncovered_ink",
+   "message": "第 1 页有 1 处未覆盖墨迹（覆盖率 99.80%），可能漏行/漏图",
+   "page": 1
+  }
+ ]
+}
