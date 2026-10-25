@@ -288,6 +288,18 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
     `formula-venv` 子进程里跑，主环境不得 import paddle。`check_layout_json` 只对含 `reviews`
     的产物硬校验，历史产物跳过。详见 `ocr_json_app/docs/specs/t3-table-review.md`。
 
+27. **缺陷先定责，再谈修**：`src/defect_taxonomy.py` 把每个 issue code 登记成
+    「六类现象（乱码 / 重叠 / 少图 / 少文字 / 多余 / 结构内容错）× 责任方
+    （`program` 架构程序 / `model` 模型 / `input` 输入）× 修复层」；`build_quality`
+    据此输出 `summary.defects{by_class, by_owner, unknown}`，只增不改，不影响 status。
+    **新增 issue code 必须同时登记**，否则 `checks.defect_codes_registered` 转 false；
+    `mixed` 只是临时状态，必须写清"怎么区分程序/模型"的判据（现有的三个：题号 gap 看
+    该行在不在 layout、题干截断看是否被表格占位行顶替、选项不全看是否一行多标签没拆开）。
+    判定顺序固定：文本在不在 → 几何对不对 → 内容对不对，不许按单卷调规则。页眉页脚的小图
+    （≤90pt 且贴边 10%）一律当装饰：不进 `figures`、计入覆盖率、写 `page.page_furniture[]`，
+    否则二维码会被当成"未归属插图"淹掉真正的少图信号。详见
+    `ocr_json_app/docs/specs/defect-taxonomy.md`。
+
 ## 改哪里 / 怎么改
 
 - **官方流程入口 / 路径**：`run_paddleocr_vl.sh`（WSL 侧，硬编码路径先改）+ `tools/import_paddleocr_json.py`

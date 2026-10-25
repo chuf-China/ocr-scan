@@ -1304,6 +1304,26 @@ def _is_page_background(box: tuple[float, float, float, float],
     return ((x1 - x0) >= page_w * 0.85 and (y1 - y0) >= page_h * 0.85)
 
 
+def _is_page_furniture(box: list[float] | tuple[float, float, float, float],
+                       page_w: float, page_h: float, max_pt: float = 90.0,
+                       band: float = 0.10) -> bool:
+    """页眉/页脚的小图块是页面装饰，不是插图。
+
+    实测 2024 北京西城二模：每页右上角一个 54×54pt 的二维码图片被当成插图，
+    既进 figures 又被判“未归属题目”（9 条 figure_unassigned warning），把真正
+    该看的“少图”信号淹掉了。这类装饰（二维码、校徽、防伪印章、水印条）只满足
+    “小 + 贴页眉/页脚”，与正文插图在几何上不重合，所以按几何判据过滤，不做
+    内容识别。被滤掉的框仍参与行投影掩膜，避免它变成“未覆盖墨迹”。
+    """
+    try:
+        x0, y0, x1, y1 = [float(v) for v in box]
+    except (TypeError, ValueError):
+        return False
+    if (x1 - x0) > max_pt or (y1 - y0) > max_pt:
+        return False
+    return y1 <= page_h * band or y0 >= page_h * (1.0 - band)
+
+
 def _expand_box_with_labels(box: list[float], chars: list[dict],
                             pad: float = 10.0,
                             far_pad: float = 26.0) -> tuple[list[float], int]:
@@ -2253,12 +2273,17 @@ def _line_px_box(line: dict, scale: float) -> tuple[int, int, int, int] | None:
 
 
 def audit_page_coverage(gray: np.ndarray, lines: list[dict], figures: list[dict],
-                        scale: float, typical_h_px: float) -> dict:
+                        scale: float, typical_h_px: float,
+                        decor: list[dict] | None = None) -> dict:
     """检查“有墨但没被任何行/图盒覆盖”的区域。
 
     行检测是投影启发式，失败时不会抛错，只会静默漏行；这是最危险的错误。
     这里把已检测的行盒和插图盒画成覆盖掩膜，再找剩余的成片墨迹。这样即使
     OCR 完全没看到某一行，也能在 quality 里留下证据。
+
+    ``decor`` 是已判定为页面装饰的框（页眉二维码/校徽）。它们既不是正文也
+    不该被补成插图，所以计入覆盖、但不进 uncovered_regions——否则装饰会把
+    "补回漏检插图"的兜底逻辑引回来，等于白过滤。
 
     只统计成片的竖向行程（过滤单像素噪点），并按页比例给出覆盖率。这个函数
     不依赖 OCR 结果，因此也能发现“整页没切成行”的旋转/扫描页。
@@ -2282,14 +2307,25 @@ def audit_page_coverage(gray: np.ndarray, lines: list[dict], figures: list[dict]
     for fig in figures:
         px = fig.get("px") or []
         if len(px) != 4:
-            continue
-        # 图表坐标轴标题、柱顶标注常落在矢量框外几个点到二十几个点处
+            continue        # 图表坐标轴标题、柱顶标注常落在矢量框外几个点到二十几个点处
         # （实测坐标轴“指标”和柱线都在框外）。覆盖率把插图外扩 28pt 当作
         # 图的一部分，否则会把图内文字误报成漏行。
         margin = int(round(28 * scale))
         x0, y0, x1, y1 = (max(0, int(px[0]) - margin), max(0, int(px[1]) - margin),
                           min(ink.shape[1], int(px[2]) + margin),
                           min(ink.shape[0], int(px[3]) + margin))
+        if x1 > x0 and y1 > y0:
+            covered[y0:y1, x0:x1] = True
+
+    # 页面装饰（页眉二维码等）：计入覆盖，但不参与 uncovered 统计。
+    for box in decor or []:
+        pt = box.get("pt") or box.get("bbox_pt") or []
+        if len(pt) != 4:
+            continue
+        x0, y0, x1, y1 = (max(0, int(round(float(pt[0]) * scale))),
+                          max(0, int(round(float(pt[1]) * scale))),
+                          min(ink.shape[1], int(round(float(pt[2]) * scale)) + 2),
+                          min(ink.shape[0], int(round(float(pt[3]) * scale)) + 2))
         if x1 > x0 and y1 > y0:
             covered[y0:y1, x0:x1] = True
 
@@ -2452,7 +2488,13 @@ def build(args) -> dict:
                          if font_probe is not None and not args.no_figures else [])
         native_boxes = (font_probe.figure_boxes(pno, exclude_boxes=native_tables)
                         if font_probe is not None and not args.no_figures else [])
-        gray_for_lines = _mask_figure_areas(gray, native_boxes, scale)
+        # 页眉二维码/校徽/印章：几何上“小且贴页眉页脚”，当装饰过滤，不当插图。
+        page_furniture = [b for b in native_boxes if _is_page_furniture(b["pt"], pw, ph)]
+        if page_furniture:
+            native_boxes = [b for b in native_boxes if b not in page_furniture]
+            log(f"第 {pno} 页过滤页眉页脚装饰图 {len(page_furniture)} 个")
+        # 装饰框仍要参与行投影掩膜，否则二维码的墨迹会变成“未覆盖墨迹”。
+        gray_for_lines = _mask_figure_areas(gray, native_boxes + page_furniture, scale)
         if native_boxes:
             log(f"第 {pno} 页原生图形资源 {len(native_boxes)} 个，已从行投影中剔除")
         gutters = detect_column_gutters(gray, chars=chars, scale=scale)
@@ -2811,13 +2853,14 @@ def build(args) -> dict:
         if restored_prefixes:
             log(f"第 {pno} 页从栏缝补回 {restored_prefixes} 个题号")
 
-        coverage = audit_page_coverage(gray, page_lines, figures, scale, typical_h_px)
+        coverage = audit_page_coverage(gray, page_lines, figures, scale, typical_h_px,
+                                       decor=page_furniture)
         fallback_figures = figures_from_uncovered(
             pil, coverage, figures, args.dpi)
         if fallback_figures:
             figures.extend(fallback_figures)
             coverage = audit_page_coverage(
-                gray, page_lines, figures, scale, typical_h_px)
+                gray, page_lines, figures, scale, typical_h_px, decor=page_furniture)
             log(f"第 {pno} 页补回 {len(fallback_figures)} 张漏检插图"
                 f"（覆盖率 {coverage['ratio']:.3%}）")
         classification = classify_page(gray, page_lines, gutters, chars, pw, ph)
@@ -2881,6 +2924,9 @@ def build(args) -> dict:
             "elapsed_s": round(time.time() - t_page, 2),
             "native_text": native_info,
             "font_audit": font_audit,
+            # 被挡掉、没有当成插图的页眉页脚装饰（二维码/校徽/水印），
+            # 留下来是为了让“少图”告警可以证明自己不是漏图。
+            "page_furniture": page_furniture,
         }
         # 区域层（T1）：行 / 图 / 表收成带稳定 id 的语义区域。必须在行与图表的
         # id、content_type 都定好之后、append 之前生成；lines/figures/tables 原字段不动。
@@ -2992,6 +3038,7 @@ def build(args) -> dict:
             "garbled_lines": font_audit_total["garbled_lines"],
             "regions": regions_total["count"],
             "region_types": regions_total["by_content_type"],
+            "page_furniture": sum(len(p.get("page_furniture") or []) for p in out_pages),
             "text_source_counts": {
                 src: sum(1 for l in all_lines if l.get("text_source") == src)
                 for src in ("ocr", "native-text")

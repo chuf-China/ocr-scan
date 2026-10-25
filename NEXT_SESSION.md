@@ -139,6 +139,31 @@
 6. 推送仍未完成：本会话 `git push` 因 GitHub 凭据需要交互而无法非交互执行，需用户在自己
    终端跑 `git push origin main`。
 
+## 0.3 2026-10-25 第四轮：缺陷分类与定责（用户要求“六类，是模型问题还是架构程序问题，得分清楚”）
+
+1. **两套分类分开用**：验收用六类现象（乱码 / 重叠 / 少图 / 少文字 / 多余 / 结构内容错），
+   派活用三方责任（`program` 架构程序 / `model` 模型 / `input` 输入）。`src/defect_taxonomy.py`
+   是唯一登记表：26 个 issue code 各登记 现象 × 责任方 × 修复层 × 判定说明。
+2. **产物只增不改**：`build_quality()` 增加 `summary.defects{by_class, by_owner, unknown}` 与
+   `checks.defect_codes_registered`；不影响 `status`。新增 code 不登记 → checks 转 false。
+3. **定责规则写成可操作判据**，不拍脑袋：先看文本在不在 layout（不在→模型/输入），再看几何
+   对不对（错位/裁偏→程序），最后看内容对不对（内容错→模型）；三个 `mixed` code 各自写明
+   “怎么判定”（题号 gap 看该行在不在、题干截断看是否被表格占位行顶替、选项不全看是否
+   一行多标签没拆开）。
+4. **按这套定责修掉第一个程序类缺陷（通用判据，不写单卷特例）**：页眉二维码 54×54pt、
+   贴页眉，以前被当插图并报 9 条 `figure_unassigned`。新增 `_is_page_furniture()`
+   （≤90pt + 贴边 10%）：不进 `figures`、计入覆盖率（防“补回漏检插图”把它加回来）、
+   写 `page.page_furniture[]` 与 `stats.page_furniture`。eval01 整卷重跑：
+   figures 15→5、warnings 9→1（剩 1 条是真未归属图）、coverage 99.258% 不变，
+   `check_layout_json` / `check_render` / `check_exam_json` 全过。跨 29 份 PDF、144 个
+   原生图框实测只命中这 10 个二维码，**0 误伤**；23 套历年 2 页 A3 卷不受影响。
+5. 规范：`docs/specs/defect-taxonomy.md`；AGENTS.md 硬约束 27；`src/README.md` 与
+   `ocr_json_app/README.md` 各补一段；冒烟新增 `test_defect_taxonomy()`（六类/三方齐全、
+   汇总计数、未登记 code 进 unknown、`exam_structure` 的 issue code 已全部登记）与
+   `_is_page_furniture` 四条几何断言。
+6. 校验基线（本次实测）：单元 **26/26**、冒烟 **197 通过 / 1 跳过**、`run_all_checks.py`
+   **21/21**、`--fast` **18/18**。
+
 ---
 
 ## 1. 当前完成状态

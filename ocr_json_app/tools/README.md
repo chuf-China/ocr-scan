@@ -13,6 +13,7 @@
 | `review_formulas.py` | **公式复核（证据模式）**：PP-DocLayout_plus-L 出公式框 → 300dpi 重渲裁片 → PP-FormulaNet_plus-M（CPU 子进程）出 LaTeX → 与现有 OCR 做 `exact/normalized/partial/differs` 比对；只写证据，不改正文 |
 | `build_formula_ab.py` | **公式内容级 A/B 材料**：按一致性配额抽样，从原始 PDF 重渲裁片拼成带序号对照图 + `review.md` 明细表，供人工逐条判「模型更好 / 现有更好 / 相同」；只读，不跑模型 |
 | `review_tables.py` | **表格复核（证据模式）**：按 `page.tables` 的 bbox 200dpi 裁片 → `table_recognition_v2`（CPU 子进程）出 HTML/逐格文本 → 与现有表格做 `exact/cell_mismatch/structure_differs` 比对；只写证据，不改表头/单元格。**不要整页跑 PP-StructureV3**（14 个模型约 1.6 GB，16 GB 内存会卡死） |
+| `audit_defects.py` | **语料级缺陷审计（只读）**：把一批 layout JSON 的 issue 归到「六类现象 × 责任方（程序/模型/输入）」，打印每种责任方的 code 排行（次数 + 覆盖几套卷），可 `--json` 导出。不跑 OCR/模型、不改任何文件 |
 | `check_exam_json.py` | **试卷结构门**：题号/选项/图归属/质量；`quality.status=fail` 退出 1；历史产物可加 `--advisory` |
 | `check_render.py` | **裁片是否压正文**、行是否叠字、是否越界 |
 | `check_ocr_json.py` | 结构块 JSON：页码、题号连续性、截断、乱码 |

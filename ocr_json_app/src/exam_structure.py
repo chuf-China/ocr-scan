@@ -27,6 +27,7 @@ try:  # The module also runs from src/ directly in smoke tests.
     from repair_plan import build_repair_plan
     from layout_regions import (ensure_regions, index_regions, region_stats,
                                 validate_regions)
+    from defect_taxonomy import classify as classify_defects
 except Exception:  # pragma: no cover - fallback only when imported standalone
     def is_section_heading(text: str) -> bool:  # type: ignore
         return bool(re.match(r"^\s*[一二三四五六七八九十]{1,3}\s*[、．.]\s*\S", text))
@@ -50,6 +51,9 @@ except Exception:  # pragma: no cover - fallback only when imported standalone
 
     def validate_regions(pages):  # type: ignore
         return []
+
+    def classify_defects(issues):  # type: ignore
+        return {"by_class": {}, "by_owner": {}, "unknown": []}
 
 
 SECTION_RE = re.compile(r"^\s*([一二三四五六七八九十]{1,3})\s*[、．.]\s*(\S.*)$")
@@ -1033,6 +1037,8 @@ def build_quality(layout: dict, exam: dict) -> dict:
 
     errors = sum(1 for i in issues if i["level"] == "error")
     warnings = sum(1 for i in issues if i["level"] == "warning")
+    # 现象×责任方汇总：让"谁该修"成为产物的一部分，而不是靠人回忆。
+    defects = classify_defects(issues)
     return {
         "schema_version": 1,
         "document": exam.get("document"),
@@ -1066,6 +1072,7 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "region_types": region_types,
             "region_problems": len(region_problems),
             "region_refs_unresolved": region_refs_unresolved,
+            "defects": defects,
         },
         "checks": {
             "question_numbers_complete": not missing,
@@ -1087,6 +1094,8 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "page_coverage_ok": uncovered_total == 0,
             "formula_structure_ok": formula_broken == 0,
             "regions_consistent": not region_problems and not region_refs_unresolved,
+            # 未登记 code 说明有人加了缺陷却没在 defect_taxonomy 里定责。
+            "defect_codes_registered": not defects.get("unknown"),
         },
         "repair": build_repair_plan(issues),
         "issues": issues,

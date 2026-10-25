@@ -31,6 +31,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -544,6 +545,18 @@ def test_native_figures() -> None:
     check("同位置只保留原生图", len(merged) == 1
           and merged[0]["png_base64"] == "native", f"实得 {merged}")
 
+    # 9) 页眉页脚装饰（二维码/校徽）不是插图：几何判据"小 + 贴边带"。
+    #    实测 2024 北京西城二模每页右上角 54×54pt 二维码被当插图，9 条
+    #    figure_unassigned 把真正的"少图"信号淹掉了。
+    check("页眉小二维码判为装饰",
+          layout._is_page_furniture([542.0, 28.0, 596.0, 82.0], 595.0, 842.0))
+    check("页脚小图标判为装饰",
+          layout._is_page_furniture([20.0, 790.0, 60.0, 830.0], 595.0, 842.0))
+    check("正文中间的小图不是装饰",
+          not layout._is_page_furniture([200.0, 400.0, 260.0, 460.0], 595.0, 842.0))
+    check("页眉的大图不是装饰",
+          not layout._is_page_furniture([100.0, 20.0, 400.0, 120.0], 595.0, 842.0))
+
 
 def test_native_text() -> None:
     """原生文字层：质量标记、字符聚行、与 OCR 行匹配。"""
@@ -907,6 +920,49 @@ def test_table_review() -> None:
           {"review_dpi", "review_agreement", "review_source"} <= codes, repr(codes))
 
 
+def test_defect_taxonomy() -> None:
+    """六类现象 × 责任方：登记表完整、汇总可算、漏登记能被抓出来。"""
+    print("[15/15] 缺陷分类（六类现象 / 责任方 / 漏登记）")
+    dt = load_module("defect_taxonomy.py")
+
+    check("六类现象齐全",
+          list(dt.DEFECT_CLASSES) == ["garbled", "overlap", "missing_figure",
+                                      "missing_text", "extra", "semantic"],
+          repr(list(dt.DEFECT_CLASSES)))
+    check("三个责任方齐全", set(dt.OWNERS) == {"program", "model", "input"},
+          repr(sorted(dt.OWNERS)))
+    bad = [c for c, (klass, owner, layer, note) in dt.ISSUE_CODES.items()
+           if klass not in dt.DEFECT_CLASSES
+           or owner not in list(dt.OWNERS) + ["mixed"]
+           or layer not in dt.LAYERS or not str(note).strip()]
+    check("登记表每项都有合法类/责任方/层/判据", not bad, repr(bad))
+
+    issues = [
+        {"level": "warning", "code": "figure_unassigned", "message": "x"},
+        {"level": "warning", "code": "figure_unassigned", "message": "x"},
+        {"level": "error", "code": "question_number_gap", "message": "x"},
+        {"level": "warning", "code": "not_registered_yet", "message": "x"},
+    ]
+    defects = dt.classify(issues)
+    check("汇总计数：少图 2 条", defects["by_class"]["missing_figure"]["count"] == 2,
+          repr(defects["by_class"].get("missing_figure")))
+    check("责任方汇总只计已登记 code",
+          defects["by_owner"]["program"] == 2 and sum(defects["by_owner"].values()) == 3,
+          repr(defects["by_owner"]))
+    check("未登记 code 进 unknown 且不猜归属",
+          defects["unknown"] == ["not_registered_yet"], repr(defects["unknown"]))
+    check("一行摘要可用于报告",
+          "少图2" in dt.describe_defects({"defects": defects}),
+          dt.describe_defects({"defects": defects}))
+
+    # exam_structure 里每个 _issue() 用到的 code 都必须已登记，
+    # 否则新增缺陷会绕过责任表——这正是"每次针对一个问题修"的入口。
+    src = open(os.path.join(ROOT, "src", "exam_structure.py"), encoding="utf-8").read()
+    used = set(re.findall(r'_issue\(\s*"(?:error|warning)"\s*,\s*"([a-z0-9_]+)"', src))
+    missing = sorted(used - set(dt.ISSUE_CODES))
+    check("exam_structure 的 issue code 全部已登记", not missing, repr(missing))
+
+
 def test_page_coverage() -> None:
     """页面覆盖审计：漏行/未识别图像必须在 quality 里留下证据。"""
     print("[10/10] ocr_pipeline_layout 页面覆盖审计")
@@ -1026,6 +1082,7 @@ def main() -> int:
     test_layout_regions()
     test_formula_review()
     test_table_review()
+    test_defect_taxonomy()
     test_page_coverage()
     test_formula_quality()
     test_output_path_collision()

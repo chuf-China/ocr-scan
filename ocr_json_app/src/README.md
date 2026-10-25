@@ -10,6 +10,7 @@
 | `formula_quality.py` | **公式结构审计**：定界符、花括号、`\left`/`\right`、环境成对检查；不改写正文 |
 | `formula_review.py` | **公式复核证据层**（T2）：区域裁片与检测框映射、LaTeX 等价归一化、`exact/normalized/partial/differs` 一致性、证据块只增不改、结构校验 |
 | `table_review.py` | **表格复核证据层**（T3）：HTML 表格解析、单元格归一化、`exact/cell_mismatch/structure_differs` 一致性、证据块只增不改、结构校验 |
+| `defect_taxonomy.py` | **缺陷分类与定责**：每个 issue code 登记成「六类现象 × 责任方（程序/模型/输入）× 修复层」，`build_quality` 据此输出 `summary.defects` |
 | `repair_plan.py` | **修复队列**：`quality.issues` → `auto_candidate` / `manual` / `blocked`，只路由不编造 |
 | `paths.py` | 项目根与所有默认路径（脚本不依赖当前工作目录） |
 
@@ -177,6 +178,31 @@ attach_table_evidence(page, entries)             # 只 append 到 tables[].revie
 - 编排在 `tools/review_tables.py`：按 `page.tables` bbox 裁片，一次子进程跑
   `table_recognition_v2`（CPU、4 线程、关版面检测/方向矫正/去扭曲）。**禁止整页跑
   PP-StructureV3**（14 模型约 1.6 GB 权重，16 GB 内存会卡死）。
+
+## 缺陷分类与定责（defect_taxonomy）
+
+`defect_taxonomy.py` 回答的是"这个缺陷该谁改"，不是"哪里难看"。每个 issue code 只能
+属于一个现象、一个主责任方：
+
+```python
+from defect_taxonomy import classify, describe_defects, code_info
+
+defects = classify(quality["issues"])        # {by_class, by_owner, unknown}
+describe_defects(quality["summary"])         # "少图1（架构程序1）；结构内容错2（模型1…）"
+```
+
+- 六类现象：`garbled` 乱码 / `overlap` 重叠 / `missing_figure` 少图 / `missing_text` 少文字 /
+  `extra` 多余 / `semantic` 结构内容错。前四类是"第一眼看得见的坏"，后两类是
+  "看着正常其实错"（多余）和"伤下游语义"（结构内容错）。
+- 三个责任方：`program`（改我们的代码就能变好）/ `model`（代码没错、识别输出错）/
+  `input`（字库或扫描质量本身坏，只能如实报）。`mixed` 只是临时状态，必须写清怎么区分。
+- 判定顺序固定：先看文本在不在 `layout.json`（不在→模型/输入），再看几何对不对
+  （框错位/裁偏→程序），最后才看内容对不对（内容错→模型）。不许按单卷调规则。
+- `build_quality()` 把汇总写进 `summary.defects`（只增不改、不影响 status）；
+  新增 issue code 不登记会让 `checks.defect_codes_registered` 转 false。
+- 同一份登记表也驱动"程序类缺陷"的通用修法：例如页眉二维码（54×54pt、贴页眉）
+  以前被当插图并报 9 条 `figure_unassigned`，现在按几何判据当装饰过滤
+  （`page.page_furniture[]`、计入覆盖率），eval01 整卷 figures 15→5、warnings 9→1。
 
 ## 试卷结构层（exam_structure）
 

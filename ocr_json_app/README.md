@@ -526,6 +526,27 @@ python tools\review_tables.py out\eval\eval02_haidian_2024yimo.layout.json --onl
 并成一行、左列前缀丢失），没有一处比现有框线+逐格 OCR 更准。所以 T3 与 T2 同口径：
 **默认不开启，只作失败区域的可选复核候选**。
 
+### 缺陷分类与定责（2026-10-25）
+
+`quality.json` 的 `summary.defects` 把每条 issue 归到「六类现象 × 责任方」，用来回答
+“这卷能不能交付”和“这个缺陷该谁改”，避免每次只修一个症状：
+
+```powershell
+# 产物的 quality.json 里直接有汇总（build_exam_json.py 生成）
+python tools\audit_defects.py "out\acceptance\native_final3\*.json" "out\eval\*.layout.json"
+# → 责任方合计：程序 43，模型 4，输入 0，待判定 18（2026-10-25 实测 29 套）
+```
+
+- 六类现象：乱码 / 重叠 / 少图 / 少文字 / 多余 / 结构内容错；三个责任方：`program`
+  架构程序、`model` 模型、`input` 输入（字库/扫描质量，只能如实报）。
+- 判定顺序固定：文本在不在 layout（不在→模型/输入）→ 几何对不对（错位/裁偏→程序）
+  → 内容对不对（内容错→模型）；`mixed` 必须写清怎么区分，不许长期悬空。
+- 已用它修掉一类程序缺陷：页眉二维码（54×54pt、贴页眉）以前被当插图并报 9 条
+  `figure_unassigned`；现在按几何判据当装饰过滤（`page.page_furniture[]`、计入覆盖率），
+  eval01 整卷 figures 15→5、warnings 9→1，29 份 PDF/144 个图框零误伤。
+- 规范与登记表见 `docs/specs/defect-taxonomy.md` 与 `src/defect_taxonomy.py`；
+  新增 issue code 不登记会让 `checks.defect_codes_registered` 转 false。
+
 ### 结构层：题号与大题（2026-10-25）
 
 10–15 页教师版/解析版用行首「（1）（2）」当题号，小问也用「（1）」。现在按
