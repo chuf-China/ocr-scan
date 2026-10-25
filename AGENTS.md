@@ -276,6 +276,18 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
     结构层的真实缺陷，只能按卷面事实报 `error`/`warning`，**不许**为让某套卷过门放宽正则或
     写单卷特例。详见 `ocr_json_app/docs/specs/section-and-question-detection.md`。
 
+26. **表格复核只是证据，绝不覆盖表格正文**：`src/table_review.py` 把表格模型的输出写进
+    `tables[].reviews[]`（`source` / `pipeline` / `crop` / `html` / `cells` / `compare`），
+    **不改** `table.headers` / `rows_data` / `text_available`，也不新造表格；`compare.agreement`
+    分 `exact|cell_mismatch|structure_differs|no_current`，`matched`/`differing` 只统计两边都在的
+    坐标，缺格单独计 `only_current`/`only_model`。单元格比较前必须归一化（去定界符、
+    Unicode 数学符号转 LaTeX、全角转半角），否则 `\(a\leq b\)` 与 `a≤b` 会被误判成不一致。
+    映射不到的裁片写 `page.unassigned_table_boxes[]`。**不许整页跑 `pp_structurev3`**：它一次
+    加载 14 个模型（约 1.6 GB 权重），本机 16 GB 内存实测会被拖死；只能裁表格 bbox 跑
+    `table_recognition_v2`，CPU 线程压到 4，并关闭版面检测/方向矫正/去扭曲。推理只在
+    `formula-venv` 子进程里跑，主环境不得 import paddle。`check_layout_json` 只对含 `reviews`
+    的产物硬校验，历史产物跳过。详见 `ocr_json_app/docs/specs/t3-table-review.md`。
+
 ## 改哪里 / 怎么改
 
 - **官方流程入口 / 路径**：`run_paddleocr_vl.sh`（WSL 侧，硬编码路径先改）+ `tools/import_paddleocr_json.py`

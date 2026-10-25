@@ -9,6 +9,7 @@
 | `exam_structure.py` | **试卷语义层**：从 layout JSON 重建题号/选项/小问/图/表归属，输出 `exam.json` + `quality.json` |
 | `formula_quality.py` | **公式结构审计**：定界符、花括号、`\left`/`\right`、环境成对检查；不改写正文 |
 | `formula_review.py` | **公式复核证据层**（T2）：区域裁片与检测框映射、LaTeX 等价归一化、`exact/normalized/partial/differs` 一致性、证据块只增不改、结构校验 |
+| `table_review.py` | **表格复核证据层**（T3）：HTML 表格解析、单元格归一化、`exact/cell_mismatch/structure_differs` 一致性、证据块只增不改、结构校验 |
 | `repair_plan.py` | **修复队列**：`quality.issues` → `auto_candidate` / `manual` / `blocked`，只路由不编造 |
 | `paths.py` | 项目根与所有默认路径（脚本不依赖当前工作目录） |
 
@@ -146,6 +147,36 @@ attach_evidence(page, entries)                   # 只 append 到 formula 区域
   产物把它升级为硬错误。
 - 编排与真实推理在 `tools/review_formulas.py`：先 `ensure_regions()`，再 PP-DocLayout_plus-L
   出公式框、按 300dpi 重渲裁片、一次子进程批量跑 PP-FormulaNet_plus-M（CPU，不占显存）。
+
+## 表格复核证据（T3：table_review）
+
+`table_review.py` 与 `formula_review.py` 同构，只做**证据**：现有表格是“PDF 框线 + 逐格
+OCR”，它判断“表格模型独立识别出的 HTML/逐格文本与现有表格是不是同一张表”。
+
+```python
+from table_review import (parse_html_table, normalize_cell, compare_tables,
+                          map_box_to_table, build_table_evidence, attach_table_evidence,
+                          validate_table_evidence)
+
+rows = parse_html_table(pred_html)               # tr/td/th/<br> → 二维单元格文本
+cmp = compare_tables(native_table_rows(table), rows)   # exact/cell_mismatch/structure_differs
+evidence = build_table_evidence(html, cells, bbox_pt, 200, structure_model="SLANeXt_wired",
+                                text_model="PP-OCRv5_server_rec", current_rows=current)
+attach_table_evidence(page, entries)             # 只 append 到 tables[].reviews[]
+```
+
+- `normalize_cell()` 必须先跑：去 `$`/`\(...\)` 定界符与 `\left`/`\displaystyle` 包装、
+  Unicode 数学符号（`≤`/`≥`/`∞`/`²`/`√`/`∈`…）转 LaTeX、全角转半角、去空白与尾标点；
+  不做归一化会把 `\(a\leq b\)` 与 `a≤b` 判成不一致。
+- `compare_tables()` 的 `matched`/`differing` 只统计两边都有的坐标，缺格单独计入
+  `only_current`/`only_model`；`fill_rate` 是模型侧非空率，不是 F1。
+- `map_box_to_table()` 中心命中优先，其次交叠占框面积 ≥0.35；映射不上返回 `None`
+  （写进 `page.unassigned_table_boxes[]`），不猜归属。
+- `validate_table_evidence()` 检查来源枚举、裁片 dpi≥144、一致性枚举、HTML 非空、
+  单元格 bbox 合法；`tools/check_layout_json.py` 对含 `reviews` 的产物把它升级为硬错误。
+- 编排在 `tools/review_tables.py`：按 `page.tables` bbox 裁片，一次子进程跑
+  `table_recognition_v2`（CPU、4 线程、关版面检测/方向矫正/去扭曲）。**禁止整页跑
+  PP-StructureV3**（14 模型约 1.6 GB 权重，16 GB 内存会卡死）。
 
 ## 试卷结构层（exam_structure）
 

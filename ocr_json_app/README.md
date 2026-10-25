@@ -500,6 +500,32 @@ python tools\build_formula_ab.py out\eval\eval01_xicheng_2024ermo.formula.json `
 认成 `\frac{1}{8}`），18 条错例集中在边缘支架符号与个别字符误识（`±`/`|·|`/`≥`）。
 这就是“保留为复核/修复候选、不默认替换”的实测依据。
 
+### 表格复核（T3：table review）
+
+表格目前靠 PDF 原生框线 + 逐格 OCR（S3），框线缺失或扫描件会整表退化成文本。T3 用独立
+表格模型给同一张表出 HTML + 逐格文本作为旁证，同样**只写证据、不改表格正文**：
+
+```powershell
+python tools\review_tables.py out\eval\eval01_xicheng_2024ermo.layout.json
+# → out\eval\eval01_xicheng_2024ermo.tables.json
+python tools\review_tables.py out\eval\eval02_haidian_2024yimo.layout.json --only-issues out\eval\eval02_haidian_2024yimo.quality.json
+```
+
+- 按 `page.tables[].bbox_pt` 以 200dpi 裁片（`--crop-dpi`、`--pad-pt 2`），一次子进程批量跑
+  `table_recognition_v2`（CPU、`--cpu_threads 4`），并显式关闭版面检测/方向矫正/去扭曲；
+- **不要整页跑 PP-StructureV3**：一次加载 14 个模型约 1.6 GB 权重，本机 16 GB 内存实测会被
+  拖死。只用它的表格识别子模型，且只裁表格 bbox；
+- 结果 append 到 `tables[].reviews[]`（`source`/`pipeline`/`crop`/`html`/`cells`/`compare`），
+  比较前先归一化（定界符、Unicode 数学符号、全角半角），再分 `exact`/`cell_mismatch`/
+  `structure_differs`/`no_current`；`matched`/`differing` 只算两边都在的格，缺格单独计；
+- 映射不到的裁片写 `page.unassigned_table_boxes[]`；`check_layout_json.py` 对含 `reviews`
+  的产物硬校验。规范见 `docs/specs/t3-table-review.md`。
+
+5 套 `data/eval/` 语料 15 张表的实测：exact 4 / cell_mismatch 11 / structure_differs 0，
+约 110 秒 CPU。剩余差异都是模型自身错（分式被压平成 `1625`、`\infty` 读成 `8`、两级表头
+并成一行、左列前缀丢失），没有一处比现有框线+逐格 OCR 更准。所以 T3 与 T2 同口径：
+**默认不开启，只作失败区域的可选复核候选**。
+
 ### 结构层：题号与大题（2026-10-25）
 
 10–15 页教师版/解析版用行首「（1）（2）」当题号，小问也用「（1）」。现在按

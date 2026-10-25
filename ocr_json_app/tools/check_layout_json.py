@@ -26,6 +26,7 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 from layout_regions import region_stats as summarize_regions  # noqa: E402
 from layout_regions import validate_regions  # noqa: E402
 from formula_review import validate_formula_evidence  # noqa: E402
+from table_review import validate_table_evidence  # noqa: E402
 
 DIGIT_RUN_RE = re.compile(r"\d{20,}")
 
@@ -229,6 +230,30 @@ def main() -> int:
             if review["formulas"] != evidence_total:
                 errors.append(f"document.formula_review.formulas={review['formulas']} "
                               f"与实际证据数 {evidence_total} 不符")
+
+    # 表格复核证据（T3）：同样存在才校验。表格模型只产旁证，正文 headers/rows_data
+    # 不动；这里查证据块自身、逐格计数自洽，并核对汇总计数。
+    table_evidence = 0
+    for p in pages:
+        pno = p.get("page")
+        for table in (p.get("tables") or []):
+            reviews = table.get("reviews")
+            if isinstance(reviews, list):
+                table_evidence += len(reviews)
+        for problem in validate_table_evidence([p]):
+            where = (f"第 {pno} 页表格 {problem['table_id']}"
+                     if problem.get("table_id") else f"第 {pno} 页")
+            errors.append(f"{where} 表格证据 {problem['code']}：{problem['message']}")
+    if table_evidence:
+        declared_tables = stats.get("table_review_blocks")
+        if declared_tables is not None and declared_tables != table_evidence:
+            errors.append(f"stats.table_review_blocks={declared_tables} 与实际证据数 "
+                          f"{table_evidence} 不符")
+        table_review = (doc.get("document") or {}).get("table_review")
+        if isinstance(table_review, dict) and table_review.get("blocks") is not None:
+            if table_review["blocks"] != table_evidence:
+                errors.append(f"document.table_review.blocks={table_review['blocks']} "
+                              f"与实际证据数 {table_evidence} 不符")
 
     # 插图：坐标必须落在页内，载图必须能解码且非空白
     fig_total = 0

@@ -817,6 +817,86 @@ def test_formula_review() -> None:
           {"formula_dpi", "formula_agreement"} <= codes, repr(codes))
 
 
+def test_table_review() -> None:
+    """T3 表格复核纯函数：HTML 解析 / 逐格比较 / 映射 / 证据 / 校验。"""
+    print("[14/14] 表格复核（T3：解析 / 逐格一致 / 证据 / 校验）")
+    tr = load_module("table_review.py")
+
+    html = ("<html><body><table><tr><td>年份</td><td>2015</td></tr>"
+            "<tr><td>产量（万台）</td><td>3.3</td></tr></table></body></html>")
+    rows = tr.parse_html_table(html)
+    check("解析表格 HTML", rows == [["年份", "2015"], ["产量（万台）", "3.3"]], repr(rows))
+    check("非表格 HTML 返回空", tr.parse_html_table("<p>x</p>") == [])
+    check("单元格归一化：全角括号/空格/尾标点",
+          tr.normalize_cell(" 产量 ( 万台 ） ") == tr.normalize_cell("产量(万台)"))
+
+    current = [["年份", "2015"], ["产量（万台）", "3.3"]]
+    exact = tr.compare_tables(current, [["年份", "2015"], ["产量(万台)", "3.3"]])
+    check("逐格全等 -> exact",
+          exact["agreement"] == "exact" and exact["matched"] == 4 and exact["differing"] == 0,
+          repr(exact))
+    mismatch = tr.compare_tables(current, [["年份", "2015"], ["产量(万台)", "3.8"]])
+    check("有格子不同 -> cell_mismatch",
+          mismatch["agreement"] == "cell_mismatch" and mismatch["differing"] == 1
+          and mismatch["samples"][0]["col"] == 1, repr(mismatch)[:160])
+    structure = tr.compare_tables(current, [["年份", "2015"]])
+    check("行列数不同 -> structure_differs",
+          structure["agreement"] == "structure_differs"
+          and structure["only_current"] == 2, repr(structure)[:160])
+    check("两边都空 -> no_current",
+          tr.compare_tables([], [])["agreement"] == "no_current")
+    check("空单元格计填充率",
+          tr.compare_tables([["a", ""]], [["a", "b"]])["fill_rate"] == {"current": 0.5, "model": 1.0},
+          repr(tr.compare_tables([["a", ""]], [["a", "b"]])["fill_rate"]))
+
+    tables = [
+        {"id": "p1-t1", "bbox_pt": [50, 100, 250, 160]},
+        {"id": "p1-t2", "bbox_pt": [50, 300, 250, 360]},
+    ]
+    check("中心命中 -> 映射到表格", tr.map_box_to_table([60, 105, 120, 130], tables) == "p1-t1")
+    check("框在表格外 -> None", tr.map_box_to_table([400, 400, 420, 420], tables) is None)
+    check("大面积覆盖也算命中",
+          tr.map_box_to_table([45, 95, 255, 165], tables) == "p1-t1")
+
+    evidence = tr.build_table_evidence(
+        html, [{"text": "年份", "bbox_pt": [1, 2, 3, 4], "score": 0.9}],
+        [50, 100, 250, 160], 200, structure_model="SLANet_plus", text_model="PP-OCRv5_server_rec",
+        score=0.9, current_rows=current,
+    )
+    check("证据块字段齐全",
+          evidence["source"] == tr.TABLE_EVIDENCE_SOURCE
+          and evidence["crop"]["dpi"] == 200
+          and evidence["compare"]["agreement"] == "exact"
+          and not evidence["review"]["needed"], repr(evidence)[:140])
+
+    page = {"page": 1, "tables": [dict(tables[0], headers=["年份", "2015"])]}
+    report = tr.attach_table_evidence(page, [dict(evidence, table_id="p1-t1"),
+                                             dict(evidence, table_id="p9-t9")],
+                                      [{"bbox_pt": [400, 400, 420, 420]}])
+    check("只挂到对应表格、正文不动",
+          report == {"attached": 1, "unassigned": 2}
+          and page["tables"][0]["reviews"][0]["html"] == html
+          and page["tables"][0]["headers"] == ["年份", "2015"], repr(report))
+    check("未归属表格框留在页上",
+          len(page.get("unassigned_table_boxes") or []) == 2)
+
+    summary = tr.table_review_summary([page])
+    check("复核统计",
+          summary["tables"] == 1 and summary["tables_reviewed"] == 1
+          and summary["blocks"] == 1 and summary["agreement"]["exact"] == 1
+          and summary["unassigned_boxes"] == 2, repr(summary))
+    check("证据结构校验通过", tr.validate_table_evidence([page]) == [],
+          repr(tr.validate_table_evidence([page]))[:120])
+
+    broken = json.loads(json.dumps(page))
+    broken["tables"][0]["reviews"][0]["crop"]["dpi"] = 72
+    broken["tables"][0]["reviews"][0]["compare"]["agreement"] = "maybe"
+    broken["tables"][0]["reviews"][0]["source"] = "pp-structurev3"
+    codes = {p["code"] for p in tr.validate_table_evidence([broken])}
+    check("非法 dpi / agreement / source 被抓出",
+          {"review_dpi", "review_agreement", "review_source"} <= codes, repr(codes))
+
+
 def test_page_coverage() -> None:
     """页面覆盖审计：漏行/未识别图像必须在 quality 里留下证据。"""
     print("[10/10] ocr_pipeline_layout 页面覆盖审计")
@@ -935,6 +1015,7 @@ def main() -> int:
     test_exam_structure()
     test_layout_regions()
     test_formula_review()
+    test_table_review()
     test_page_coverage()
     test_formula_quality()
     test_output_path_collision()
