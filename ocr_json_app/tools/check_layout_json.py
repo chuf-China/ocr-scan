@@ -17,8 +17,14 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import os
 import re
 import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "src"))
+from layout_regions import region_stats as summarize_regions  # noqa: E402
+from layout_regions import validate_regions  # noqa: E402
 
 DIGIT_RUN_RE = re.compile(r"\d{20,}")
 
@@ -178,6 +184,26 @@ def main() -> int:
     if pages_total is not None:
         if not isinstance(pages_total, int) or pages_total < len(pages):
             errors.append(f"document.pages_total={pages_total} 小于已处理页数 {len(pages)}")
+
+    # 区域层（T1）：存在才校验。历史产物没有 regions 时跳过；新产物必须干净，
+    # 所以不一致一律 error（否则区域回链会静默退化，下游又只能靠坐标猜）。
+    has_regions = any(isinstance(p.get("regions"), list) and p.get("regions")
+                      for p in pages)
+    if has_regions:
+        for problem in validate_regions(pages):
+            where = (f"第 {problem.get('page')} 页区域 {problem['region_id']}"
+                     if problem.get("region_id") else f"第 {problem.get('page')} 页区域")
+            errors.append(f"{where} {problem['code']}：{problem['message']}")
+        actual_regions = summarize_regions(pages)
+        declared = stats.get("regions")
+        if declared is not None and declared != actual_regions["count"]:
+            errors.append(f"stats.regions={declared} 与实际区域数 "
+                          f"{actual_regions['count']} 不符")
+        doc_regions = (doc.get("document") or {}).get("regions")
+        if isinstance(doc_regions, dict) and doc_regions.get("count") is not None:
+            if doc_regions.get("count") != actual_regions["count"]:
+                errors.append(f"document.regions.count={doc_regions.get('count')} "
+                              f"与实际区域数 {actual_regions['count']} 不符")
 
     # 插图：坐标必须落在页内，载图必须能解码且非空白
     fig_total = 0

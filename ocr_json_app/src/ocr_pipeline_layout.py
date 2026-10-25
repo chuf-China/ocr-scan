@@ -47,6 +47,7 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import paths  # noqa: E402
+from layout_regions import build_regions, region_stats  # noqa: E402
 from ocr_common import (  # noqa: E402
     DEFAULT_DPI, DEFAULT_HOST, DEFAULT_MAX_TOKENS, DEFAULT_MODEL, DEFAULT_PORT,
     DEFAULT_TIMEOUT, OCR_PROMPT, check_health, default_prompt_for,
@@ -2645,6 +2646,9 @@ def build(args) -> dict:
                 args.prompt, args.timeout, args.max_tokens,
                 min(max(1, args.workers), max(1, hint["rows"] * hint["cols"])))
             table = {
+                # 稳定 id：下游 exam/quality/区域层都靠它回指表格，不能靠数组下标。
+                "id": f"p{pno}-t{len(tables_out) + 1}",
+                "page": pno,
                 "source": "pdf-table-cells",
                 "bbox_pt": box,
                 "rows": hint["rows"],
@@ -2870,6 +2874,9 @@ def build(args) -> dict:
             "native_text": native_info,
             "font_audit": font_audit,
         }
+        # 区域层（T1）：行 / 图 / 表收成带稳定 id 的语义区域。必须在行与图表的
+        # id、content_type 都定好之后、append 之前生成；lines/figures/tables 原字段不动。
+        entry["regions"] = build_regions(entry, pno)
         coverage_total["ink_pixels"] += coverage.get("ink_pixels", 0)
         coverage_total["covered_ink_pixels"] += coverage.get("covered_ink_pixels", 0)
         coverage_total["uncovered_regions"] += coverage.get(
@@ -2917,6 +2924,8 @@ def build(args) -> dict:
     font_audit_total["fonts"] = dict(sorted(font_counts.items(),
                                              key=lambda kv: -kv[1])[:20])
     font_audit_total["font_count"] = len(font_counts)
+    # 区域层汇总：文档级记录总数与分布，验收报告不用逐年重算。
+    regions_total = region_stats(out_pages)
     payload = {
         "schema_version": 1,
         "document": {
@@ -2954,6 +2963,7 @@ def build(args) -> dict:
                 "styled_lines": styled_total,
             },
             "font_audit": font_audit_total,
+            "regions": regions_total,
         },
         "stats": {
             "pages": len(out_pages),
@@ -2972,6 +2982,8 @@ def build(args) -> dict:
             "styled_lines": styled_total,
             "font_count": font_audit_total["font_count"],
             "garbled_lines": font_audit_total["garbled_lines"],
+            "regions": regions_total["count"],
+            "region_types": regions_total["by_content_type"],
             "text_source_counts": {
                 src: sum(1 for l in all_lines if l.get("text_source") == src)
                 for src in ("ocr", "native-text")

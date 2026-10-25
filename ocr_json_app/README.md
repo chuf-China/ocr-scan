@@ -435,6 +435,27 @@ python tools\build_exam_json.py out\exams\2023beijing.layout.json
 python tools\check_exam_json.py out\exams\2023beijing.layout.json
 ```
 
+### 区域层（T1：layout regions）
+
+`lines[]` / `figures[]` / `tables[]` 仍是三份并列证据，但下游不该再靠坐标猜它们的
+亲缘关系。`src/layout_regions.py` 把每页收成一等对象 `page.regions[]`（只增不改）：
+
+- 每个行 / 表格 / 图一个区域，id `p<页>-r<序>`，带 `bbox_pt`、`content_type`
+  （`text` / `formula` / `table` / `figure`）、`source`（`native` / `ocr` /
+  `pdf-vector` / `pdf-image` / `pdf-table` / `coverage-region` / `table-grid`）、
+  `confidence`（粗粒度启发式，只用于分诊）、`text`、`spans[]`（字号/粗斜体/颜色/
+  字体与来源）和 `refs`（`line_ids` / `figure_id` / `table_id`）。
+- **每条物理行恰好属于一个区域**：表格占位行 `（表格）` 归表格区域，不再额外生成
+  行区域；区域与行/图/表双向写入 `region_id`。
+- 旧产物（没有 `regions`）由 `ensure_regions()` 就地派生，幂等；`build_exam()` 开头
+  调用它，所以历史 layout 也能得到题干/选项/小问的 `region_refs` 回链。
+- `validate_regions()` 检查 id/bbox/枚举/`spans`/`refs`/反向链接。`check_layout_json.py`
+  只对**含 `regions` 的产物**硬校验，历史演示产物跳过；`quality.checks.regions_consistent`
+  只是证据（warning 级），不替代覆盖率/公式/表格/选项硬门。
+
+T1 不改 OCR 行为：提示词、投票、行检测、裁片与 `lines[]` 顺序都没动。规范见
+`docs/specs/t1-layout-regions.md`。
+
 ### 批量验收（S6）
 
 单张卷“能打开”不算稳定。`tools/run_exam_acceptance.py` 用同一套命令跑一批真实

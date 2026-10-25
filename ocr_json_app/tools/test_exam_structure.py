@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 sys.dont_write_bytecode = True
 
 import exam_structure as es  # noqa: E402
+import layout_regions as lr  # noqa: E402
 
 
 def line(text: str, left: float, top: float, **extra) -> dict:
@@ -333,6 +334,162 @@ class ExamStructureTests(unittest.TestCase):
         self.assertFalse(quality["checks"]["text_clean_ok"])
         self.assertIn("review_garbled_text",
                       [a["action"] for a in quality["repair"]["actions"]])
+
+
+class LayoutRegionTests(unittest.TestCase):
+    """T1 区域层：文本 / 公式 / 表格 / 图 / 跨栏 / 幂等 / 题目回链。"""
+
+    def _layout(self, page: dict) -> dict:
+        return {"document": {"title": "测试卷"}, "pages": [page]}
+
+    def test_text_and_formula_regions(self) -> None:
+        page = {
+            "page": 1, "width": 600.0, "height": 800.0,
+            "lines": [
+                line("一、单选题", 50, 50, content_type="text"),
+                line("1. 已知 $x^2$ 则", 50, 80, content_type="formula",
+                     style={"font_family": "serif", "bold": True}),
+                line("(A) 1", 70, 100, content_type="text"),
+                line("(B) 2", 70, 120, content_type="text"),
+            ],
+            "figures": [], "tables": [],
+        }
+        exam = es.build_exam(self._layout(page))
+        regions = page["regions"]
+        self.assertEqual(len(regions), 4)
+        self.assertEqual(regions[0]["content_type"], "text")
+        self.assertEqual(regions[1]["content_type"], "formula")
+        self.assertEqual(regions[1]["source"], "ocr")
+        span = regions[1]["spans"][0]
+        self.assertEqual(span["size"], 10.0)
+        self.assertTrue(span["bold"])
+        self.assertEqual(regions[1]["refs"]["line_ids"], ["p1-l2"])
+        # 行 ↔ 区域双向一致
+        self.assertEqual(page["lines"][1]["region_id"], regions[1]["id"])
+        self.assertEqual(lr.validate_regions([page]), [])
+        q1 = exam["questions"][0]
+        self.assertIn(regions[1]["id"], q1["region_refs"])
+
+    def test_table_region_owns_placeholder_line(self) -> None:
+        table = {
+            "id": "p1-t1", "page": 1, "source": "pdf-table-cells",
+            "bbox_pt": [50.0, 180.0, 400.0, 260.0],
+            "rows": 2, "cols": 2, "headers": ["项目", "值"],
+            "rows_data": [["甲", "1"]], "text_available": True,
+        }
+        page = {
+            "page": 1, "width": 600.0, "height": 800.0,
+            "lines": [
+                line("一、单选题", 50, 50, content_type="text"),
+                line("1. 填表", 50, 80, content_type="text"),
+                line("（表格）", 50, 180, content_type="table",
+                     tables=[table]),
+                line("(A) 1", 70, 300, content_type="text"),
+                line("(B) 2", 70, 320, content_type="text"),
+            ],
+            "figures": [], "tables": [table],
+        }
+        exam = es.build_exam(self._layout(page))
+        table_regions = [r for r in page["regions"] if r["content_type"] == "table"]
+        self.assertEqual(len(table_regions), 1)
+        region = table_regions[0]
+        self.assertEqual(region["source"], "pdf-table")
+        self.assertEqual(region["refs"]["table_id"], "p1-t1")
+        self.assertEqual(region["refs"]["line_ids"], ["p1-l3"])
+        self.assertTrue(region["confidence"] > 0.5)
+        # 占位行归表格区域所有，不再额外生出一个"行区域"
+        self.assertEqual(page["lines"][2]["region_id"], region["id"])
+        q1 = exam["questions"][0]
+        self.assertEqual(q1["tables"][0]["region_id"], region["id"])
+        self.assertEqual(lr.validate_regions([page]), [])
+
+    def test_figure_region_normalizes_source(self) -> None:
+        page = {
+            "page": 1, "width": 600.0, "height": 800.0,
+            "lines": [line("1. 看图", 50, 50, content_type="text")],
+            "figures": [{
+                "id": "p1-f1", "page": 1, "pt": [120.0, 200.0, 420.0, 500.0],
+                "px": [240, 400, 840, 1000], "source": "pdf-vector+labels",
+                "content_type": "figure",
+            }],
+            "tables": [],
+        }
+        es.build_exam(self._layout(page))
+        fig_regions = [r for r in page["regions"] if r["content_type"] == "figure"]
+        self.assertEqual(len(fig_regions), 1)
+        region = fig_regions[0]
+        self.assertEqual(region["source"], "pdf-vector")
+        self.assertEqual(region["bbox_pt"], [120.0, 200.0, 420.0, 500.0])
+        self.assertEqual(region["refs"]["figure_id"], "p1-f1")
+        self.assertEqual(region["spans"], [])
+        self.assertEqual(page["figures"][0]["region_id"], region["id"])
+        self.assertEqual(lr.validate_regions([page]), [])
+
+    def test_cross_column_regions_keep_line_identity(self) -> None:
+        page = {
+            "page": 1, "width": 1000.0, "height": 800.0,
+            "columns": [{"left": 0.0, "right": 500.0},
+                        {"left": 500.0, "right": 1000.0}],
+            "lines": [
+                line("1. 左栏", 50, 60, content_type="text", column=0),
+                line("(A) 1", 70, 80, content_type="text", column=0),
+                line("2. 右栏", 550, 60, content_type="text", column=1),
+                line("(A) 2", 570, 80, content_type="text", column=1),
+            ],
+            "figures": [], "tables": [],
+        }
+        exam = es.build_exam(self._layout(page))
+        regions = page["regions"]
+        self.assertEqual(len(regions), 4)
+        self.assertEqual(len({r["id"] for r in regions}), 4)
+        # 栏信息仍是行自己的字段，区域只做回链，不重排阅读顺序
+        self.assertEqual([ln["column"] for ln in page["lines"]], [0, 0, 1, 1])
+        self.assertEqual([q["number"] for q in exam["questions"]], [1, 2])
+        self.assertEqual(lr.validate_regions([page]), [])
+
+    def test_ensure_regions_is_idempotent_on_legacy_layout(self) -> None:
+        page = {
+            "page": 1, "width": 600.0, "height": 800.0,
+            "lines": [
+                line("1. 老产物", 50, 50),
+                line("(A) 1", 70, 80),
+                line("(B) 2", 70, 100),
+            ],
+            "figures": [], "tables": [],
+        }
+        layout = self._layout(page)
+        added = lr.ensure_regions(layout)
+        self.assertEqual(added, 3)
+        first = [(r["id"], r["content_type"]) for r in page["regions"]]
+        self.assertEqual(lr.ensure_regions(layout), 0)
+        self.assertEqual([(r["id"], r["content_type"]) for r in page["regions"]], first)
+        self.assertEqual(lr.validate_regions([page]), [])
+        # 旧产物没有 content_type 时按公式字符 / 定界符规则兜底
+        self.assertTrue(all(r["content_type"] in lr.REGION_CONTENT_TYPES
+                            for r in page["regions"]))
+        # 行 id 由区域层按流水线约定补齐，题目回链才有意义
+        self.assertEqual([ln["id"] for ln in page["lines"]],
+                         ["p1-l1", "p1-l2", "p1-l3"])
+
+    def test_quality_reports_region_consistency(self) -> None:
+        page = {
+            "page": 1, "width": 600.0, "height": 800.0,
+            "lines": [
+                line("一、单选题", 50, 50),
+                line("1. 已知 $x^2$ 则", 50, 80),
+                line("(A) 1", 70, 100),
+                line("(B) 2", 70, 120),
+            ],
+            "figures": [], "tables": [],
+        }
+        layout = self._layout(page)
+        exam = es.build_exam(layout)
+        quality = es.build_quality(layout, exam)
+        self.assertTrue(quality["checks"]["regions_consistent"])
+        self.assertGreater(quality["summary"]["regions"], 0)
+        codes = [i["code"] for i in quality["issues"]]
+        self.assertNotIn("region_inconsistent", codes)
+        self.assertNotIn("region_ref_unresolved", codes)
 
 
 if __name__ == "__main__":

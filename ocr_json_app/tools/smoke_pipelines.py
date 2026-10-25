@@ -659,6 +659,67 @@ def test_exam_structure() -> None:
           str(quality["summary"]))
 
 
+def test_layout_regions() -> None:
+    """T1 区域层：行 / 公式 / 表格 / 图各成一等区域，双向回链且幂等。"""
+    print("[12/12] 区域层（T1：区域 / 回链 / 幂等）")
+    lr = load_module("layout_regions.py")
+
+    table = {"id": "p1-t1", "page": 1, "source": "pdf-table-cells",
+             "bbox_pt": [50, 180, 400, 260], "rows": 2, "cols": 2,
+             "headers": ["甲"], "rows_data": [["1"]], "text_available": True}
+    page = {
+        "page": 1, "width": 600, "height": 800,
+        "lines": [
+            {"text": "一、单选题", "left": 50, "right": 140, "top": 50,
+             "bottom": 62, "height_pt": 12, "size_pt": 10, "tables": []},
+            {"text": "1. 已知 $x^2$ 则", "left": 50, "right": 300, "top": 80,
+             "bottom": 92, "height_pt": 12, "size_pt": 10,
+             "content_type": "formula",
+             "style": {"font_family": "serif", "bold": True}, "tables": []},
+            {"text": "（表格）", "left": 50, "right": 400, "top": 180,
+             "bottom": 260, "height_pt": 12, "size_pt": 10,
+             "tables": [table]},
+            {"text": "(A) 1", "left": 70, "right": 140, "top": 300,
+             "bottom": 312, "height_pt": 12, "size_pt": 10, "tables": []},
+            {"text": "(B) 2", "left": 70, "right": 140, "top": 320,
+             "bottom": 332, "height_pt": 12, "size_pt": 10, "tables": []},
+        ],
+        "tables": [table],
+        "figures": [{"id": "p1-f1", "pt": [120, 400, 420, 700],
+                     "source": "pdf-vector+labels"}],
+    }
+    regions = lr.build_regions(page, 1)
+    kinds = [r["content_type"] for r in regions]
+    check("区域类型齐全（text/formula/table/figure）",
+          set(kinds) == {"text", "formula", "table", "figure"}, f"实得 {kinds}")
+    check("区域 id 唯一且前缀稳定",
+          len({r["id"] for r in regions}) == len(regions)
+          and all(r["id"].startswith("p1-r") for r in regions))
+    check("行 ↔ 区域双向一致",
+          all(ln.get("region_id") in {r["id"] for r in regions}
+              for ln in page["lines"]))
+    check("表格区域引用原生表",
+          any(r["refs"].get("table_id") == "p1-t1" for r in regions))
+    check("图源规范化（pdf-vector+labels → pdf-vector）",
+          any(r["content_type"] == "figure" and r["source"] == "pdf-vector"
+              for r in regions))
+    problems = lr.validate_regions([page])
+    check("区域校验干净", problems == [], str(problems[:2]))
+    check("confidence 在 0–1",
+          all(0.0 <= r["confidence"] <= 1.0 for r in regions))
+
+    legacy = {"document": {}, "pages": [{
+        "page": 1, "width": 600, "height": 800, "tables": [], "figures": [],
+        "lines": [{"text": "1. 题", "left": 10, "right": 100, "top": 10,
+                   "bottom": 22, "height_pt": 12, "size_pt": 10,
+                   "tables": []}],
+    }]}
+    first = lr.ensure_regions(legacy)
+    second = lr.ensure_regions(legacy)
+    check("ensure_regions 幂等（旧产物派生后不再重复）",
+          first > 0 and second == 0, f"实得 {first}/{second}")
+
+
 def test_page_coverage() -> None:
     """页面覆盖审计：漏行/未识别图像必须在 quality 里留下证据。"""
     print("[10/10] ocr_pipeline_layout 页面覆盖审计")
@@ -775,6 +836,7 @@ def main() -> int:
     test_native_figures()
     test_native_text()
     test_exam_structure()
+    test_layout_regions()
     test_page_coverage()
     test_formula_quality()
     test_output_path_collision()

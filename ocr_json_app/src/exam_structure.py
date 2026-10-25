@@ -25,6 +25,8 @@ try:  # The module also runs from src/ directly in smoke tests.
     from ocr_pipeline_blocks import is_section_heading
     from formula_quality import audit_formulas
     from repair_plan import build_repair_plan
+    from layout_regions import (ensure_regions, index_regions, region_stats,
+                                validate_regions)
 except Exception:  # pragma: no cover - fallback only when imported standalone
     def is_section_heading(text: str) -> bool:  # type: ignore
         return bool(re.match(r"^\s*[一二三四五六七八九十]{1,3}\s*[、．.]\s*\S", text))
@@ -36,6 +38,18 @@ except Exception:  # pragma: no cover - fallback only when imported standalone
     def build_repair_plan(issues):  # type: ignore
         return {"actions": [], "counts": {"auto_candidate": 0, "manual": 0, "blocked": 0},
                 "total": 0, "auto_executed": False, "note": "fallback"}
+
+    def ensure_regions(layout):  # type: ignore
+        return 0
+
+    def index_regions(pages):  # type: ignore
+        return {"lines": {}, "figures": {}, "tables": {}}
+
+    def region_stats(pages):  # type: ignore
+        return {"count": 0, "by_content_type": {}, "by_source": {}}
+
+    def validate_regions(pages):  # type: ignore
+        return []
 
 
 SECTION_RE = re.compile(r"^\s*([一二三四五六七八九十]{1,3})\s*[、．.]\s*(\S.*)$")
@@ -197,6 +211,10 @@ def _append_text(bucket: list[dict], text: str, page_no: int, ref: str) -> None:
 
 def build_exam(layout: dict, source: str | None = None) -> dict:
     pages = layout.get("pages") or []
+    # 区域层（T1）：新产物由版式流水线写入；旧产物在这里就地派生（幂等，不改磁盘）。
+    # 之后所有回链都走区域 id，题目不再只能靠行 id 猜归属。
+    ensure_regions(layout)
+    region_of = index_regions(pages)
     doc = layout.get("document") or {}
 
     sections: list[dict] = []
@@ -560,6 +578,49 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
                      or (graphics >= 4 and empty_options >= 2))):
             q["option_mode"] = "graphical"
 
+    # 区域回链（T1）：行 refs → 区域 id。题目、选项、小问、卷首说明都能指到区域，
+    # 图/表 item 直接记 region_id；将来 T2/T6 只重跑某个区域时不必重新解析整卷。
+    def _region_refs(refs) -> list[str]:
+        out: list[str] = []
+        for ref in refs or []:
+            rid = region_of["lines"].get(str(ref or ""))
+            if rid and rid not in out:
+                out.append(rid)
+        return out
+
+    for item in front_matter:
+        item["region_refs"] = _region_refs([item.get("ref")])
+    for q in questions:
+        refs: list[str] = [str(item.get("ref") or "")
+                           for item in q.get("stem") or []]
+        for opt in q.get("options") or []:
+            opt["region_refs"] = _region_refs(opt.get("refs"))
+            refs.extend(str(r or "") for r in opt.get("refs") or [])
+        for sub in q.get("subquestions") or []:
+            sub["region_refs"] = _region_refs(sub.get("refs"))
+            refs.extend(str(r or "") for r in sub.get("refs") or [])
+        q["region_refs"] = _region_refs(refs)
+        for fig in q.get("figures") or []:
+            rid = region_of["figures"].get(str(fig.get("ref") or ""))
+            if rid:
+                fig["region_id"] = rid
+        for table in q.get("tables") or []:
+            # pdf-table-cells 表的 ref 就是 layout 里的 table id；行内表用 line_ref 找
+            # 占位行所属的（表格）区域，两条路径都不冒充"行区域"。
+            rid = (region_of["tables"].get(str(table.get("ref") or ""))
+                   or region_of["lines"].get(str(table.get("line_ref") or "")))
+            if rid:
+                table["region_id"] = rid
+
+    for fig in unassigned_figures:
+        rid = region_of["figures"].get(str(fig.get("ref") or ""))
+        if rid:
+            fig["region_id"] = rid
+    for table in unassigned_tables:
+        rid = region_of["tables"].get(str(table.get("ref") or ""))
+        if rid:
+            table["region_id"] = rid
+
     return {
         "schema_version": 1,
         "document": {
@@ -591,6 +652,9 @@ def build_exam(layout: dict, source: str | None = None) -> dict:
             "questions_cross_page": sum(1 for q in questions if q["cross_page"]),
             "options": sum(len(q["options"]) for q in questions),
             "subquestions": sum(len(q["subquestions"]) for q in questions),
+            "regions": region_stats(pages)["count"],
+            "question_region_refs": sum(len(q.get("region_refs") or [])
+                                        for q in questions),
         },
     }
 
@@ -625,6 +689,8 @@ def _issue(level: str, code: str, message: str, *, page: int | None = None,
 
 def build_quality(layout: dict, exam: dict) -> dict:
     pages = layout.get("pages") or []
+    # 旧产物也要能出区域诊断：先补齐（幂等），再校验不变量。
+    ensure_regions(layout)
     questions = exam.get("questions") or []
     issues: list[dict] = []
 
@@ -843,6 +909,26 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "error", "garbled_text",
             f"{garbled_lines} 行含 (cid:)/替换符/控制符，不能当作正文"))
 
+    # 区域层（T1）一致性：只做 warning，不新增硬门——区域是"证据视图"，
+    # 它坏掉说明回链不可信，但不代表 OCR/结构结果错；新产物由
+    # check_layout_json 以 error 级校验，避免区域层静默退化。
+    region_problems = validate_regions(pages)
+    region_ids = {str(r.get("id")) for page in pages
+                  for r in (page.get("regions") or []) if isinstance(r, dict)}
+    region_refs_unresolved = sum(
+        1 for q in questions
+        for rid in (q.get("region_refs") or []) if str(rid) not in region_ids)
+    region_types = region_stats(pages)["by_content_type"]
+    if region_problems:
+        codes = sorted({p["code"] for p in region_problems})
+        issues.append(_issue(
+            "warning", "region_inconsistent",
+            f"{len(region_problems)} 处区域层不一致：{', '.join(codes[:6])}"))
+    if region_refs_unresolved:
+        issues.append(_issue(
+            "warning", "region_ref_unresolved",
+            f"{region_refs_unresolved} 个 region_refs 指向不存在的区域"))
+
     errors = sum(1 for i in issues if i["level"] == "error")
     warnings = sum(1 for i in issues if i["level"] == "warning")
     return {
@@ -874,6 +960,10 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "tables_unassigned": len((exam.get("unassigned") or {}).get("tables") or []),
             "garbled_lines": garbled_lines,
             "font_count": int(font_audit.get("font_count") or 0),
+            "regions": sum(region_types.values()),
+            "region_types": region_types,
+            "region_problems": len(region_problems),
+            "region_refs_unresolved": region_refs_unresolved,
         },
         "checks": {
             "question_numbers_complete": not missing,
@@ -894,6 +984,7 @@ def build_quality(layout: dict, exam: dict) -> dict:
             "geometry_ok": overflow == 0 and overlaps == 0,
             "page_coverage_ok": uncovered_total == 0,
             "formula_structure_ok": formula_broken == 0,
+            "regions_consistent": not region_problems and not region_refs_unresolved,
         },
         "repair": build_repair_plan(issues),
         "issues": issues,

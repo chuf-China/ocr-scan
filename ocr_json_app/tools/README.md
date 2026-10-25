@@ -9,7 +9,7 @@
 | `build_compare.py` | 生成两引擎并排对比页 `out/compare.html` |
 | `build_exam_json.py` | 版式 JSON → `exam.json` + `quality.json`（题号/选项/小问/图归属） |
 | `run_exam_acceptance.py` | **批量验收**：多份 PDF/JSON → 覆盖率/选项/公式/表格/原生字/样式/乱码/人工动作汇总，硬门失败退出 1 |
-| `check_layout_json.py` | 版式 JSON：页序、坐标是否在页内、行序、幻觉残留 |
+| `check_layout_json.py` | 版式 JSON：页序、坐标是否在页内、行序、幻觉残留；含 `regions` 的产物还校验区域层（id/bbox/枚举/回链/统计一致） |
 | `check_exam_json.py` | **试卷结构门**：题号/选项/图归属/质量；`quality.status=fail` 退出 1；历史产物可加 `--advisory` |
 | `check_render.py` | **裁片是否压正文**、行是否叠字、是否越界 |
 | `check_ocr_json.py` | 结构块 JSON：页码、题号连续性、截断、乱码 |

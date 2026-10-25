@@ -245,6 +245,17 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    `document.font_audit` 的 PUA、`(cid:)`、U+FFFD、乱码行必须进质量门。验收报告同时
    输出 `native_ratio`、`style_ratio`、`garbled_lines`，但它们只是诊断指标，不能
    替代覆盖率/公式/表格/选项硬门。详见 `docs/specs/native-pdf-quality.md`。
+23. **区域层是 layout 的一等证据，只增不改**：`src/layout_regions.py` 把每页的行 / 表格
+   / 图收成 `page.regions[]`（`p<页>-r<序>`、`bbox_pt`、`content_type`
+   `text|formula|table|figure`、`source`、`confidence`、`spans[]`、`refs`），并反向写
+   `line.region_id` / `figure.region_id` / `table.region_id`。不变量：每条物理行**恰好**
+   属于一个区域（表格占位行归表格区域，不再额外生成行区域）；区域 id 稳定；
+   `lines[]` / `figures[]` / `tables[]` 的语义与顺序不变，区域只做引用；旧产物由
+   `ensure_regions()` 就地派生（幂等）。`exam.json` 的题干/选项/小问/图/表带
+   `region_refs` / `region_id` 回链；`quality.checks.regions_consistent` 只是证据
+   （warning 级），不能替代覆盖率/公式/表格/选项硬门。`check_layout_json` 只对含
+   `regions` 的产物硬校验，历史产物没有该字段则跳过。详见
+   `ocr_json_app/docs/specs/t1-layout-regions.md`。
 
 ## 改哪里 / 怎么改
 

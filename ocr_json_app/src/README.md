@@ -5,6 +5,7 @@
 | `ocr_common.py` | **共用底层**：PDF 渲染、OCR 引擎调用、本地网页服务、提示词选择 |
 | `ocr_pipeline_layout.py` | **原版式流水线**：原生图形资源 + 逐行坐标 + 插图/表格裁片 + 原生表格单元格 → 单文件网页 |
 | `ocr_pipeline_blocks.py` | **结构块流水线**：heading/question/paragraph/table（供程序消费） |
+| `layout_regions.py` | **区域层**：把每页的行 / 表格 / 图收成一等区域（稳定 id、`bbox_pt`、`content_type`、`source`、`spans`、`refs`），与行/图/表双向回链；旧产物可幂等派生 |
 | `exam_structure.py` | **试卷语义层**：从 layout JSON 重建题号/选项/小问/图/表归属，输出 `exam.json` + `quality.json` |
 | `formula_quality.py` | **公式结构审计**：定界符、花括号、`\left`/`\right`、环境成对检查；不改写正文 |
 | `repair_plan.py` | **修复队列**：`quality.issues` → `auto_candidate` / `manual` / `blocked`，只路由不编造 |
@@ -79,13 +80,51 @@ bbox；`ocr_table_cells()` 按单元格裁片逐格 OCR。每页写 `tables[]`�
 `build_quality()` 同时检查空大题。结果是 `question_content_truncated` /
 `section_empty` error，并写 `content_consistency_ok=false`。它是纯规则检测，不补字。
 
+## 区域层（T1：layout regions）
+
+`lines[]` 是物理行、`figures[]` / `tables[]` 是另外两个数组，三者亲缘关系原先只存在于
+隐含约定里；下游只能靠坐标猜。`layout_regions.py` 把每页证据收成一等对象
+`page.regions[]`（**只增不改**，`lines[]` 的语义与顺序一律不动）：
+
+- 每个行 / 表格 / 图一个区域，id 为 `p<页>-r<序>`，字段 `page`、`bbox_pt`、
+  `content_type`（`text` / `formula` / `table` / `figure`）、`source`、`confidence`、
+  `text`、`spans[]`（裁剪后的字级样式：`bbox_pt` / `text` / `font` / `size` /
+  `bold` / `italic` / `color` / `provenance`）、`refs`（`line_ids` / `figure_id` /
+  `table_id`）。
+- **每条物理行恰好属于一个区域**：表格的占位行（`（表格）`）归表格区域，不再额外
+  生成行区域；`source` 区分原生文字（`native`）、OCR（`ocr`）、原生矢量图
+  （`pdf-vector`）、位图（`pdf-image`）、PDF 表格（`pdf-table`）、覆盖补图
+  （`coverage-region`）与框线表格（`table-grid`）；`pdf-vector+labels` 这类复合
+  来源会规范化成 `pdf-vector`。
+- `confidence` 是**文档化的粗粒度启发式**（原生匹配相似度、投票一致性），只用于
+  分诊与排序，不是校准过的概率，不能当门禁阈值。
+- 反向链接：区域会写 `line.region_id` / `figure.region_id` / `table.region_id`；
+  旧产物（没有 `regions`）由 `ensure_regions()` 就地补齐，**幂等**——第二次调用
+  返回 0。试卷层在 `build_exam()` 开头调用它，因此 `region_refs` 对历史产物同样可用
+  （前提是行有稳定 id：缺 id 时按流水线约定补 `p<页>-l<序>`）。
+
+```python
+from layout_regions import build_regions, ensure_regions, validate_regions
+
+page["regions"] = build_regions(page, page_no)   # 流水线生成时
+ensure_regions(layout)                           # 旧产物派生（内存，不写盘）
+validate_regions(layout["pages"])                # [] 表示区域层自洽
+```
+
+`validate_regions()` 检查 id 格式/唯一、bbox 在页内且不倒置、枚举、`confidence`
+区间、`spans` 字级字段、`refs` 是否指向本页真实对象、以及行/图/表的 `region_id`
+反向存在。`tools/check_layout_json.py` 只对**含 `regions` 的产物**把它升级为硬错误
+（历史演示产物没有该字段则跳过），并核对 `stats.regions` / `document.regions.count`。
+
 ## 试卷结构层（exam_structure）
 
 layout JSON 的 `lines[]` 仍是自上而下的物理行序，不能直接当阅读顺序。`exam_structure.py`
 用 `column`/`reading_order` 先排栏内顺序，再识别大题、题号、选项、小问；行/图/题目都有稳定
-`id`，归属通过 `refs` 回溯。`build_quality()` 检查缺号/重号、空题干、选择题选项不足 A–D、
-图未归属、几何越界、原生/OCR 不一致率和乱码行；`status=fail` 时
-`tools/check_exam_json.py` 退出 1。
+`id`，归属通过 `refs` 回溯。T1 之后题干/选项/小问/图/表还带区域回链（`region_refs` /
+`region_id`），区域 id 与页面 `page.regions[]` 一一对应。`build_quality()` 检查缺号/重号、
+空题干、选择题选项不足 A–D、图未归属、几何越界、原生/OCR 不一致率和乱码行；
+`quality.checks.regions_consistent` 只是区域自洽证据（warning 级），不替代上述硬门；
+`status=fail` 时 `tools/check_exam_json.py` 退出 1。
 
 ```powershell
 python tools\build_exam_json.py out\exams\2023beijing.layout.json
