@@ -479,8 +479,20 @@ python tools\review_formulas.py out\acceptance\native_final3\2022北京卷_4c9c2
 - `check_layout_json.py` 对含证据的产物硬校验；旧产物没有证据块时跳过。规范见
   `docs/specs/t2-formula-regions.md`。
 
-当前只是**证据链**：`formulas[].latex` 不会写回 `line.text`，也不代表内容准确率已达标
-（内容级 A/B 需要 3–5 套 10–15 页原生电子卷做人工标注）。
+当前只是**证据链**：`formulas[].latex` 不会写回 `line.text`。内容级 A/B 用
+`tools/build_formula_ab.py` 做：按一致性配额抽样、按条目 dpi 重渲裁片、拼成对照图 +
+`review.md`，人对图判“模型 / 现有 / 相同”，**不能**用 KaTeX 可渲染或一致性分布代替
+内容准确率。2026-10-25 在 `data/eval/` 的 5 套 10–12 页原生电子卷上实测（1145 条证据、
+58 页，公式复核约 32 分钟 CPU）：
+
+```powershell
+python tools\review_formulas.py out\eval\eval01_xicheng_2024ermo.layout.json
+python tools\build_formula_ab.py out\eval\eval01_xicheng_2024ermo.formula.json `
+    --out-dir out\eval\ab_eval01
+```
+
+结论是模型按裁片内容准确率高，但检测框贴边会引入 `\mid`/`\left(` 一类边缘符号、也会
+只覆盖一行里的一条公式，所以**不能替代**整行 OCR；价值在证据、复核与修复候选。
 
 ### 批量验收（S6）
 

@@ -263,7 +263,9 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    不能当模型错误统计。映射不到的检测框写 `page.unassigned_formula_boxes[]`，不猜归属。
    推理只在 `formula-venv` 子进程里跑（CPU 版 paddle，不占显存、不抢 8080），主环境
    不得 import paddle。`check_layout_json` 只对含 `formulas` 的产物硬校验，历史产物跳过。
-   详见 `ocr_json_app/docs/specs/t2-formula-regions.md`。
+    内容级 A/B 用 `tools/build_formula_ab.py` 按一致性配额抽样、渲裁片拼对照图人工判定，
+    **不能**用"KaTeX 能渲染"或一致性分布代替内容准确率；KaTeX 过门（`formula_quality`）
+    仍只回答"结构可解析"，不是公式对错。详见 `ocr_json_app/docs/specs/t2-formula-regions.md`。
 
 ## 改哪里 / 怎么改
 

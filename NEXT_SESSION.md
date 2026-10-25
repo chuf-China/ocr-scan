@@ -3,10 +3,9 @@
 > 交接日期：2026-10-25  
 > 仓库：`C:\Users\Administrator\Desktop\ocr\ocr scan`  
 > 应用：`ocr_json_app`  
-> 当前 HEAD：`T2 公式区域规格与 CPU 实测：按区域裁片，不整行`（本次会话三个提交：
-> `26cd581 添加下一会话交接文档`、`7d0e7ac T1 区域层`、以及本条；提交号以
-> `git log -1 --oneline` 为准）  
-> 本地领先 `origin/main` 16 个提交（以 `git rev-list --count origin/main..HEAD`
+> 当前 HEAD：以 `git log -1 --oneline` 为准（T1 区域层 `7d0e7ac`、T2 证据链
+> `edc8af7`、T2 归一化 `9357e0a`、A/B 工具 `00f6d6b` 之后的提交）  
+> 本地领先 `origin/main`（`0be35f4`）若干提交（以 `git rev-list --count origin/main..HEAD`
 > 为准），**尚未推送**。
 
 新会话请先读本文件，再读：
@@ -22,7 +21,7 @@
 
 ---
 
-## 0. 2026-10-25 本次会话更新（T1 已完成，T2 取证件已出）
+## 0. 2026-10-25 本次会话更新（T1 完成，T2 阶段 1 已落地并实测）
 
 - **T1 区域层已实现并提交**（`7d0e7ac`）：新增 `src/layout_regions.py`，每页 `page.regions[]`
   一等区域（`p<页>-r<序>`、`bbox_pt`、`content_type`、`source`、`confidence`、`spans`、`refs`），
@@ -58,9 +57,30 @@
     `~/.paddlex/fonts/PingFang-SC-Regular.ttf`（本次真联网下载并已缓存），集成时必须
     避免隐式下载（不落可视化 PNG 或先确认字体缓存）。
   - 结论：裁片按公式框（`crop_source="pd-doclayout"`），不用整行、也不用字符比例猜；
-    设计见 `ocr_json_app/docs/specs/t2-formula-regions.md`。**尚未接入流水线**。
-- **语料缺口**：`data/**/*.pdf` 最多 6 页 A4（静安区），其余全是 2 页 A3；本机**没有**
-  10–15 页原生电子卷，扩验收集需要用户提供 PDF（禁止联网下载）。
+    设计见 `ocr_json_app/docs/specs/t2-formula-regions.md`。**阶段 1 已接入**（证据层，
+    见上文 T2 阶段 1 条目）；阶段 2 才讨论"是否把公式模型的 LaTeX 升级成正文来源"。
+- **语料已到位**（用户授权"你去搜索"）：`data/eval/` 有 5 套 10–12 页原生电子数学卷 +
+  `SOURCES.md`（公开直链、逐页字符数、文字层证据、失败记录）。本机原有语料仍是最多 6 页
+  A4，其余 2 页 A3；这 5 套用于扩验收，**不替代** `data/exams/` 的 23 套回归。
+- **T2 阶段 1（公式区域证据链）已实现并提交**：`src/formula_review.py`（纯函数层）、
+  `tools/review_formulas.py`（PP-DocLayout_plus-L 出逐条公式框 → 300dpi 重渲裁片 →
+  一次 `PP-FormulaNet_plus-M` 子进程批量识别 → 证据写 `regions[].formulas[]`）、
+  `tools/build_formula_ab.py`（按一致性配额抽样、拼裁片对照图 + `review.md`）、
+  `check_layout_json` 对含 `formulas` 产物硬校验、冒烟 `[13/13]`。AGENTS.md 新增约束 24。
+  **只写证据，不改 `line.text` / `region.text`**。
+- **5 套新语料实测**（详见 `docs/specs/t2-formula-regions.md`）：58 页 / 1186 行 / 674 含公式行
+  → 1145 条证据、601 个命中区域、312 个未归属框，公式复核共约 32 分钟 CPU。
+  一致性：exact 141 / normalized 509 / partial 285 / differs 207 / no_current 3。
+- **内容级 A/B（eval01 抽 48 条，目视 16 条）**：相同 12 / 现有更好 3 / 模型更好 1。
+  模型在裁片内部基本正确（含 `\boldsymbol`/分段函数），但框贴边会混入 `\mid`/`\left(`，
+  或只覆盖一行里的一条公式 → **不能替代整行 OCR，只能当证据/复核与修复候选**。
+- **关键发现（下一步要修的是结构层，不是公式模型）**：这 5 套教师版在行首用「（1）（2）」
+  当题号，`QUESTION_RE` 要求数字在行首且后跟 `.、．)）`，于是内容门 **5/5 fail**
+  （`section_empty` / `question_number_gap` / `choice_options_incomplete`）。「（1）」在同卷
+  也当小问编号，**放宽正则会把小问误判成题号**，必须按大题上下文区分。
+  在修完结构层之前，10–15 页卷无法用内容门做验收。
+- 校验基线（本次实测）：单元 **21/21**、冒烟 **161 通过 / 1 跳过**、`run_all_checks.py`
+  **21/21**、`--fast` **18/18**。
 
 ---
 

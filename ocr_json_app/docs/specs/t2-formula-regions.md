@@ -184,6 +184,48 @@ normalized —— 说明“等价写法差异”“裁片片段（partial）”�
 只记进 `page.unassigned_formula_boxes[]`，不把该区域改判成 formula（改判属于内容
 语义变更，留到阶段 2 用人工标注决定）。
 
+## 新增语料实测（2026-10-25，5 套 10–12 页原生电子卷）
+
+语料在 `ocr_json_app/data/eval/`（来源、页数、逐页字符数见 `data/eval/SOURCES.md`）；
+路线：`ocr_pipeline_layout.py`（llama.cpp + paddleocr-vl，150dpi）→ `review_formulas.py`
+（CPU 版 PP-FormulaNet_plus-M）→ `build_formula_ab.py`（抽样对照图）。语料下载不参与
+流水线运行，模型推理仍全离线。
+
+| 卷 | 页 | 行 | 含公式行 | 证据 | 命中区域 | 未归属框 | 公式复核耗时 |
+|---|---|---|---|---|---|---|---|
+| eval01 西城 2024 二模 | 10 | 254 | 151 | 249 | 139 | 21 | 405 s |
+| eval02 海淀 2024 一模 | 12 | 280 | 161 | 254 | 139 | 42 | 420 s |
+| eval03 深圳 2025 一模 | 12 | 251 | 165 | 296 | 151 | 28 | 499 s |
+| eval04 西城 2021 期末 | 12 | 275 | 158 | 281 | 141 | 35 | 456 s |
+| eval05 西城 2020 期末 | 12 | 126 | 39 | 65 | 31 | 186 | 144 s |
+| **合计** | 58 | 1186 | 674 | **1145** | 601 | 312 | ≈32 min |
+
+一致性分布（用当前归一化规则离线重算，不重跑模型）：
+
+| 一致性 | 条数 | 占比 | 含义 |
+|---|---|---|---|
+| exact | 141 | 12.3% | 与现有 OCR 片段字符级相同 |
+| normalized | 509 | 44.5% | 只是等价写法（`\boldsymbol`/`\prime`/`//`↔`\parallel`/`\bar`↔`\overline`/环境/花括号/空格） |
+| partial | 285 | 24.9% | 裁片只覆盖公式片段（检测框几何问题，不算模型错） |
+| differs | 207 | 18.1% | 需人工判定；多数仍是裁片从连写字符中间切开（片段不是完整子串）或边缘混入 `\mid`/`\left(` 等支架符号 |
+| no_current | 3 | 0.3% | 现有 OCR 在该区域没认出任何公式片段 |
+
+内容级 A/B 抽样（`tools/build_formula_ab.py`，eval01 抽 48 条：differs 24 / partial 12 /
+normalized 8 / exact 4，目视 16 条）：**相同 12 / 现有更好 3 / 模型更好 1**。模型输出在
+裁片内部通常正确（含 `\boldsymbol`/`\pmb` 粗体、分段函数、上下标），但检测框贴边时会
+引入 `\mid`、`\left(`、`\therefore` 一类边缘符号噪声，也会只覆盖一行里的一条公式。
+因此**不能**用"按框输出更干净"论证替换现有 OCR。
+
+结构门结果（`build_exam_json.py` + `check_exam_json.py`，新产物不加 `--advisory`）：
+版式结构门 5/5 通过（eval03 第 11 页 94.28%、eval05 第 7 页 97.02% 有未覆盖墨迹告警），
+但内容门 **5/5 失败**：`section_empty`（eval01/eval04 重建出 0 题）、`question_number_gap`
+（eval03/eval05）、`choice_options_incomplete`（eval02）。原因是这些教师版用「（1）（2）」
+在行首当题号，而 `QUESTION_RE` 要求数字在行首、后面跟 `.、．)）`，且「（1）」在同一份卷
+里也当小问编号——放宽正则会把小问误判成题号，必须按大题上下文区分。属于**结构层缺口，
+不是公式模型问题**。结论：新增语料先暴露了结构层对题号写法的强依赖，T2 的默认开启判断
+不受影响（公式证据仍在证据层、不改正文），但"扩验收集"要先修结构层，否则内容门没法
+作为 10–15 页卷的验收依据。
+
 ## 验收（阶段 1 落地后）
 
 - 新字段只增不改；旧产物无 `formulas` 块时所有门跳过；
@@ -210,5 +252,14 @@ normalized —— 说明“等价写法差异”“裁片片段（partial）”�
 - `ocr_json_app/out/_t2_probe/formula_crops/formula_*.png` + `formula_runs.log`：单条公式裁片批量推理；
 - 脚本 `%TEMP%\t2_crop.py`、`%TEMP%\t2_formula_crops.py`；`out/_t2_probe/census.py`（公式规模普查）。
 
-**待用户提供**：3–5 套 10–15 页原生电子卷 PDF（本机现有语料最多 6 页 A4，其余都是
-2 页 A3，不能联网下载）。
+新增语料（2026-10-25）：
+
+- `ocr_json_app/data/eval/`：5 套 10–12 页原生电子卷 PDF + `SOURCES.md`（页数/字符数/
+  来源直链/文字层证据/失败记录），随仓库提交（3.7 MB，公开试卷，与 `data/exams/` 同口径）；
+- `ocr_json_app/out/eval/`：`*.layout.json`、`*.exam.json`、`*.quality.json`、
+  `*.formula.json`（公式证据），`build_formula_ab.py` 的 `ab_eval01/`（对照图 + `review.md`）。
+  这些是可重跑产物（每套 layout ≈1–2 分钟 OCR、公式证据 ≈2.5–8 分钟 CPU），默认不入库。
+
+下一份语料如果像素密度/页尺寸差异大（例如 A5 480dpi），先看检测框数是否异常：eval05
+（431×659pt）出现 186 个未归属框、39 条公式行，说明该页尺寸下 `--detect-dpi 200` 的
+框偏碎，需要按页尺寸调整检测 dpi 或加二级合并。
