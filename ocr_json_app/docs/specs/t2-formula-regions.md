@@ -30,6 +30,25 @@ A/B**。阶段 2（视觉对齐）不在这里展开。
 - 所以裁片粒度必须是**公式区域/span**，不能是整行；T1 的 `regions[].content_type=formula`
   是裁片入口，但**区域当前等于整行**，真正的公式 span 几何还没有。
 
+### 补充实测：PP-DocLayout_plus-L 能给到单条公式框（2026-10-25）
+
+对同一页按 200dpi 跑 `paddleocr layout_detection --model_name PP-DocLayout_plus-L
+--device cpu`：
+
+- 结果 **83 个框 / 31 个 `formula`**（另有 text 45、image 2、paragraph_title 3、
+  doc_title 1、number 1），检测耗时 **1216 ms**，总 22 s（含约 18 s 的一次性字体下载，
+  见下）；
+- `formula` 框**包含行内公式**（例如选项行被切成多个 20–90pt 宽的小框），不是只给
+  行间大公式。这消除了“只能按行 OCR 文本比例猜 span”的退化路径；
+- 框坐标是检测图的像素，除以 `dpi/72` 得 pt，再从原始 PDF 以 300dpi 重渲裁片；
+- 用这些框裁两条公式跑 `formula_recognition`（目录批量输入，模型只初始化一次）：
+  - 分段函数（548x147px）：`f(x)=\left\{\begin{aligned}&-ax+1,&x<a,\\&(x-2)^{2},&x\geqslant a.\end{aligned}\right.` → **内容正确**，2743 ms；
+  - 行内小公式（81x105px）：`\frac{\pi}{3},` → 正确，1345 ms。
+- **坑**：`layout_detection` 带 `--save_path` 会为了画可视化框去 `~/.paddlex/fonts/`
+  抓 `PingFang-SC-Regular.ttf`（本次真的联网下载了，之后缓存命中）。集成时必须：
+  要么不落可视化 PNG，要么先确认字体在缓存里、并把这一点写进运行前置检查；
+  检测结果 JSON 不受影响。
+
 ## 设计
 
 ### 1. 公式 span 几何从哪来
@@ -39,8 +58,8 @@ A/B**。阶段 2（视觉对齐）不在这里展开。
 1. **原生字层**（仅纯文字行可用）：`pdfplumber` 的 char 坐标能直接给出公式字符的
    bbox；但公式行本来就走 OCR（`_native_fast_safe` 故意拒绝），实际拿不到。
 2. **PP-DocLayout_plus-L**（已在盘，`PP-DocLayout_plus-L` 属于
-   `.paddlex\official_models\`，label 含 `formula`，processors 有 inline_formula 逻辑）：
-   只用于**裁片几何**，正文文本仍以现有 `lines[]` 为准。必须记录来源
+   `.paddlex\official_models\`，label 含 `formula`；已实测能给出**逐条公式框**，
+   含行内公式）：只用于**裁片几何**，正文文本仍以现有 `lines[]` 为准。必须记录来源
    （`crop_source="pd-doclayout"`），不能把它的文本混进正文，也不能把它的坐标系
    当语义（AGENTS 硬约束：坐标不是语义、引擎产物不得混名）。
 3. 退化路径：对该行 OCR 文本按 `$...$` / `\(...\)` 分段，按字符比例切行盒
@@ -53,8 +72,8 @@ A/B**。阶段 2（视觉对齐）不在这里展开。
 - 独立子进程：`formula-venv\Scripts\python.exe -m ...` 或
   `formula-venv\Scripts\paddleocr.exe formula_recognition -i <png> --device cpu`；
   主环境（3.12）不能 import paddle，**禁止**在主进程内联推理。
-- 一个进程内批量处理一张卷的所有裁片（模型初始化 ≈4 s，单裁片 ≈2.9–3.2 s）；
-  不要一张裁片起一个进程（每张会多付 4 s）。
+- 一个进程内批量处理一张卷的所有裁片（模型初始化 ≈4 s，单条公式裁片 1.3–2.7 s）；
+  不要一张裁片起一个进程（每张会多付 4 s）。CLI 的 `-i` 可以直接传目录。
 - CPU 串行：与 `llama-server` 抢 CPU，必须排在 OCR 之后，或 `OMP_NUM_THREADS=2`。
 - 离线：模型缓存已存在，`official_models.py` 只在目录缺失时联网；不要为 T2 引入
   任何需要下载/密钥的依赖。PP-StructureV3（T3）缺 12 个模型、UniMERNet 全机不存在，
@@ -101,11 +120,16 @@ A/B**。阶段 2（视觉对齐）不在这里展开。
 | 项 | 数值 |
 |---|---|
 | 模型初始化 | ≈4 s / 进程 |
-| 单裁片推理 | 2.9–3.2 s（384 输入，max_seq_len 2560，≈1.5 亿参数） |
-| 单卷公式行 | 36–57 行（native_final3 23 套平均 46） |
-| 单卷总耗时 | ≈2.5 分钟（进程内）／≈5.5 分钟（每张一个 CLI） |
+| 版面检测（PP-DocLayout_plus-L） | 1216 ms / 页（200dpi A3）+ 一次性初始化 |
+| 单条公式裁片推理 | 1.3–2.7 s（同进程目录批量；公式越复杂越慢） |
+| 整行裁片推理 | 2.9–3.2 s（对照，不推荐） |
+| 每页公式框 | 31 条（2022北京卷 p1，200dpi 检测）→ ≈1–1.5 分钟/页 |
+| 单卷（2 页 A3） | ≈2–3 分钟 |
 | 显存 | 0（paddle 3.2.1 是 CPU 版） |
 | 磁盘 | 权重 748.8 MiB（已在盘，无需下载） |
+
+一次 CLI 调用可传**目录**，模型只初始化一次（实测 2 张图共 9 s：4.6 s 初始化 +
+2.7 s + 1.3 s）；集成时按“一页一批”组织，不要一张一进程。
 
 ## 验收（阶段 1 落地后）
 
@@ -125,8 +149,11 @@ A/B**。阶段 2（视觉对齐）不在这里展开。
 ## 现有产物
 
 - `ocr_json_app/out/_t2_probe/report.md`：离线/CPU/依赖/语料取证（零副作用）；
-- `ocr_json_app/out/_t2_probe/crop_pure.png`、`crop_mixed.png` + `run_*.log`：上表两条实测；
-- 脚本 `%TEMP%\t2_crop.py`（裁片）、`out/_t2_probe/census.py`（公式规模普查）。
+- `ocr_json_app/out/_t2_probe/crop_pure.png`、`crop_mixed.png` + `run_*.log`：整行裁片两条实测；
+- `ocr_json_app/out/_t2_probe/page1_200dpi.png`、`layout_page1/page1_200dpi_res.json`：
+  PP-DocLayout_plus-L 版面检测（31 个 formula 框）；
+- `ocr_json_app/out/_t2_probe/formula_crops/formula_*.png` + `formula_runs.log`：单条公式裁片批量推理；
+- 脚本 `%TEMP%\t2_crop.py`、`%TEMP%\t2_formula_crops.py`；`out/_t2_probe/census.py`（公式规模普查）。
 
 **待用户提供**：3–5 套 10–15 页原生电子卷 PDF（本机现有语料最多 6 页 A4，其余都是
 2 页 A3，不能联网下载）。
