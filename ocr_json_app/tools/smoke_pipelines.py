@@ -619,6 +619,29 @@ def test_native_text() -> None:
     check("原生快路：非 text 质量不匹配",
           layout.match_native_lines_to_pixels(px_lines, native, 2.0) == {})
 
+    # 分式行防丢字（2026-10-25 eval01 第 4 页 `产销率=销量/产量`）：字层把分子、
+    # 分母拆成两条原生行，像素行检测把它们合成一条 24.5pt 的高行。旧规则按较小
+    # 行高算重叠，会把 `产量` 当成 100% 命中并跳过 OCR，分子整段静默消失。
+    tall = [{"px_top": 0.0, "px_bottom": 51.0, "px_left": 0.0, "px_right": 240.0}]
+    frac = [
+        {"text": "产销率等于销量乘以百分之百", "left": 2.0, "right": 119.0,
+         "top": 0.0, "bottom": 15.0, "quality": "text"},
+        {"text": "产量", "left": 30.0, "right": 100.0,
+         "top": 10.5, "bottom": 25.5, "quality": "text"},
+    ]
+    rep = {}
+    got = layout.match_native_lines_to_pixels(tall, frac, 2.0, report=rep)
+    check("原生快路：高行里的兄弟原生行迫使回 OCR",
+          got == {} and rep.get("sibling_line", 0) >= 1, f"实得 {(got, rep)}")
+
+    box70 = [{"px_top": 0.0, "px_bottom": 70.0, "px_left": 0.0, "px_right": 240.0}]
+    half = [{"text": "产量", "left": 2.0, "right": 40.0,
+             "top": 0.0, "bottom": 18.0, "quality": "text"}]
+    rep2 = {}
+    check("原生快路：覆盖不足半行高不匹配",
+          layout.match_native_lines_to_pixels(box70, half, 2.0, report=rep2) == {}
+          and rep2.get("short_coverage") == 1, f"实得 {rep2}")
+
     style_line = {"left": 10.0, "right": 100.0, "top": 10.0, "bottom": 24.0}
     style_chars = [
         {"x0": 10, "x1": 20, "top": 10, "bottom": 24,

@@ -1974,12 +1974,23 @@ def _native_fast_safe(text: str) -> bool:
 
 
 def match_native_lines_to_pixels(lines: list[dict], native_lines: list[dict],
-                                 scale: float) -> dict[int, dict]:
+                                 scale: float,
+                                 report: dict | None = None) -> dict[int, dict]:
     """把可靠原生行匹配到像素行，供 OCR 前的原生快路使用。
 
     只返回 ``quality == "text"``、不含公式标记且通过 ``_native_fast_safe``
     的行；匹配是严格一对一，宁可漏匹配，不把一个原生行同时贴到两个像素行。
+
+    两条防丢字闸门（2026-10-25，实测 eval01 第 4 页分式行）：
+
+    - **高度覆盖**：原生行必须覆盖像素行高度的 55% 以上。分式 `产销率=销量/产量`
+      在字层是“分子”“分母”两条原生行，像素行检测把它合成一条 24.5pt 高的行；
+      分母 `产量` 只有 10.4pt 高，旧规则（按较小的行高算重叠）会当成 100% 命中，
+      于是整行被替换成 `产量`、跳过 OCR，分子整段消失且无任何告警。
+    - **箱内兄弟行**：像素行里还有别的可用原生行、却没被任何像素行认领时，这条
+      快路一样不成立（宁可回 OCR）。只认领一条 = 剩下的内容静默丢失。
     """
+    reject = {"short_coverage": 0, "sibling_line": 0, "candidates": 0}
     best: dict[int, tuple[float, dict]] = {}
     used: set[int] = set()
     for nl in native_lines:
@@ -2000,6 +2011,10 @@ def match_native_lines_to_pixels(lines: list[dict], native_lines: list[dict],
             v = min(ny1, oy1) - max(ny0, oy0)
             if v / min(nh, oh) < 0.45:
                 continue
+            # 高度覆盖闸门：小字行不能整替代一条被合并的高行。
+            if v / oh < 0.55:
+                reject["short_coverage"] += 1
+                continue
             ox0, ox1 = float(line["px_left"]), float(line["px_right"])
             h = min(nx1, ox1) - max(nx0, ox0)
             ow = max(1.0, ox1 - ox0)
@@ -2017,6 +2032,30 @@ def match_native_lines_to_pixels(lines: list[dict], native_lines: list[dict],
             continue
         picked.add(key)
         out[idx] = nl
+    # 箱内兄弟行闸门：认领之后，像素行里若还有未被认领的可信原生行 → 回 OCR。
+    claimed = {id(nl) for nl in out.values()}
+    for idx in list(out):
+        line = lines[idx]
+        oy0, oy1 = float(line["px_top"]), float(line["px_bottom"])
+        ox0, ox1 = float(line["px_left"]), float(line["px_right"])
+        for nl in native_lines:
+            if id(nl) in claimed or nl.get("quality") != "text":
+                continue
+            if not _native_fast_safe(nl.get("text", "")):
+                continue
+            ncy = (float(nl["top"]) + float(nl["bottom"])) / 2 * scale
+            if not (oy0 <= ncy <= oy1):
+                continue
+            nx0, nx1 = float(nl["left"]) * scale, float(nl["right"]) * scale
+            h = min(nx1, ox1) - max(nx0, ox0)
+            if h / max(1.0, ox1 - ox0) < 0.25:
+                continue
+            del out[idx]
+            reject["sibling_line"] += 1
+            break
+    reject["candidates"] = len(out)
+    if report is not None:
+        report.update(reject)
     return out
 
 
@@ -2461,7 +2500,7 @@ def build(args) -> dict:
     warnings: list[str] = []
     native_total = {"chars": 0, "lines": 0, "reliable": 0, "matched": 0,
                     "mismatched": 0, "native_only": 0, "ocr_only": 0,
-                    "fallbacks": 0, "fast": 0}
+                    "fallbacks": 0, "fast": 0, "fast_rejected": 0}
     coverage_total = {"ink_pixels": 0, "covered_ink_pixels": 0,
                       "uncovered_regions": 0, "blank_pages": 0}
     styled_total = 0
@@ -2596,9 +2635,16 @@ def build(args) -> dict:
         # 上下标压成普通数字。没有文字层/质量不够时自动退回全量 OCR。
         native_fast: dict[int, dict] = {}
         if args.text_source == "auto" and native_lines:
-            native_fast = match_native_lines_to_pixels(lines, native_lines, scale)
+            fast_report: dict = {}
+            native_fast = match_native_lines_to_pixels(lines, native_lines, scale,
+                                                       report=fast_report)
             for idx in native_fast:
                 lines[idx]["_native_fast"] = True
+            native_total["fast_rejected"] += (fast_report.get("short_coverage", 0)
+                                              + fast_report.get("sibling_line", 0))
+            if fast_report.get("short_coverage") or fast_report.get("sibling_line"):
+                log(f"第 {pno} 页原生快路拒绝 {fast_report['short_coverage']} 条矮行匹配、"
+                    f"{fast_report['sibling_line']} 条箱内多行（回 OCR，防丢字）")
             if native_fast:
                 log(f"第 {pno} 页原生快路 {len(native_fast)} 行（跳过 OCR）")
 
@@ -3032,6 +3078,7 @@ def build(args) -> dict:
             "native_text_matched": native_total["matched"],
             "native_text_mismatched": native_total["mismatched"],
             "native_text_fallbacks": native_total["fallbacks"],
+            "native_text_fast_rejected": native_total["fast_rejected"],
             "native_text_fast_path": native_total["fast"],
             "styled_lines": styled_total,
             "font_count": font_audit_total["font_count"],

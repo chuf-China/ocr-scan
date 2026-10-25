@@ -177,7 +177,11 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
 12. **原生文字层走“有条件快路”，公式仍以 OCR 为准**：PDF 有 text layer 时，`pdfplumber`
     chars 聚行；只有纯文字行（无公式定界符、无 `(cid:)`/替换符/控制符、CJK ≥2 字且占比
     ≥45%）在 `match_native_lines_to_pixels()` 的几何一对一门槛（纵向 ≥0.45、横向 ≥0.25）
-    通过后，才用 `text_source=native-text` 跳过 OCR。公式行、乱码行、页缩放/旋转页必须
+    通过后，才用 `text_source=native-text` 跳过 OCR。**还有两条防丢字闸门**：原生行必须
+    覆盖像素行高度的 55% 以上（上下分式会被字层拆成“分子/分母”两条，像素行却合并成一条
+    高行，矮行按“较小行高”算照样 100% 命中）；认领后若盒内还有未被认领的可信原生行，
+    这条快路作废回 OCR。两条都进 `stats.native_text_fast_rejected`——只认领一条原生行
+    = 另一条内容静默丢失，不许用“命中率高”掩盖。公式行、乱码行、页缩放/旋转页必须
     回 OCR；`--text-source ocr` 可全量回退。原生字层常把公式拆成 `x2`/`y0` 或私有字库，
     不能无门槛替换。行样式来自 `annotate_line_styles()`（字号/粗斜体/颜色/衬线），
     `audit_fonts()` 的 PUA/`(cid:)`/替换符/乱码是硬 error。不要为了“多用原生字”放宽
