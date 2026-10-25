@@ -256,6 +256,14 @@ python tools\crop_png.py shot.png crop.png 180 1470 560 330 2.2  # 放大局部�
    （warning 级），不能替代覆盖率/公式/表格/选项硬门。`check_layout_json` 只对含
    `regions` 的产物硬校验，历史产物没有该字段则跳过。详见
    `ocr_json_app/docs/specs/t1-layout-regions.md`。
+24. **公式复核只是证据，绝不覆盖正文**：`src/formula_review.py` 把公式模型的输出写进
+   `regions[].formulas[]`（`source` / `crop` / `latex` / `text_marked` / `compare`），
+   **不改** `line.text` / `region.text`，也不直接写 `final`；`compare.agreement` 分
+   `exact|normalized|partial|differs|no_current`，其中 `partial` 是裁片只覆盖公式片段，
+   不能当模型错误统计。映射不到的检测框写 `page.unassigned_formula_boxes[]`，不猜归属。
+   推理只在 `formula-venv` 子进程里跑（CPU 版 paddle，不占显存、不抢 8080），主环境
+   不得 import paddle。`check_layout_json` 只对含 `formulas` 的产物硬校验，历史产物跳过。
+   详见 `ocr_json_app/docs/specs/t2-formula-regions.md`。
 
 ## 改哪里 / 怎么改
 

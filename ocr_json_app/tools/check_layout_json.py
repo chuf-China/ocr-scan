@@ -25,6 +25,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 from layout_regions import region_stats as summarize_regions  # noqa: E402
 from layout_regions import validate_regions  # noqa: E402
+from formula_review import validate_formula_evidence  # noqa: E402
 
 DIGIT_RUN_RE = re.compile(r"\d{20,}")
 
@@ -204,6 +205,30 @@ def main() -> int:
             if doc_regions.get("count") != actual_regions["count"]:
                 errors.append(f"document.regions.count={doc_regions.get('count')} "
                               f"与实际区域数 {actual_regions['count']} 不符")
+
+    # 公式复核证据（T2）：存在才校验。证据是**只增不改**的旁证，正文仍以 line.text 为准，
+    # 所以这里只查证据块自身（来源/裁片 dpi/一致性枚举/未归属框），并核对汇总计数。
+    evidence_total = 0
+    for p in pages:
+        pno = p.get("page")
+        for region in (p.get("regions") or []):
+            formulas = region.get("formulas")
+            if isinstance(formulas, list):
+                evidence_total += len(formulas)
+        for problem in validate_formula_evidence([p]):
+            where = (f"第 {pno} 页区域 {problem['region_id']}"
+                     if problem.get("region_id") else f"第 {pno} 页")
+            errors.append(f"{where} 公式证据 {problem['code']}：{problem['message']}")
+    if evidence_total:
+        declared_blocks = stats.get("formula_review_blocks")
+        if declared_blocks is not None and declared_blocks != evidence_total:
+            errors.append(f"stats.formula_review_blocks={declared_blocks} 与实际证据数 "
+                          f"{evidence_total} 不符")
+        review = (doc.get("document") or {}).get("formula_review")
+        if isinstance(review, dict) and review.get("formulas") is not None:
+            if review["formulas"] != evidence_total:
+                errors.append(f"document.formula_review.formulas={review['formulas']} "
+                              f"与实际证据数 {evidence_total} 不符")
 
     # 插图：坐标必须落在页内，载图必须能解码且非空白
     fig_total = 0

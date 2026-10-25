@@ -29,6 +29,7 @@ import ast
 import glob
 import importlib.util
 import io
+import json
 import os
 import subprocess
 import sys
@@ -720,6 +721,91 @@ def test_layout_regions() -> None:
           first > 0 and second == 0, f"实得 {first}/{second}")
 
 
+def test_formula_review() -> None:
+    """T2 公式复核纯函数：区域映射 / 等价归一化 / 证据块 / 校验。"""
+    print("[13/13] 公式复核（T2：裁片映射 / 归一化 / 证据 / 校验）")
+    fr = load_module("formula_review.py")
+
+    segs = fr.extract_math_segments(r"11. 函数 \(f(x)=1/x\) 的定义域是 \(x>0\)。")
+    check("抽取 \\(...\\) 公式片段", segs == ["f(x)=1/x", "x>0"], repr(segs))
+    dollars = fr.extract_math_segments(r"已知 $a+b=1$，求 $ab$ 最大值")
+    check("抽取 $...$ 公式片段", dollars == ["a+b=1", "ab"], repr(dollars))
+
+    cases = [
+        (r"x^{2}+y_{1}", r"x^2 + y_1"),
+        (r"f(x)=\left\{\begin{aligned}&x,&x>0\\&-x,&x<0\end{aligned}\right.",
+         r"f(x)=\begin{cases}x,&x>0\\-x,&x<0\end{cases}"),
+        (r"a\geqslant b", r"a\geq b"),
+        (r"\sqrt{3}x", r"\sqrt3 x"),
+        (r"A\mathrm{~-~}C", r"ABC"[:1] + "-" + "C"),
+    ]
+    for left, right in cases:
+        check(f"等价归一化：{left[:16]}…",
+              fr.normalize_latex(left) == fr.normalize_latex(right),
+              f"{fr.normalize_latex(left)!r} != {fr.normalize_latex(right)!r}")
+
+    agreement, matched = fr.classify_agreement(r"\frac{\pi}{3}", [r"\frac{\pi}{3}"])
+    check("完全一致 -> exact", agreement == "exact" and matched, agreement)
+    agreement, _ = fr.classify_agreement(r"x^{2}", [r"x^2"])
+    check("写法差异 -> normalized", agreement == "normalized", agreement)
+    agreement, _ = fr.classify_agreement(r"x+1", [r"x-1"])
+    check("内容不同 -> differs", agreement == "differs", agreement)
+    agreement, _ = fr.classify_agreement(r"-x)-f(x)=0", [r"f(-x) - f(x) = 0"])
+    check("裁片只覆盖片段 -> partial", agreement == "partial", agreement)
+    agreement, _ = fr.classify_agreement(r"x+1", [])
+    check("没有现成片段 -> no_current", agreement == "no_current", agreement)
+
+    regions = [
+        {"id": "p1-r1", "content_type": "formula", "bbox_pt": [50, 100, 250, 130]},
+        {"id": "p1-r2", "content_type": "text", "bbox_pt": [50, 200, 250, 230]},
+    ]
+    check("中心命中 -> 映射到公式区域",
+          fr.map_box_to_region([60, 105, 120, 125], regions) == "p1-r1")
+    check("非公式区域不参与映射",
+          fr.map_box_to_region([60, 205, 120, 225], regions) is None)
+    check("框完全在区域外 -> None",
+          fr.map_box_to_region([400, 400, 420, 420], regions) is None)
+
+    evidence = fr.build_evidence(r"x^{2}", [60, 105, 120, 125], 300, "pd-doclayout",
+                                 0.9, [r"x^2"])
+    check("证据块字段齐全",
+          evidence["source"] == fr.EVIDENCE_SOURCE
+          and evidence["crop"]["dpi"] == 300
+          and evidence["compare"]["agreement"] == "normalized"
+          and not evidence["review"]["needed"],
+          repr(evidence)[:120])
+
+    page = {"page": 1, "regions": [
+        dict(regions[0], text=r"函数 \(x^2\) 的值域"),
+        dict(regions[1]),
+    ]}
+    report = fr.attach_evidence(page, [dict(evidence, region_id="p1-r1"),
+                                       dict(evidence, region_id="p1-r2")],
+                               [{"bbox_pt": [400, 400, 420, 420], "score": 0.5}])
+    check("只挂公式区域，正文文本不动",
+          report == {"attached": 1, "unassigned": 1}
+          and page["regions"][0]["formulas"][0]["latex"] == r"x^{2}"
+          and page["regions"][0]["text"] == r"函数 \(x^2\) 的值域"
+          and "formulas" not in page["regions"][1],
+          repr(report))
+    check("未归属公式框留在页上",
+          len(page.get("unassigned_formula_boxes") or []) == 1)
+
+    summary = fr.review_summary([page])
+    check("复核统计",
+          summary["formulas"] == 1 and summary["unassigned_boxes"] == 1
+          and summary["agreement"]["normalized"] == 1, repr(summary))
+    check("证据结构校验通过", fr.validate_formula_evidence([page]) == [],
+          repr(fr.validate_formula_evidence([page]))[:120])
+
+    broken = json.loads(json.dumps(page))
+    broken["regions"][0]["formulas"][0]["crop"]["dpi"] = 72
+    broken["regions"][0]["formulas"][0]["compare"]["agreement"] = "maybe"
+    codes = {p["code"] for p in fr.validate_formula_evidence([broken])}
+    check("非法 dpi / agreement 被抓出",
+          {"formula_dpi", "formula_agreement"} <= codes, repr(codes))
+
+
 def test_page_coverage() -> None:
     """页面覆盖审计：漏行/未识别图像必须在 quality 里留下证据。"""
     print("[10/10] ocr_pipeline_layout 页面覆盖审计")
@@ -837,6 +923,7 @@ def main() -> int:
     test_native_text()
     test_exam_structure()
     test_layout_regions()
+    test_formula_review()
     test_page_coverage()
     test_formula_quality()
     test_output_path_collision()

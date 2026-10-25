@@ -1,7 +1,8 @@
 # T2 —— 公式区域专项（公式内容级复核）
 
-状态：**设计 + 实测已完成，未接入流水线**（2026-10，T2 阶段 1）。前置：T1 区域层
-（`docs/specs/t1-layout-regions.md`）与 P0–P3（`native-pdf-quality.md`）。
+状态：**阶段 1 证据链已落地**（2026-10：`src/formula_review.py` + `tools/review_formulas.py`，
+未接入默认流水线）。前置：T1 区域层（`docs/specs/t1-layout-regions.md`）与 P0–P3
+（`native-pdf-quality.md`）。
 
 本规格只描述阶段 1：**按区域重渲公式裁片 → PP-FormulaNet_plus-M 出 LaTeX → 内容级
 A/B**。阶段 2（视觉对齐）不在这里展开。
@@ -81,7 +82,8 @@ A/B**。阶段 2（视觉对齐）不在这里展开。
 
 ### 3. 输出与来源（不静默覆盖）
 
-每个公式区域多一个 `formula` 证据块，**不改** `line.text` / `region.text`：
+公式区域多一个 `formulas[]` **数组**（一个区域可能被检测框切成多条公式），**不改**
+`line.text` / `region.text`：
 
 ```json
 {
@@ -90,11 +92,25 @@ A/B**。阶段 2（视觉对齐）不在这里展开。
   "crop": {"bbox_pt": [..], "dpi": 300, "crop_source": "pd-doclayout"},
   "latex": "\\frac{a}{b}",
   "text_marked": "$\\frac{a}{b}$",
-  "confidence": 0.0,
-  "review": {"needed": true, "reasons": ["delimiter_unwrapped"]},
-  "compare": {"current": "...", "agreement": "exact|normalized|differs"}
+  "detect_score": 0.93,
+  "review": {"needed": true, "reasons": ["differs_from_current"]},
+  "compare": {"current": "$\\frac{a}{b}$", "agreement": "normalized", "candidates": 1}
 }
 ```
+
+页级：`page.unassigned_formula_boxes[]` 记下没能映射到公式区域的检测框（不猜归属）；
+文档级：`document.formula_review` 是汇总（`formulas` / `regions_reviewed` /
+`agreement` 分布 / `review_reasons` / `unassigned_boxes` / `crop_dpi` / `detect_dpi` /
+`detect_model` / `pdf` / `elapsed_s` / `problems`），`stats.formula_review_blocks`、
+`stats.formula_review_regions` 是计数。
+
+一致性分五类（`compare.agreement`）：`exact`（字符级相同）、`normalized`（只是等价
+写法差异：空格/花括号/`\left`/`\geqslant`/`x^{2}`/`\sqrt{3}`/`\mathrm{ABC}`/`\colon`/
+`f^{\prime}`）、`partial`（裁片只覆盖某段公式的一部分，一方的归一化结果是另一方子串
+—— 通常是检测框几何问题，不是模型错）、`differs`（归一化后仍不是子串关系，需要人看）、
+`no_current`（现有文本没有公式片段）。`compare.candidates` 记该区域有几段公式可比，
+`compare.current` 在 `differs` 时给出被比较的现有片段（不是空），避免“看到空 current
+无从下判”。
 
 不变量：
 
@@ -131,10 +147,49 @@ A/B**。阶段 2（视觉对齐）不在这里展开。
 一次 CLI 调用可传**目录**，模型只初始化一次（实测 2 张图共 9 s：4.6 s 初始化 +
 2.7 s + 1.3 s）；集成时按“一页一批”组织，不要一张一进程。
 
+## 工具（阶段 1 已实现）
+
+```powershell
+cd ocr_json_app
+# 证据模式：读 layout.json（旧产物会就地派生 regions），写 <输入>.formula.json
+python tools\review_formulas.py out\acceptance\native_final3\2022北京卷_4c9c26.json
+python tools\review_formulas.py <layout.json> --pdf <原始.pdf> --pages 1-2 `
+    --crop-dpi 300 --detect-dpi 200 --out out\_t2_probe\p1.formula.json `
+    --keep-crops out\_t2_probe\review_p1 --max-formulas 3
+```
+
+- `src/formula_review.py`：纯函数层（`extract_math_segments` / `normalize_latex` /
+  `classify_agreement` / `map_box_to_region` / `build_evidence` / `attach_evidence` /
+  `review_summary` / `validate_formula_evidence`），可被单测与冒烟直接 import；
+- `tools/review_formulas.py`：编排层（版面检测 → 框映射 → 300dpi 裁片 → 一次批量推理）；
+  退出码 2=引擎/子进程、3=输入、4=没有可归属公式框；
+- `check_layout_json.py` 对含证据的产物硬校验（`formulas` 只在公式区域、来源/dpi/
+  一致性枚举合法、汇总计数与 `stats`/`document.formula_review` 一致），旧产物跳过。
+
+实测（CPU，`2022北京卷`，2 页 A3）：
+
+| 场景 | 结果 |
+|---|---|
+| 单页 3 条（`--max-formulas 3`） | 派生 92 个区域、3 个框全部归属、14.3 s |
+| 整卷（两个进程内批量） | 41 个检测框 → 35 条证据 / 29 个区域；未归属 5+1 个框；**66 s/卷** |
+| 一致性分布 | `exact 1 / normalized 17 / partial 15 / differs 2` |
+
+剩下的 2 条 `differs` 都是真问题：一条把中文“则”和 `$...$` 一起写进输出，另一条把
+`<20` 读成 `<1`。`p1-r40` 的分段函数最初判 differs，补齐 `\left\{`、环境命令、`&`、
+`x^{2}→x^2`、`\sqrt{3}`、`\mathrm{ABC}`、`\colon`、`f^{\prime}` 等等价归一化后归为
+normalized —— 说明“等价写法差异”“裁片片段（partial）”“内容差异”必须分开报，不能
+合并成一个准确率。
+
+已知限制：检测框若落在 `content_type=text` 的区域（该行现有 OCR 没认出公式），目前
+只记进 `page.unassigned_formula_boxes[]`，不把该区域改判成 formula（改判属于内容
+语义变更，留到阶段 2 用人工标注决定）。
+
 ## 验收（阶段 1 落地后）
 
-- 新字段只增不改；旧产物无 `formula` 块时所有门跳过；
-- `check_layout_json` 对含公式证据块的产物做结构校验（bbox/dpi/来源枚举/LaTeX 非空）；
+- 新字段只增不改；旧产物无 `formulas` 块时所有门跳过；
+- `check_layout_json` 对含公式证据的产物做结构校验（bbox/dpi/来源与一致性枚举/
+  LaTeX 非空/仅在公式区域/汇总计数），已接线上；
+- 冒烟 `[13/13] 公式复核` 覆盖纯函数层（映射/归一化/证据/校验），已接线上；
 - `quality` 增加“公式区域已复核比例”，只作诊断（warning/统计），**不进硬门**；
 - 23 套 + 新增 3–5 套不回归；`run_all_checks` / `--fast` / 单元 / 冒烟基线保持；
 - 人工标注集与三条路径的对照结果写进验收报告，含失败样例。

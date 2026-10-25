@@ -8,6 +8,7 @@
 | `layout_regions.py` | **区域层**：把每页的行 / 表格 / 图收成一等区域（稳定 id、`bbox_pt`、`content_type`、`source`、`spans`、`refs`），与行/图/表双向回链；旧产物可幂等派生 |
 | `exam_structure.py` | **试卷语义层**：从 layout JSON 重建题号/选项/小问/图/表归属，输出 `exam.json` + `quality.json` |
 | `formula_quality.py` | **公式结构审计**：定界符、花括号、`\left`/`\right`、环境成对检查；不改写正文 |
+| `formula_review.py` | **公式复核证据层**（T2）：区域裁片与检测框映射、LaTeX 等价归一化、`exact/normalized/partial/differs` 一致性、证据块只增不改、结构校验 |
 | `repair_plan.py` | **修复队列**：`quality.issues` → `auto_candidate` / `manual` / `blocked`，只路由不编造 |
 | `paths.py` | 项目根与所有默认路径（脚本不依赖当前工作目录） |
 
@@ -115,6 +116,36 @@ validate_regions(layout["pages"])                # [] 表示区域层自洽
 区间、`spans` 字级字段、`refs` 是否指向本页真实对象、以及行/图/表的 `region_id`
 反向存在。`tools/check_layout_json.py` 只对**含 `regions` 的产物**把它升级为硬错误
 （历史演示产物没有该字段则跳过），并核对 `stats.regions` / `document.regions.count`。
+
+## 公式复核证据（T2：formula_review）
+
+`formula_review.py` 只做**证据**，不改正文：`formula_quality.py` 判断“现有公式写法是否
+结构完整”，它判断“公式模型独立识别出来的 LaTeX 与现有 OCR 是不是同一个东西”。
+
+```python
+from formula_review import (extract_math_segments, normalize_latex, classify_agreement,
+                            map_box_to_region, build_evidence, attach_evidence,
+                            validate_formula_evidence)
+
+segs = extract_math_segments(line_text)          # 按顺序抽出 \(...\) / \[...\] / $...$
+agreement, matched = classify_agreement(latex, segs)   # exact/normalized/partial/differs/no_current
+evidence = build_evidence(latex, bbox_pt, 300, "pd-doclayout", score, segs)
+attach_evidence(page, entries)                   # 只 append 到 formula 区域的 formulas[]
+```
+
+- `normalize_latex()` 只消除**等价写法**（`x^{2}`/`x^2`、`\left\{...\right.`/
+  `\begin{cases}`、`\geqslant`/`\geq`、`\sqrt{3}`/`\sqrt3`、`\mathrm{AB}`/`AB`、
+  `&` 与 `\displaystyle` 等），不做“修公式”；因此 `normalized` 不等于正确。
+- `partial` 表示一方的归一化结果是另一方子串：裁片只覆盖公式的一段（检测框被裁短），
+  这类要回去查裁片几何，而不是判模型错；`differs` 才是内容不一致。
+- `map_box_to_region()` 只映射 `content_type=formula` 的区域，中心命中优先，其次
+  交叠占框面积 ≥0.35；映射不上时返回 `None`（写进 `page.unassigned_formula_boxes[]`），
+  **不猜归属**。
+- `validate_formula_evidence()` 检查证据块自身（来源枚举、裁片 dpi≥144、一致性枚举、
+  LaTeX 非空、`formulas` 只出现在公式区域）；`tools/check_layout_json.py` 对含证据的
+  产物把它升级为硬错误。
+- 编排与真实推理在 `tools/review_formulas.py`：先 `ensure_regions()`，再 PP-DocLayout_plus-L
+  出公式框、按 300dpi 重渲裁片、一次子进程批量跑 PP-FormulaNet_plus-M（CPU，不占显存）。
 
 ## 试卷结构层（exam_structure）
 

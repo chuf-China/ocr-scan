@@ -456,6 +456,32 @@ python tools\check_exam_json.py out\exams\2023beijing.layout.json
 T1 不改 OCR 行为：提示词、投票、行检测、裁片与 `lines[]` 顺序都没动。规范见
 `docs/specs/t1-layout-regions.md`。
 
+### 公式复核（T2：formula review）
+
+`formula_quality` 只说“写法结构完整”，回答不了“公式内容对不对”。T2 阶段 1 用**独立
+模型**给同一区域出 LaTeX 作为旁证，只写证据、不改正文：
+
+```powershell
+python tools\review_formulas.py out\acceptance\native_final3\2022北京卷_4c9c26.json
+# → out\acceptance\native_final3\2022北京卷_4c9c26.formula.json
+```
+
+- 版面检测用已在盘的 `PP-DocLayout_plus-L`（CPU）给出**逐条公式框**，再回原始 PDF
+  以 300dpi 重渲裁片 —— 整行裁片会把“一行多公式”拼成一个 array，实测不可用；
+- 识别用已在盘的 `PP-FormulaNet_plus-M`（CPU 版 paddle，不占显存），一次子进程批量处理
+  整卷裁片；主环境不 import paddle；
+- 结果按区域 append 到 `regions[].formulas[]`（`source`/`crop`/`latex`/`text_marked`/
+  `compare.agreement`），与现有 OCR 的比较分 `exact`（完全相同）、`normalized`
+  （只是等价写法差异）、`partial`（裁片只覆盖公式片段，通常不是模型错）、
+  `differs`（内容不同）、`no_current`（现有文本没有公式片段）；只有 `differs` 才是
+  必须先看的；
+- 映射不到公式区域的检测框写进 `page.unassigned_formula_boxes[]`，不猜归属；
+- `check_layout_json.py` 对含证据的产物硬校验；旧产物没有证据块时跳过。规范见
+  `docs/specs/t2-formula-regions.md`。
+
+当前只是**证据链**：`formulas[].latex` 不会写回 `line.text`，也不代表内容准确率已达标
+（内容级 A/B 需要 3–5 套 10–15 页原生电子卷做人工标注）。
+
 ### 批量验收（S6）
 
 单张卷“能打开”不算稳定。`tools/run_exam_acceptance.py` 用同一套命令跑一批真实
