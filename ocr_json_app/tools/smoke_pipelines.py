@@ -283,6 +283,16 @@ def test_table_shape_guard() -> None:
     ladder = [["x", "y"]] + [[str(i), str(i + 1)] for i in range(1, 6)]
     check("数字阶梯伪表被拒", layout._table_shape_ok(ladder) is False)
 
+    # `table_from_text()` 的 label-number 分支：真表要认，句子不能认。
+    # 实测漏判过「二、填空题共5小题，每小题5分，共25分。」（标题被吞成「（表格）」）
+    # 和「【命题说明】本题改编自2006年北京卷第20题」。
+    real_row = layout.table_from_text("语文12数学11英语10")
+    check("label-number 真表被接受", bool(real_row) and real_row.get("source") == "label-number")
+    heading = layout.table_from_text("二、填空题共5小题，每小题5分，共25分。")
+    check("大题标题不被当成表", heading is None)
+    note = layout.table_from_text("【命题说明】本题改编自2006年北京卷第20题")
+    check("命题说明不被当成表", note is None)
+
 
 # ---------------------------------------------------------------- ⑤ 版式纯函数
 def test_layout_helpers() -> None:

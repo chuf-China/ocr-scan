@@ -718,9 +718,17 @@ def table_from_text(text: str) -> dict | None:
     #    ⚠️ 这条启发式**很危险**：任何"汉字+数字"的散文都会命中——实测把第 17 题(3) 的
     #    "求事件…抽到的2人…恰好有1名…"误判成表格，因此额外要求：标签必须是**不同**的，
     #    且成对数量与标签数相当（真表每行一个标签，散文里标签是重复句式）。
+    #    2026-10 新增 10 页卷语料后又踩到两次：大题标题「二、填空题共5小题，每小题5分，
+    #    共25分。」和命题说明「【命题说明】本题改编自2006年北京卷第20题」都被判成表，
+    #    整行文字被吞成「（表格）」，标题直接丢失。再加两道闸：带中文句读的行不是表行
+    #    （真表是"标签 数字"密集排列，不写句子）；成对内容必须覆盖整行大半（散文里的
+    #    标签只是零星出现，覆盖率低）。
     pairs = re.findall(r"([\u4e00-\u9fff]{2,4}|[A-Za-z]学校)(\d{1,3})", body)
     labels = re.findall(r"[\u4e00-\u9fff]{2,4}", body)
-    if len(pairs) >= 2 and len(labels) >= 3:
+    covered = sum(len(label) + len(number) for label, number in pairs)
+    has_prose_punct = bool(re.search(r"[，。、；：！？]", body))
+    if not has_prose_punct and len(pairs) >= 2 and len(labels) >= 3 \
+            and covered >= 0.6 * len(body):
         pair_labels = [l for l, _ in pairs]
         if len(set(pair_labels)) == len(pair_labels) and len(pairs) >= len(labels) - 1:
             headers = labels[:2] + [""]
