@@ -3,8 +3,9 @@
 > 交接日期：2026-10-25  
 > 仓库：`C:\Users\Administrator\Desktop\ocr\ocr scan`  
 > 应用：`ocr_json_app`  
-> 当前 HEAD：`741b3f1 原生 PDF 快路与矢量图/样式/字体门（P0–P3）`  
-> 本地领先 `origin/main` 11 个提交，**尚未推送**。
+> 当前 HEAD：`7d0e7ac T1 区域层：layout regions、题目回链与校验`（本次会话两个提交：
+> `26cd581 添加下一会话交接文档`、`7d0e7ac T1 区域层`）  
+> 本地领先 `origin/main` 13 个提交，**尚未推送**。
 
 新会话请先读本文件，再读：
 
@@ -15,6 +16,36 @@
 5. `C:\Users\Administrator\Desktop\ocr\gpt.md`（用户认可的总体方案，368 行）
 
 不要重新做 S1–S6 或 P0–P3；它们已经提交。下一步是补 `gpt.md` 里**尚未落地**的部分。
+
+---
+
+## 0. 2026-10-25 本次会话更新（T1 已完成，T2 取证件已出）
+
+- **T1 区域层已实现并提交**（`7d0e7ac`）：新增 `src/layout_regions.py`，每页 `page.regions[]`
+  一等区域（`p<页>-r<序>`、`bbox_pt`、`content_type`、`source`、`confidence`、`spans`、`refs`），
+  与行/图/表双向回链；原生表格补 `p<页>-t<序>` 与 `page`；文档级 `document.regions`、
+  `stats.regions` / `stats.region_types`；`exam.json` 的题干/选项/小问/图/表带
+  `region_refs` / `region_id`；`quality.checks.regions_consistent` 只作 warning；
+  `check_layout_json` 对含 `regions` 的新产物硬校验；`ensure_regions()` 幂等派生旧产物。
+  规范见 `ocr_json_app/docs/specs/t1-layout-regions.md`，AGENTS.md 新增硬约束 23。
+- 校验基线（本次实测）：单元 **21/21**（新增 6 个区域用例）、冒烟 **131 通过 / 1 跳过**、
+  `run_all_checks.py` **21/21**、`--fast` **18/18**。
+- 23 套既有 layout 重建 exam/quality：**15 pass / 8 warn / 0 fail**，与旧质量文件的
+  `Counter({'pass': 15, 'warn': 8})` 完全一致；`run_exam_acceptance.py --reuse` 跑 23 套
+  **23/23 通过**（覆盖率 99.74–100%），报告在 `out/acceptance/t1_reuse/acceptance.md`。
+- 端到端：起 `llama-server`（paddleocr-vl，8080，`-Ctx 16384`）跑样例卷 6 页 → 77 行 /
+  28 含公式行 / 5 图；结构门、渲染门通过；`status=warn`（第 17 题表格 4x3 有空单元格），
+  `stats.regions=83`（text 49 / formula 28 / table 2 / figure 4）。跑完已停引擎。
+- **T2 取证结论**（`out/_t2_probe/report.md`，零副作用）：PP-FormulaNet_plus-M 权重已在
+  `C:\Users\Administrator\.paddlex\official_models\`（4 个模型 = `formula_recognition.yaml`
+  全部 SubModules，748.8 MiB）；paddle 3.2.1 是 **CPU 版**，socket 级实测零联网即可构建；
+  不占显存、不抢 8080，但会抢 CPU。主环境与 `formula-venv` 都**没有 fitz**；UniMERNet 全机
+  不存在；PP-StructureV3 还缺 12 个模型（需用户批准下载）。模型输出是裸 LaTeX（键
+  `rec_formula`），必须自己包 `$...$`；整行 bbox 会干扰单公式模型，建议用已在盘的
+  PP-DocLayout_plus-L **只做公式裁片几何**。唯一未实测：CPU 单裁片推理延迟/质量
+  （需用户授权跑一次）。
+- **仍等用户表态**（见 §9）：目标口径、是否接受公式模型的延迟/显存代价、验收集是否扩到
+  10–15 页原生电子卷。未答前不要启动 T2 模型集成。
 
 ---
 
