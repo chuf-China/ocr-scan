@@ -1,0 +1,181 @@
+"""抽取策略:AIExtractor(provider 配置 → prompt → 抽取 → KP 富化 → temp_id)。
+
+产出"legacy 字符串形态"的 dict 列表(RawQuestion),喂给归一化漏斗;不产出 v2。
+"""
+from __future__ import annotations
+
+import logging
+import uuid
+from typing import Optional, Protocol
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.schemas.ai import AIQuestion, QuestionList
+from app.services.ai_provider import get_ai_provider
+from app.services.structured_parser import parse_structured
+
+from .enrich import KnowledgePointEnricher
+from .contracts import ExtractionResult
+from .image_mask import mask_images, restore_images
+from .prompt import PromptBuilder
+from .provider_config import resolve_active_provider
+
+logger = logging.getLogger(__name__)
+
+
+class ExtractionStrategy(Protocol):
+    """把归一化前的"原始内容 → 题目 + 整卷结构"抽象成可插拔策略。"""
+
+    async def extract(
+        self,
+        content: str,
+        db: AsyncSession,
+        *,
+        image_data: bytes | None = None,
+        filename: str | None = None,
+        mode: str = "extract",
+        subject_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+    ) -> ExtractionResult: ...
+
+
+
+def _assign_temp_ids(items: list[dict], parent_temp_id: Optional[str] = None) -> list[dict]:
+    """给抽取结果分配临时 id 并递归处理材料题 children 的 parent_id。"""
+    processed = []
+    for item in items:
+        if "id" not in item or not item["id"]:
+            item["id"] = str(uuid.uuid4())
+        if parent_temp_id:
+            item["parent_id"] = parent_temp_id
+        if item.get("children"):
+            item["children"] = _assign_temp_ids(item["children"], item["id"])
+        processed.append(item)
+    return processed
+
+
+class AIExtractor:
+    def __init__(
+        self,
+        prompt_builder: Optional[PromptBuilder] = None,
+        enricher: Optional[KnowledgePointEnricher] = None,
+    ) -> None:
+        self.prompt_builder = prompt_builder or PromptBuilder()
+        self.enricher = enricher or KnowledgePointEnricher()
+
+    async def extract(
+        self,
+        content: str,
+        db: AsyncSession,
+        *,
+        image_data: bytes | None = None,
+        filename: str | None = None,
+        mode: str = "extract",
+        subject_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+    ) -> ExtractionResult:
+        provider_name, config = await resolve_active_provider(
+            db, is_vision=bool(image_data), user_id=user_id
+        )
+        if provider_name is None:
+            logger.warning("No active AI provider configuration found.")
+            return ExtractionResult()
+
+        config["AI_EXTRACT_PROMPT"] = await self.prompt_builder.build(
+            db, mode=mode, subject_id=subject_id
+        )
+
+        provider = get_ai_provider(provider_name)
+
+        # 视觉抽取没有 markdown 文本可遮罩;文本抽取才需要把图片 token 换成占位符再喂给 AI。
+        masked_content = content
+        image_map: dict[str, str] = {}
+        if not image_data and content:
+            masked_content, image_map = mask_images(content)
+
+        final_content = masked_content
+        if filename:
+            final_content = f"文件名: {filename}\n\n{masked_content}"
+
+        try:
+            extracted_payload = await provider.extract_questions(final_content, image_data, config)
+            if isinstance(extracted_payload, QuestionList):
+                questions = extracted_payload.questions
+                stimuli = [item.model_dump() for item in extracted_payload.stimuli]
+                question_groups = [item.model_dump() for item in extracted_payload.question_groups]
+                paper = extracted_payload.paper
+            else:
+                questions = extracted_payload
+                stimuli = []
+                question_groups = []
+                paper = None
+            # 文本路径无论是否遮罩到图片都跑还原,以清掉 AI 凭空写出的裸露占位符;视觉路径不涉及。
+            if not image_data:
+                questions, stimuli, paper = self._restore_images(
+                    questions, stimuli, paper, image_map
+                )
+            await self.enricher.enrich(
+                questions, subject_id=subject_id, provider=provider, config=config
+            )
+            extracted = [q.model_dump() for q in questions]
+            return ExtractionResult(
+                questions=_assign_temp_ids(extracted),
+                stimuli=stimuli,
+                question_groups=question_groups,
+                paper=paper,
+            )
+        except Exception as e:
+            logger.error(f"AI Provider error: {e}")
+            raise
+
+    @staticmethod
+    def _restore_images(
+        questions: list[AIQuestion],
+        stimuli: list[dict],
+        paper: Optional[dict],
+        image_map: dict[str, str],
+    ) -> tuple[list[AIQuestion], list[dict], Optional[dict]]:
+        """把 AI 返回的题目、材料、整卷结构里的 @@IMGn@@ 占位符换回真实图片 token。
+
+        三者一起还原，编号写错时的按序补配才能看到全部引用;材料在原卷中位于小题之前，
+        所以排在前面。
+        """
+        combined = {
+            "stimuli": stimuli,
+            "questions": [q.model_dump() for q in questions],
+            "paper": paper,
+        }
+        restored, dropped, unresolved = restore_images(combined, image_map)
+        if dropped:
+            logger.warning(
+                "AI extraction referenced %d more image placeholder(s) than exist; extras stripped",
+                dropped,
+            )
+        if unresolved:
+            logger.warning(
+                "AI extraction result is missing %d/%d image placeholder(s)",
+                unresolved, len(image_map),
+            )
+        return (
+            [AIQuestion(**item) for item in restored["questions"]],
+            restored["stimuli"],
+            restored["paper"],
+        )
+
+
+class TemplateExtractor:
+    """确定性、无 AI 的标签模板解析(【题目】【选项】【答案】…)。忽略图像/学科。"""
+
+    async def extract(
+        self,
+        content: str,
+        db: AsyncSession,
+        *,
+        image_data: bytes | None = None,
+        filename: str | None = None,
+        mode: str = "extract",
+        subject_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+    ) -> ExtractionResult:
+        return parse_structured(content)
+

@@ -1,0 +1,353 @@
+"""AgentRunner 的行为契约。
+
+用脚本化的 FakeProvider 驱动工具循环 —— 这段逻辑此前焊死在 SSE generator 里,
+根本没法单测,预算控制、错误处理、上下文拼接都只能靠线上跑。
+"""
+from typing import Any, AsyncGenerator, Dict, List, Union
+
+import pytest
+from sqlalchemy import select
+
+from app.ai import client_channel
+from app.ai import tools as ai_tools
+from app.ai.contracts import AgentScene
+from app.ai.events import (
+    AssistantTurn,
+    ClientToolRequested,
+    RunFinished,
+    TextDelta,
+    ToolCallFinished,
+    ToolCallStarted,
+)
+from app.ai.runtime import AgentRunner, RunBudget
+from app.capabilities.context import ExecutionContext, Surface
+from app.crud.crud_user import user as crud_user
+from app.models.agent import AgentRun, AgentRunStatus, AgentStep
+from app.models.question import Question
+from app.models.subject import Subject
+from app.models.subject_member import SubjectMember
+from app.models.user import User
+from app.services.ai_provider import AIProvider, ToolCall
+
+
+class FakeProvider(AIProvider):
+    """按剧本逐轮吐 chunk。每个 turn 是一个 list,元素为 str 或 ToolCall。"""
+
+    def __init__(self, script: List[List[Union[str, ToolCall]]]):
+        self.script = script
+        self.calls: List[List[Dict[str, Any]]] = []
+
+    async def chat_stream(self, messages, config, tools=None) -> AsyncGenerator[Any, None]:
+        # 记录每轮看到的完整上下文,断言历史拼接是否正确。
+        self.calls.append([dict(m) for m in messages])
+        turn = self.script[len(self.calls) - 1] if len(self.calls) <= len(self.script) else []
+        for chunk in turn:
+            yield chunk
+
+    async def extract_questions(self, content, image_data=None, config=None):
+        raise NotImplementedError
+
+    async def get_embeddings(self, texts, config=None):
+        raise NotImplementedError
+
+    async def rerank_knowledge_points(self, question_content, candidates, config=None):
+        raise NotImplementedError
+
+    async def batch_rerank_knowledge_points(self, items, config=None):
+        raise NotImplementedError
+
+
+def _tool_call(call_id: str, name: str, arguments: str = "{}") -> ToolCall:
+    return ToolCall(id=call_id, name=name, arguments=arguments)
+
+
+_DRAFT_ARGS = '{"content": "1+1=?", "q_type": "free_response", "answer": "2"}'
+
+
+@pytest.fixture
+async def ctx(db_session):
+    subject = Subject(name="数学", slug="math")
+    db_session.add(subject)
+    await db_session.commit()
+    await db_session.refresh(subject)
+
+    editor = User(username="e", full_name="e", hashed_password="x", is_active=True)
+    db_session.add(editor)
+    await db_session.commit()
+    await db_session.refresh(editor)
+    db_session.add(SubjectMember(user_id=editor.id, subject_id=subject.id, role="editor"))
+    await db_session.commit()
+
+    actor = await crud_user.get_with_memberships(db_session, id=editor.id)
+    return ExecutionContext(
+        db=db_session, actor=actor, surface=Surface.CHAT, subject_id=subject.id
+    )
+
+
+async def _drain(runner, ctx, messages):
+    return [event async for event in runner.run(ctx, messages)]
+
+
+async def test_plain_answer_emits_text_and_finishes(ctx):
+    runner = AgentRunner(FakeProvider([["你好", "世界"]]), {})
+    events = await _drain(runner, ctx, [{"role": "user", "content": "hi"}])
+
+    assert [e.text for e in events if isinstance(e, TextDelta)] == ["你好", "世界"]
+    finished = events[-1]
+    assert isinstance(finished, RunFinished)
+    assert finished.text == "你好世界"
+    assert finished.stop_reason == "completed"
+
+
+async def test_run_persists_model_identity_snapshot(ctx):
+    runner = AgentRunner(FakeProvider([["ok"]]), {})
+    events = [
+        event
+        async for event in runner.run(
+            ctx,
+            [{"role": "user", "content": "hi"}],
+            model_name="zz-runtime-model",
+            provider_name="zz-runtime-provider",
+        )
+    ]
+
+    finished = events[-1]
+    run = await ctx.db.get(AgentRun, finished.run_id)
+    assert run.model_name == "zz-runtime-model"
+    assert run.provider_name == "zz-runtime-provider"
+
+
+async def test_tool_round_trip_feeds_result_back_to_the_model(ctx):
+    provider = FakeProvider([
+        [_tool_call("c1", "get_available_tags")],
+        ["好的"],
+    ])
+    runner = AgentRunner(provider, {})
+    events = await _drain(runner, ctx, [{"role": "user", "content": "有哪些标签"}])
+
+    assert any(isinstance(e, ToolCallStarted) for e in events)
+    assert any(isinstance(e, ToolCallFinished) for e in events)
+
+    # 第二轮的上下文里,assistant(tool_calls) 与 tool 结果必须成对出现。
+    second_turn = provider.calls[1]
+    assert second_turn[-2]["role"] == "assistant"
+    assert second_turn[-2]["tool_calls"][0]["function"]["name"] == "get_available_tags"
+    assert second_turn[-1]["role"] == "tool"
+    assert second_turn[-1]["tool_call_id"] == "c1"
+
+
+async def test_assistant_turn_event_carries_tool_calls_for_persistence(ctx):
+    provider = FakeProvider([[_tool_call("c1", "get_available_tags")], ["ok"]])
+    events = await _drain(AgentRunner(provider, {}), ctx, [{"role": "user", "content": "x"}])
+
+    turns = [e for e in events if isinstance(e, AssistantTurn)]
+    assert len(turns) == 1
+    assert turns[0].tool_calls[0]["id"] == "c1"
+
+
+async def test_tool_permission_denial_does_not_abort_the_run(db_session, ctx):
+    """viewer 调写工具被拒 —— 错误回喂模型,循环继续,不炸整轮对话。"""
+    viewer = User(username="v", full_name="v", hashed_password="x", is_active=True)
+    db_session.add(viewer)
+    await db_session.commit()
+    await db_session.refresh(viewer)
+    db_session.add(SubjectMember(user_id=viewer.id, subject_id=ctx.subject_id, role="viewer"))
+    await db_session.commit()
+    viewer_ctx = ExecutionContext(
+        db=db_session,
+        actor=await crud_user.get_with_memberships(db_session, id=viewer.id),
+        surface=Surface.CHAT,
+        subject_id=ctx.subject_id,
+    )
+
+    provider = FakeProvider([
+        [_tool_call("c1", "propose_question_draft", _DRAFT_ARGS)],
+        ["抱歉，你没有权限"],
+    ])
+    events = await _drain(AgentRunner(provider, {}), viewer_ctx, [{"role": "user", "content": "建题"}])
+
+    result = next(e for e in events if isinstance(e, ToolCallFinished))
+    assert "privileges" in result.content
+    assert isinstance(events[-1], RunFinished)
+    assert not (await db_session.execute(select(Question))).scalars().all()
+
+
+async def test_failing_tool_is_reported_to_the_model_not_raised(ctx):
+    provider = FakeProvider([[_tool_call("c1", "nope_not_a_tool")], ["ok"]])
+    events = await _drain(AgentRunner(provider, {}), ctx, [{"role": "user", "content": "x"}])
+
+    result = next(e for e in events if isinstance(e, ToolCallFinished))
+    assert "not found" in result.content
+    assert isinstance(events[-1], RunFinished)
+
+
+async def test_turn_budget_stops_the_loop(ctx):
+    # 模型每轮都要调工具,永不收敛。
+    provider = FakeProvider([[_tool_call(f"c{i}", "get_available_tags")] for i in range(10)])
+    runner = AgentRunner(provider, {}, RunBudget(max_turns=3))
+    events = await _drain(runner, ctx, [{"role": "user", "content": "x"}])
+
+    assert len(provider.calls) == 3
+    assert events[-1].stop_reason == "budget_exhausted"
+
+
+async def test_tool_call_budget_stops_the_loop(ctx):
+    provider = FakeProvider([[_tool_call(f"c{i}", "get_available_tags")] for i in range(10)])
+    runner = AgentRunner(provider, {}, RunBudget(max_turns=10, max_tool_calls=2))
+    events = await _drain(runner, ctx, [{"role": "user", "content": "x"}])
+
+    assert len([e for e in events if isinstance(e, ToolCallStarted)]) == 2
+    assert events[-1].stop_reason == "budget_exhausted"
+
+
+async def test_run_and_steps_are_persisted(db_session, ctx):
+    provider = FakeProvider([[_tool_call("c1", "get_available_tags")], ["done"]])
+    await _drain(AgentRunner(provider, {}), ctx, [{"role": "user", "content": "x"}])
+
+    run = (await db_session.execute(select(AgentRun))).scalars().one()
+    assert run.status == AgentRunStatus.DONE
+    assert run.surface == Surface.CHAT.value
+    assert run.user_id == ctx.actor.id
+
+    steps = (await db_session.execute(select(AgentStep).order_by(AgentStep.idx))).scalars().all()
+    assert [s.type for s in steps] == ["assistant", "tool_call"]
+    assert steps[1].tool_name == "get_available_tags"
+    assert steps[1].latency_ms is not None
+
+
+# --------------------------------------------------------------------------- #
+# 前端工具:请求 → 等待 → 回传/超时
+# --------------------------------------------------------------------------- #
+async def test_client_tool_parks_the_run_and_resumes_on_reply(ctx):
+    """运行时必须在等待前就把请求推出去,否则前端永远收不到。"""
+    provider = FakeProvider([
+        [_tool_call("c1", "open_composition", '{"composition_id": 7, "scope": "personal"}')],
+        ["已经帮你打开了"],
+    ])
+    runner = AgentRunner(provider, {})
+
+    events: List[Any] = []
+    async for event in runner.run(ctx, [{"role": "user", "content": "打开稿件"}]):
+        events.append(event)
+        if isinstance(event, ClientToolRequested):
+            # 前端在收到帧之后才回传 —— 生成器此刻正挂在票据上。
+            assert client_channel.resolve(
+                event.ticket, event.run_id, {"ok": True, "content": "已打开"}
+            )
+
+    requested = [e for e in events if isinstance(e, ClientToolRequested)]
+    assert len(requested) == 1
+    assert requested[0].name == "open_composition"
+    assert requested[0].arguments == {"composition_id": 7, "scope": "personal"}
+
+    finished = [e for e in events if isinstance(e, ToolCallFinished)]
+    assert finished[0].content == "已打开"
+    # 结果回喂后模型继续说话,run 正常收尾。
+    assert events[-1].stop_reason == "completed"
+    assert client_channel.pending_count() == 0
+
+
+async def test_client_tool_timeout_does_not_hang_the_run(ctx, monkeypatch):
+    """用户关掉标签页就没人回传了 —— run 必须优雅收尾而不是挂到 nginx 超时。"""
+    monkeypatch.setattr(client_channel, "DEFAULT_TIMEOUT_S", 0.01)
+    provider = FakeProvider([
+        [_tool_call("c1", "open_composition", '{"composition_id": 7, "scope": "personal"}')],
+        ["那你自己点一下吧"],
+    ])
+    events = await _drain(AgentRunner(provider, {}), ctx, [{"role": "user", "content": "x"}])
+
+    finished = [e for e in events if isinstance(e, ToolCallFinished)]
+    assert "不要重试" in finished[0].content
+    assert events[-1].stop_reason == "completed"
+    assert client_channel.pending_count() == 0
+
+
+async def test_client_tool_does_not_also_emit_tool_call_started(ctx):
+    """ClientToolRequested 已经是前端的"已开始"信号 —— 重复发 ToolCallStarted 会让前端
+    渲染出两张动作卡片,且第一张永远收不到 action_result 而卡在 loading。"""
+    provider = FakeProvider([
+        [_tool_call("c1", "open_composition", '{"composition_id": 7, "scope": "personal"}')],
+        ["好了"],
+    ])
+    events: List[Any] = []
+    async for event in AgentRunner(provider, {}).run(ctx, [{"role": "user", "content": "x"}]):
+        events.append(event)
+        if isinstance(event, ClientToolRequested):
+            client_channel.resolve(event.ticket, event.run_id, {"ok": True, "content": "已打开"})
+
+    assert not any(isinstance(e, ToolCallStarted) for e in events)
+    assert len([e for e in events if isinstance(e, ClientToolRequested)]) == 1
+    assert len([e for e in events if isinstance(e, ToolCallFinished)]) == 1
+
+
+async def test_client_tool_is_blocked_out_of_scene(ctx):
+    """越界的前端工具不能触发等待,否则模型可以让整条流卡住。"""
+    provider = FakeProvider([[_tool_call("c1", "open_composition", "{}")], ["ok"]])
+    runner = AgentRunner(provider, {})
+    spec = ai_tools.get("open_composition")
+    monkey = spec.scenes
+    object.__setattr__(spec, "scenes", frozenset({AgentScene.QUESTION_LIBRARY}))
+    try:
+        events = [
+            e async for e in runner.run(
+                ctx, [{"role": "user", "content": "x"}], scene=AgentScene.COMPOSITION_EDITOR
+            )
+        ]
+    finally:
+        object.__setattr__(spec, "scenes", monkey)
+
+    assert not [e for e in events if isinstance(e, ClientToolRequested)]
+    finished = [e for e in events if isinstance(e, ToolCallFinished)]
+    assert "not available on the current page" in finished[0].content
+
+
+# --------------------------------------------------------------------------- #
+# 前端工具的服务端预处理(prepare)
+# --------------------------------------------------------------------------- #
+async def test_prepare_rewrites_the_arguments_pushed_to_the_client(ctx):
+    """prepare 的产物才是前端看到的入参 —— 原始入参不该漏过去。"""
+    spec = ai_tools.get("open_composition")
+
+    async def _prepare(_ctx, args):
+        return {**args, "scope": "shared"}
+
+    provider = FakeProvider([
+        [_tool_call("c1", "open_composition", '{"composition_id": 7, "scope": "personal"}')],
+        ["好了"],
+    ])
+    object.__setattr__(spec, "prepare", _prepare)
+    try:
+        events: List[Any] = []
+        async for event in AgentRunner(provider, {}).run(ctx, [{"role": "user", "content": "x"}]):
+            events.append(event)
+            if isinstance(event, ClientToolRequested):
+                client_channel.resolve(event.ticket, event.run_id, {"ok": True, "content": "ok"})
+    finally:
+        object.__setattr__(spec, "prepare", None)
+
+    requested = [e for e in events if isinstance(e, ClientToolRequested)]
+    assert requested[0].arguments == {"composition_id": 7, "scope": "shared"}
+
+
+async def test_prepare_failure_does_not_open_a_ticket(ctx):
+    """入参就不合法时不能开票 —— 请求推不出去,前端无从回传,只会白等满一轮超时。"""
+    spec = ai_tools.get("open_composition")
+
+    async def _prepare(_ctx, _args):
+        raise ValueError("composition_id 必须是整数")
+
+    provider = FakeProvider([[_tool_call("c1", "open_composition", "{}")], ["那我换个说法"]])
+    object.__setattr__(spec, "prepare", _prepare)
+    try:
+        events = await _drain(AgentRunner(provider, {}), ctx, [{"role": "user", "content": "x"}])
+    finally:
+        object.__setattr__(spec, "prepare", None)
+
+    assert not [e for e in events if isinstance(e, ClientToolRequested)]
+    assert client_channel.pending_count() == 0
+    # 失败也要配一张完整的动作卡片,否则前端的 action_result 找不到对应的 action。
+    assert len([e for e in events if isinstance(e, ToolCallStarted)]) == 1
+    finished = [e for e in events if isinstance(e, ToolCallFinished)]
+    assert "composition_id 必须是整数" in finished[0].content
+    assert events[-1].stop_reason == "completed"
+

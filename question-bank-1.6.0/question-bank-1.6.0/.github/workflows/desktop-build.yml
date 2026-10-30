@@ -1,0 +1,149 @@
+name: Build Desktop
+
+# Build the Windows desktop package and publish a draft GitHub Release.
+# Version is driven entirely by the git tag:
+#   git tag v0.2.0 && git push origin v0.2.0
+# The tag (minus the leading "v") is stamped into the app before packaging and
+# used to name the Release and its assets.
+#
+# NOTE: Currently Windows-only. macOS/Linux are intentionally not built yet
+# (the app code stays cross-platform; only the tray/installer tooling is
+# per-OS). To re-enable them later, add a matrix + platform packaging.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.13'
+      - name: Run backend tests
+        working-directory: backend
+        run: |
+          uv sync --group dev
+          uv run pytest
+
+  build:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Resolve version from the tag (v0.2.0 -> 0.2.0) ---
+      - name: Resolve version
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-dev+${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # --- Stamp the version into the app + package metadata ---
+      - name: Stamp version
+        working-directory: backend
+        shell: bash
+        run: |
+          v="${{ steps.ver.outputs.version }}"
+          printf '__version__ = "%s"\n' "$v" > app/_version.py
+          sed -i.bak -E "0,/^version = .*/s//version = \"$v\"/" pyproject.toml
+          rm -f pyproject.toml.bak
+          echo "Stamped version $v"
+          cat app/_version.py
+
+      # --- Frontend: build the SPA that gets bundled into the executable ---
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm generate
+
+      # --- Backend: PyInstaller single-file build ---
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.13'
+      - name: Package backend
+        working-directory: backend
+        run: uv run --with pyinstaller pyinstaller run.spec --clean
+
+      # --- Stage payload + build the GUI installer (Inno Setup) ---
+      - name: Build installer
+        id: pkg
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.ver.outputs.version }}"
+          # Pre-release (hyphenated) versions build the side-by-side preview installer.
+          $preview = $ver.Contains('-')
+          $exe = if ($preview) { "question-bank-preview.exe" } else { "question-bank.exe" }
+
+          # Stage everything the installer bundles into Program Files.
+          $payload = "installer_payload"
+          New-Item -ItemType Directory -Force -Path $payload | Out-Null
+          Copy-Item backend/dist/question-bank.exe "$payload/$exe"
+          Copy-Item backend/deploy/windows/README.txt "$payload/"
+
+          # Compile with Inno Setup (preinstalled on GitHub windows runners).
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+          }
+          $out = "installer_out"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $defines = @("/DMyAppVersion=$ver", "/DPayloadDir=$((Resolve-Path $payload).Path)")
+          if ($preview) { $defines += "/DPreview" }
+          & $iscc @defines "/O$((Resolve-Path $out).Path)" backend/deploy/windows/installer.iss
+
+          $setup = "$out/QuestionBank-Setup-$ver.exe"
+          if (-not (Test-Path $setup)) { throw "Installer not produced: $setup" }
+          echo "setup=$setup" >> $env:GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: question-bank-windows-installer
+          path: ${{ steps.pkg.outputs.setup }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: QuestionBank ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: artifacts/**/*
+          generate_release_notes: true
+          # Build first, publish later: create a DRAFT so users never see a
+          # release without assets. Review the notes on GitHub, then click
+          # "Publish release" to make it public.
+          draft: true
+          # Tags with a hyphen (e.g. v0.2.0-beta.1) are marked pre-release.
+          prerelease: ${{ contains(github.ref_name, '-') }}

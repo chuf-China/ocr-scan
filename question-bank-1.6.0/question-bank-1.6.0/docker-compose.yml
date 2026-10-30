@@ -1,0 +1,107 @@
+name: question-bank
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-question_bank}
+      MYSQL_USER: ${MYSQL_USER:-question_bank}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  chromadb:
+    image: chromadb/chroma:latest
+    restart: unless-stopped
+    volumes:
+      - chromadb_data:/data
+
+  migrate:
+    image: ghcr.io/gygy-open/question-bank-backend:${IMAGE_TAG:-latest}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: pro
+    restart: "on-failure:5"
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      DB_URL: ${DB_URL:-mysql+aiomysql://question_bank:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-question_bank}}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  backend:
+    image: ghcr.io/gygy-open/question-bank-backend:${IMAGE_TAG:-latest}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: pro
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      DB_URL: ${DB_URL:-mysql+aiomysql://question_bank:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-question_bank}}
+      CHROMADB_HOST: ${CHROMADB_HOST:-chromadb}
+      CHROMADB_PORT: ${CHROMADB_PORT:-8000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      # 允许从浏览器跨站访问 /api/mcp 的来源(逗号分隔);原生 MCP 客户端无需配置
+      MCP_ALLOWED_ORIGINS: ${MCP_ALLOWED_ORIGINS:-}
+    volumes:
+      # DATA_DIR=/data is baked into the image: uploads/, static/media/, config.json.
+      - app_data:/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      chromadb:
+        condition: service_started
+
+  worker:
+    image: ghcr.io/gygy-open/question-bank-backend:${IMAGE_TAG:-latest}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: pro
+    restart: unless-stopped
+    command: python -m app.worker
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      DB_URL: ${DB_URL:-mysql+aiomysql://question_bank:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-question_bank}}
+      CHROMADB_HOST: ${CHROMADB_HOST:-chromadb}
+      CHROMADB_PORT: ${CHROMADB_PORT:-8000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - app_data:/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      backend:
+        condition: service_started
+
+  frontend:
+    image: ghcr.io/gygy-open/question-bank-frontend:${IMAGE_TAG:-latest}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: pro
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: http://backend:8000
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+  chromadb_data:
+  app_data:

@@ -1,0 +1,370 @@
+<script setup lang="ts">
+// 题目块 NodeView：只读渲染冻结快照（题干/选项/答案字段），并提供题号/分值/选项排版/字段显隐编辑。
+import { computed, inject, ref, nextTick } from 'vue'
+import { NodeViewWrapper } from '@tiptap/vue-3'
+import RichContent from '@/components/rich-editor/RichContent.vue'
+import AnswerDisplay from '@/components/AnswerDisplay.vue'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Trash2, Eye, Maximize2, Ellipsis, AlertTriangle, RefreshCw, Columns3 } from '@lucide/vue'
+import { questionTypeDisplayLabel } from '@/lib/answerFormat'
+import {
+  effectiveQuestionField, questionNodeStatus, questionNumberOf, questionOptionLayoutOf,
+  questionPropsWithNumber, questionPropsWithOptionLayout, questionPropsWithScore,
+  questionPropsWithShow, questionPropsWithSlot, questionScoreOf, questionShowOverride,
+  resolveOptionColumns, slotNumbersOf, stemWithSlotNumbers,
+} from '@/lib/compositionDocument'
+import type { EditorNode } from '@/lib/compositionDocument'
+import { ANSWER_FIELD_KEYS } from '@/types/composition'
+import type { AnswerFieldKey, OptionLayout, QuestionContentSnapshot, QuestionProps } from '@/types/composition'
+import {
+  DISPLAY_FIELDS_KEY, FALLBACK_DISPLAY, FALLBACK_NUMBERING, FALLBACK_SCORING, FALLBACK_STATUS,
+  FALLBACK_SYNC_DISABLED, NUMBERING_ENABLED_KEY, QUESTION_STATUS_KEY, SCORING_ENABLED_KEY,
+  SYNC_DISABLED_KEY, SYNC_QUESTIONS_KEY, noopSync,
+} from '../editorContext'
+
+const props = defineProps<{
+  node: { attrs: Record<string, unknown> }
+  updateAttributes: (attrs: Record<string, unknown>) => void
+  deleteNode: () => void
+  selected?: boolean
+  deletable?: boolean
+  syncable?: boolean
+}>()
+
+const numberingEnabled = inject(NUMBERING_ENABLED_KEY, FALLBACK_NUMBERING)
+const scoringEnabled = inject(SCORING_ENABLED_KEY, FALLBACK_SCORING)
+const displayFields = inject(DISPLAY_FIELDS_KEY, FALLBACK_DISPLAY)
+const questionStatusMap = inject(QUESTION_STATUS_KEY, FALLBACK_STATUS)
+const syncQuestions = inject(SYNC_QUESTIONS_KEY, noopSync)
+const syncDisabled = inject(SYNC_DISABLED_KEY, FALLBACK_SYNC_DISABLED)
+
+const nodeStatus = computed(() => {
+  const qid = props.node.attrs.questionId as number | null
+  const st = qid != null ? questionStatusMap.value.get(qid) : null
+  return questionNodeStatus(
+    { nodeType: 'question', questionId: qid, questionRevision: props.node.attrs.questionRevision } as EditorNode,
+    st,
+  )
+})
+const isStale = computed(() => nodeStatus.value.stale)
+const isDeleted = computed(() => nodeStatus.value.deleted)
+function syncThis() {
+  if (!syncDisabled.value) syncQuestions([props.node.attrs.uid as string])
+}
+
+const snapshot = computed<QuestionContentSnapshot | null>(() => (props.node.attrs.snapshot as QuestionContentSnapshot | null) ?? null)
+const qProps = computed<QuestionProps | null>(() => (props.node.attrs.props as QuestionProps | null) ?? null)
+// helper 只读 node.props，用轻量 shim 复用 compositionDocument 的 props 访问/合并逻辑。
+const shim = computed(() => ({ props: qProps.value }) as unknown as EditorNode)
+
+const { t } = useI18n()
+
+const typeLabel = computed(() => (snapshot.value ? questionTypeDisplayLabel(snapshot.value.q_type) : t('compositionNodes.question.fallbackType')))
+
+function setProps(next: QuestionProps) {
+  props.updateAttributes({ props: Object.keys(next).length ? next : null })
+}
+
+const questionNumber = computed<string>({
+  get: () => questionNumberOf(shim.value),
+  set: (v) => setProps(questionPropsWithNumber(shim.value, v)),
+})
+const questionScore = computed<number | null>({
+  get: () => questionScoreOf(shim.value),
+  set: (v) => setProps(questionPropsWithScore(shim.value, v)),
+})
+
+// 选项匹配：每个空位单独编号/赋分，不显示整题题号与分值。
+const isMatching = computed(() => snapshot.value?.q_type === 'option_matching')
+const slotIds = computed(() => {
+  const answer = snapshot.value?.answer
+  return answer?.kind === 'option_matching' ? answer.slots.map((slot) => slot.id) : []
+})
+const slotProps = computed(() => qProps.value?.slots ?? {})
+const slotNumbers = computed(() => (numberingEnabled.value ? slotNumbersOf(slotProps.value) : {}))
+const stemContent = computed(() =>
+  isMatching.value ? stemWithSlotNumbers(snapshot.value?.content, slotNumbers.value) : snapshot.value?.content ?? null,
+)
+function setSlotNumber(slotId: string, value: string) {
+  setProps(questionPropsWithSlot(shim.value, slotId, { number: value.trim() || null }))
+}
+function setSlotScore(slotId: string, raw: string) {
+  const score = raw.trim() === '' ? null : Number(raw)
+  if (score != null && Number.isNaN(score)) return
+  setProps(questionPropsWithSlot(shim.value, slotId, { score }))
+}
+
+const OPTION_LAYOUT_ITEMS = computed<{ value: OptionLayout; label: string }[]>(() => [
+  { value: 'auto', label: t('compositionNodes.question.layoutAuto') },
+  { value: 1, label: t('compositionNodes.question.layoutPerRow', { count: 1 }) },
+  { value: 2, label: t('compositionNodes.question.layoutPerRow', { count: 2 }) },
+  { value: 4, label: t('compositionNodes.question.layoutPerRow', { count: 4 }) },
+])
+const optionLayout = computed<string>({
+  get: () => String(questionOptionLayoutOf(shim.value)),
+  set: (v) => {
+    const layout = (v === '1' || v === '2' || v === '4' ? Number(v) : 'auto') as OptionLayout
+    setProps(questionPropsWithOptionLayout(shim.value, layout))
+  },
+})
+const optionColumns = computed(() => resolveOptionColumns(snapshot.value?.options, questionOptionLayoutOf(shim.value)))
+
+const FIELD_LABEL_KEYS: Record<AnswerFieldKey, string> = {
+  answer: 'compositionPanels.fields.answer',
+  thinking: 'compositionPanels.fields.thinking',
+  analysis: 'compositionPanels.fields.analysis',
+  summary: 'compositionPanels.fields.summary',
+}
+const previewAll = ref(false)
+// 任一浮层（排版/字段/更多）打开时，portal 到 body 会带走 hover/focus，需强制保持工具条可见。
+const optionLayoutOpen = ref(false)
+const fieldsOpen = ref(false)
+const moreOpen = ref(false)
+const overlayOpen = computed(() => optionLayoutOpen.value || fieldsOpen.value || moreOpen.value)
+
+function fieldVisible(key: AnswerFieldKey): boolean {
+  if (previewAll.value) return true
+  return effectiveQuestionField(shim.value, displayFields.value, key)
+}
+function showModel(key: AnswerFieldKey): 'inherit' | 'show' | 'hide' {
+  const v = questionShowOverride(shim.value, key)
+  return v == null ? 'inherit' : v ? 'show' : 'hide'
+}
+function setShow(key: AnswerFieldKey, value: string) {
+  const next = value === 'inherit' ? null : value === 'show'
+  props.updateAttributes({ props: questionPropsWithShow(shim.value, key, next) })
+}
+
+// 题号静息态显示为文本，点击才换成原生 input 并对焦（避开 shadcn Input 组件无法对外暴露 focus）。
+const editingNumber = ref(false)
+const numberInputRef = ref<HTMLInputElement | null>(null)
+function startEditNumber() {
+  editingNumber.value = true
+  nextTick(() => numberInputRef.value?.focus())
+}
+function stopEditNumber() {
+  editingNumber.value = false
+}
+const numberDisplay = computed(() => (questionNumber.value ? `${questionNumber.value}.` : '#'))
+
+// 分值同样静息态显示为文本（始终用（）包裹），点击才切换为可编辑输入框。
+const editingScore = ref(false)
+const scoreInputRef = ref<HTMLInputElement | null>(null)
+function startEditScore() {
+  editingScore.value = true
+  nextTick(() => scoreInputRef.value?.focus())
+}
+function stopEditScore() {
+  editingScore.value = false
+}
+const scoreDisplay = computed(() => `（${questionScore.value != null ? `${questionScore.value}分` : t('compositionNodes.question.score')}）`)
+</script>
+
+<template>
+  <NodeViewWrapper
+    data-composition-block
+    class="group relative -mx-3 my-2 rounded-lg border border-transparent px-3 py-3 transition-colors hover:border-border hover:bg-card/50 focus-within:border-border focus-within:bg-card/50"
+    :class="selected ? 'border-border bg-card' : ''"
+    contenteditable="false"
+  >
+    <!-- 浮动控制条：悬浮/选中时浮现。左段=只读状态，右段=操作，中间分隔。 -->
+    <div
+      class="absolute -top-3 right-2 z-10 flex items-center gap-1 rounded-md border bg-card px-1.5 py-0.5 shadow-sm transition-opacity"
+      :class="selected || overlayOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'"
+    >
+      <!-- 状态段（只读） -->
+      <span class="text-[11px] text-muted-foreground">r{{ node.attrs.questionRevision }}</span>
+      <Badge variant="secondary" class="text-[11px]">{{ typeLabel }}</Badge>
+      <Badge v-if="isStale" variant="outline" class="gap-1 border-amber-400 text-[11px] text-amber-600 dark:text-amber-400">
+        <AlertTriangle class="h-3 w-3" /> {{ t('compositionNodes.question.stale') }}
+      </Badge>
+      <Badge v-else-if="isDeleted" variant="outline" class="gap-1 border-destructive text-[11px] text-destructive">
+        <AlertTriangle class="h-3 w-3" /> {{ t('compositionNodes.question.deleted') }}
+      </Badge>
+
+      <div class="mx-0.5 h-4 w-px bg-border" aria-hidden="true" />
+
+      <!-- 操作段 -->
+      <Select v-if="snapshot?.options?.length" v-model="optionLayout" v-model:open="optionLayoutOpen">
+        <SelectTrigger class="h-6 w-auto gap-1 px-2 text-[11px]" :title="t('compositionNodes.question.layoutTitle')">
+          <Columns3 class="h-3 w-3 text-muted-foreground" />
+          <span class="text-muted-foreground">{{ t('compositionNodes.question.layout') }}</span>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel class="text-[11px] text-muted-foreground">{{ t('compositionNodes.question.layoutLabel') }}</SelectLabel>
+            <SelectItem v-for="it in OPTION_LAYOUT_ITEMS" :key="String(it.value)" :value="String(it.value)">{{ it.label }}</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Popover v-model:open="fieldsOpen">
+        <PopoverTrigger as-child>
+          <Button variant="ghost" size="sm" class="h-6 gap-1 px-2 text-[11px]"><Eye class="h-3 w-3" /> {{ t('compositionNodes.question.fields') }}</Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" class="w-52 space-y-2" data-rich-overlay>
+          <p class="text-xs font-medium text-muted-foreground">{{ t('compositionNodes.question.fieldsTitle') }}</p>
+          <div v-for="key in ANSWER_FIELD_KEYS" :key="key" class="flex items-center justify-between gap-2">
+            <span class="text-xs">{{ t(FIELD_LABEL_KEYS[key]) }}</span>
+            <Select :model-value="showModel(key)" @update:model-value="(v: any) => setShow(key, String(v))">
+              <SelectTrigger class="h-7 w-24 text-[11px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="inherit">{{ t('compositionNodes.question.inherit') }}</SelectItem>
+                <SelectItem value="show">{{ t('compositionNodes.question.show') }}</SelectItem>
+                <SelectItem value="hide">{{ t('compositionNodes.question.hide') }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </PopoverContent>
+      </Popover>
+      <Button
+        variant="ghost" size="icon" class="h-6 w-6"
+        :class="previewAll ? 'text-primary' : ''"
+        :aria-label="previewAll ? t('compositionNodes.question.exitPreviewAll') : t('compositionNodes.question.previewAll')"
+        :title="previewAll ? t('compositionNodes.question.exitPreviewAll') : t('compositionNodes.question.previewAll')"
+        @click="previewAll = !previewAll"
+      >
+        <Maximize2 class="h-3.5 w-3.5" />
+      </Button>
+
+      <!-- 更多：低频/危险操作收纳，避免与常用操作误触 -->
+      <DropdownMenu v-model:open="moreOpen">
+        <DropdownMenuTrigger as-child>
+          <Button variant="ghost" size="icon" class="h-6 w-6" :aria-label="t('common.moreActions')" :title="t('common.moreActions')">
+            <Ellipsis class="h-3.5 w-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" class="w-40">
+          <DropdownMenuItem v-if="isStale && deletable !== false && syncable !== false" :disabled="syncDisabled" @click="syncThis">
+            <RefreshCw class="mr-2 h-4 w-4" /> {{ t('compositionNodes.question.syncThis') }}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator v-if="isStale && deletable !== false && syncable !== false" />
+          <DropdownMenuItem v-if="deletable !== false" class="text-destructive focus:text-destructive" @click="deleteNode()">
+            <Trash2 class="mr-2 h-4 w-4" /> {{ t('common.delete') }}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+
+    <div v-if="!snapshot" class="flex items-center gap-2 py-2 text-sm text-destructive">
+      <AlertTriangle class="h-4 w-4" /> {{ t('compositionNodes.questionUnavailable', { id: node.attrs.questionId }) }}
+    </div>
+    <div v-else class="space-y-3">
+      <div class="flex items-baseline gap-2 text-sm">
+        <template v-if="numberingEnabled && !isMatching">
+          <!-- 静息态显示纯文本；点击才切换为可编辑输入框，无需先选中整块即可编辑 -->
+          <span class="inline-flex shrink-0 items-baseline">
+            <input
+              v-if="editingNumber"
+              ref="numberInputRef"
+              :value="questionNumber"
+              placeholder="#"
+              class="h-6 w-10 rounded border border-input bg-background px-1 text-sm font-medium shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3"
+              @input="questionNumber = ($event.target as HTMLInputElement).value"
+              @blur="stopEditNumber"
+              @keydown.enter.prevent="stopEditNumber"
+              @keydown.escape.prevent="stopEditNumber"
+            >
+            <button
+              v-else
+              type="button"
+              class="appearance-none rounded bg-transparent px-1 align-baseline font-medium leading-5 hover:bg-accent"
+              :class="questionNumber ? '' : 'text-muted-foreground'"
+              @click="startEditNumber"
+            >{{ numberDisplay }}</button>
+          </span>
+        </template>
+        <div class="min-w-0 flex-1 space-y-2">
+          <div class="flow-root">
+            <template v-if="scoringEnabled && !isMatching">
+              <!-- 浮动的归并词需与题干段落同行高，否则两者的盒顶不在同一行高内会看起来错位 -->
+              <span class="float-left inline-flex items-baseline font-medium leading-5 text-muted-foreground">
+                <template v-if="editingScore">（<input
+                  ref="scoreInputRef"
+                  type="number" min="0" max="1000" step="0.5"
+                  :value="questionScore ?? ''"
+                  :placeholder="t('compositionNodes.question.score')"
+                  class="no-spinner h-6 w-14 rounded border border-input bg-background text-center text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3"
+                  @input="questionScore = ($event.target as HTMLInputElement).value === '' ? null : Number(($event.target as HTMLInputElement).value)"
+                  @blur="stopEditScore"
+                  @keydown.enter.prevent="stopEditScore"
+                  @keydown.escape.prevent="stopEditScore"
+                >分）</template>
+                <button
+                  v-else
+                  type="button"
+                  class="appearance-none rounded bg-transparent align-baseline leading-5 hover:bg-accent"
+                  @click="startEditScore"
+                >{{ scoreDisplay }}</button>
+              </span>
+            </template>
+            <RichContent :content="stemContent" :empty-text="t('compositionNodes.emptyStem')" class="[&_p]:my-0 [&_p]:!leading-5" />
+          </div>
+          <ul
+            v-if="snapshot.options?.length"
+            class="grid gap-x-6 gap-y-1"
+            :style="{ gridTemplateColumns: `repeat(${optionColumns}, minmax(0, 1fr))` }"
+          >
+            <li v-for="opt in snapshot.options" :key="opt.id" class="flex items-baseline gap-2 text-sm">
+              <span class="font-medium text-muted-foreground">{{ opt.label }}.</span>
+              <RichContent :content="opt.content" class="min-w-0 [&_p]:my-0" />
+            </li>
+          </ul>
+          <div
+            v-if="isMatching && slotIds.length && (numberingEnabled || scoringEnabled)"
+            class="flex flex-wrap gap-x-4 gap-y-1.5 rounded-md border border-dashed px-2 py-1.5 text-xs text-muted-foreground"
+          >
+            <span v-for="(slotId, i) in slotIds" :key="slotId" class="inline-flex items-center gap-1">
+              {{ t('compositionNodes.question.slot', { index: i + 1 }) }}
+              <input
+                v-if="numberingEnabled"
+                :value="slotProps[slotId]?.number ?? ''"
+                :placeholder="t('compositionNodes.question.number')"
+                class="h-6 w-12 rounded border border-input bg-background px-1 text-center text-xs text-foreground outline-none focus-visible:border-ring"
+                @change="setSlotNumber(slotId, ($event.target as HTMLInputElement).value)"
+              >
+              <template v-if="scoringEnabled">
+                <input
+                  type="number" min="0" max="1000" step="0.5"
+                  :value="slotProps[slotId]?.score ?? ''"
+                  :placeholder="t('compositionNodes.question.score')"
+                  class="no-spinner h-6 w-12 rounded border border-input bg-background px-1 text-center text-xs text-foreground outline-none focus-visible:border-ring"
+                  @change="setSlotScore(slotId, ($event.target as HTMLInputElement).value)"
+                >{{ t('compositionNodes.question.scoreUnit') }}
+              </template>
+            </span>
+          </div>
+        </div>
+      </div>
+      <template v-for="key in ANSWER_FIELD_KEYS" :key="key">
+        <div v-if="fieldVisible(key)" class="rounded-md bg-muted/50 px-3 py-2">
+          <p class="mb-1 text-xs font-medium text-muted-foreground">{{ t(FIELD_LABEL_KEYS[key]) }}</p>
+          <AnswerDisplay v-if="key === 'answer'" :answer="snapshot.answer" :options="snapshot.options" :slot-numbers="slotNumbers" />
+          <RichContent v-else :content="snapshot[key]" class="[&_.prose]:my-0" :empty-text="t('compositionNodes.emptyField')" />
+        </div>
+      </template>
+    </div>
+  </NodeViewWrapper>
+</template>
+
+<style scoped>
+/* 去掉分值输入框右侧的数字进步器（上下箭头） */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinner {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+</style>
+

@@ -1,0 +1,31 @@
+from sqlalchemy import Column, Integer, String, Table, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import relationship
+from .base import Base
+
+class Tag(Base):
+    """标签表 (如: 期末, 易错, 重点)"""
+    __tablename__ = 'tags'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), index=True, nullable=False)
+    category_id = Column(Integer, ForeignKey('tag_categories.id'), nullable=True, index=True) # NULL = 未分类
+    color = Column(String(20), default="#grey") # 标签颜色
+
+    # 标签归属的学科（学科级隔离，不同学科允许同名标签）
+    subject_id = Column(Integer, ForeignKey('subjects.id'), nullable=False, index=True)
+
+    created_by = Column(Integer, ForeignKey('user.id'), nullable=True)
+    updated_by = Column(Integer, ForeignKey('user.id'), nullable=True)
+
+    creator = relationship("User", foreign_keys=[created_by], back_populates="tags_created")
+    updater = relationship("User", foreign_keys=[updated_by], back_populates="tags_updated")
+    subject = relationship("Subject", backref="tags")
+    category = relationship("TagCategory", backref="tags")
+
+    # 关系
+    # secondary 将在 question.py 中定义 table 后引用，或者我们在这里引用字符串
+    questions = relationship("Question", secondary="question_tags", back_populates="tags")
+
+    __table_args__ = (
+        UniqueConstraint('subject_id', 'name', name='uq_tag_subject_name'),
+    )

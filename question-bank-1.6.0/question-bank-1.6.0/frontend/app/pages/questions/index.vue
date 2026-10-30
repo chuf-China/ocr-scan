@@ -1,0 +1,911 @@
+<script setup lang="ts">
+import { ref, reactive, computed, watch, onActivated } from 'vue'
+import type { Question, KnowledgePoint, TagCategory, Subject, QuestionPage, TagPage, User } from '~/types'
+import { useAPI } from '~/composables/useAPI'
+import KnowledgePointTreeSelector from '~/components/KnowledgePointTreeSelector.vue'
+import QuestionListItem from '~/components/QuestionListItem.vue'
+import QuestionEditDialog from '~/components/QuestionEditDialog.vue'
+import QuestionStructureSheet from '~/components/QuestionStructureSheet.vue'
+import PageHeader from '~/components/PageHeader.vue'
+import CompositionTargetPicker from '~/components/CompositionTargetPicker.vue'
+import QuestionBasketButton from '~/components/QuestionBasketButton.vue'
+import QuestionBasketPanel from '~/components/QuestionBasketPanel.vue'
+import TagFilter from '~/components/TagFilter.vue'
+import { useQuestionBasket } from '~/composables/useQuestionBasket'
+import { richDocToPlainText } from '~/components/rich-editor/richDoc'
+import { Loader2, Plus, X, Trash2, ShoppingBasket, FileText, ListTree, Edit, SlidersHorizontal, ChevronsUpDown, ChevronLeft, ChevronRight, ChevronDown, Layers3 } from '@lucide/vue'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Pagination,
+  PaginationEllipsis,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import ClearableInput from '@/components/ClearableInput.vue'
+import ClearableSelect from '@/components/ClearableSelect.vue'
+import { toast } from 'vue-sonner'
+
+
+const { t } = useI18n()
+const { $api } = useNuxtApp()
+const route = useRoute()
+const router = useRouter()
+
+// --- State ---
+const page = ref(1)
+const pageSize = ref(10)
+const editingQuestion = ref<Question | null>(null)
+const isDialogOpen = ref(false)
+const dialogMode = ref<'create' | 'edit'>('create')
+const derivedFromQuestionId = ref<number | null>(null)
+
+// --- Selection & Batch Actions ---
+const selectedIds = ref<Set<number>>(new Set())
+
+// --- Add to composition (direct path, bypasses the basket) ---
+const compositionPickerOpen = ref(false)
+const compositionPickerQuestionIds = ref<number[]>([])
+
+// --- Question basket (staging path) ---
+const questionBasket = useQuestionBasket()
+useAiScene().useSceneWhileMounted('question_library')
+const basketPanelOpen = ref(false)
+
+// --- Filters ---
+const filters = reactive({
+  subject_id: undefined as string | undefined,
+  knowledge_point_ids: [] as string[],
+  tag_ids: [] as string[],
+  q_type: undefined as string | undefined,
+  difficulty: undefined as string | undefined,
+  status: undefined as string | undefined,
+  import_task_id: undefined as string | undefined,
+  import_task_name: undefined as string | undefined,
+  review_count: undefined as string | undefined,
+  creator_id: undefined as string | undefined,
+  reviewer_id: undefined as string | undefined,
+  keyword: undefined as string | undefined,
+  id: undefined as string | undefined,
+  source: undefined as string | undefined,
+  root_only: false,
+  membership: 'all' as 'all' | 'independent' | 'grouped',
+})
+
+// Initialize filters from route query
+if (route.query.import_task_id) {
+    filters.import_task_id = route.query.import_task_id as string
+}
+if (route.query.id) {
+    filters.id = route.query.id as string
+}
+
+// 页面被全局 keepalive 缓存，setup 只跑一次；重新进入时按最新 query 同步筛选，触发接口重载
+onActivated(() => {
+    if (route.query.import_task_id) {
+        filters.import_task_id = route.query.import_task_id as string
+        page.value = 1
+    }
+    if (route.query.id) {
+        filters.id = route.query.id as string
+        page.value = 1
+    }
+})
+
+// --- Data Fetching ---
+const { data: subjects, refresh: refreshSubjects } = await useAPI<Subject[]>('/subjects')
+
+// Subject is now driven by the global subject context (sidebar selector).
+const { currentSubjectId, setSubject } = useSubjectContext()
+const { can } = usePermissions()
+const canEditCurrentSubject = computed(() => can(Capability.EDIT_QUESTION, currentSubjectId.value))
+const selectedSubjectId = computed<string>({
+  get: () => (currentSubjectId.value != null ? String(currentSubjectId.value) : '0'),
+  set: (val) => {
+    if (val && val !== '0') setSubject(Number(val)).catch(() => {})
+  },
+})
+
+// Keep the query filter and pagination in sync with the global subject.
+watch(
+  selectedSubjectId,
+  (newVal) => {
+    filters.subject_id = newVal
+    page.value = 1
+  },
+  { immediate: true }
+)
+
+const queryParams = computed(() => {
+  const params: Record<string, any> = {
+    page: page.value,
+    size: pageSize.value
+  }
+  if (filters.subject_id && filters.subject_id !== '0') params.subject_id = filters.subject_id
+  if (filters.id) params.id = filters.id
+
+  if (filters.knowledge_point_ids && filters.knowledge_point_ids.length > 0) params.knowledge_point_ids = filters.knowledge_point_ids
+  if (filters.tag_ids && filters.tag_ids.length > 0) params.tag_ids = filters.tag_ids
+  if (filters.q_type && filters.q_type !== '0') params.q_type = filters.q_type
+  if (filters.difficulty && filters.difficulty !== '0') params.difficulty = filters.difficulty
+  if (filters.status && filters.status !== '0') params.status = filters.status
+  if (filters.import_task_id) params.import_task_id = filters.import_task_id
+  if (filters.import_task_name) params.import_task_name = filters.import_task_name
+  if (filters.review_count) params.review_count = filters.review_count
+  if (filters.creator_id && filters.creator_id !== '0') params.creator_id = filters.creator_id
+  if (filters.reviewer_id && filters.reviewer_id !== '0') params.reviewer_id = filters.reviewer_id
+  if (filters.keyword) params.keyword = filters.keyword
+  if (filters.source) params.source = filters.source
+  if (filters.root_only) params.root_only = true
+  if (filters.membership !== 'all') params.has_stimulus = filters.membership === 'grouped'
+  
+  return params
+})
+
+watch(() => filters.membership, () => {
+  page.value = 1
+})
+
+// Count of active filters tucked away in the "more filters" popover, so it can carry a badge.
+const secondaryFilterCount = computed(() => {
+  let count = 0
+  if (filters.source) count++
+  if (filters.import_task_name) count++
+  if (filters.review_count) count++
+  if (filters.creator_id && filters.creator_id !== '0') count++
+  if (filters.reviewer_id && filters.reviewer_id !== '0') count++
+  return count
+})
+
+const { data: questionPage, refresh: refreshQuestions, status: questionsStatus } = await useAPI<QuestionPage>('/questions', {
+  query: queryParams
+})
+
+const questions = computed(() => questionPage.value?.items || [])
+const total = computed(() => questionPage.value?.total || 0)
+
+// --- Selection Logic ---
+const isAllPageSelected = computed(() => {
+  if (questions.value.length === 0) return false
+  return questions.value.every(q => selectedIds.value.has(q.id))
+})
+
+const toggleAllPage = (checked: boolean) => {
+  if (checked) {
+    questions.value.forEach(q => selectedIds.value.add(q.id))
+  } else {
+    questions.value.forEach(q => selectedIds.value.delete(q.id))
+  }
+}
+
+const invertSelection = () => {
+  questions.value.forEach(q => {
+    if (selectedIds.value.has(q.id)) {
+      selectedIds.value.delete(q.id)
+    } else {
+      selectedIds.value.add(q.id)
+    }
+  })
+}
+
+const handleSelect = (id: number, selected: boolean) => {
+  if (selected) {
+    selectedIds.value.add(id)
+  } else {
+    selectedIds.value.delete(id)
+  }
+}
+
+const batchAddToBasket = () => {
+  const ids = Array.from(selectedIds.value)
+  if (ids.length === 0) return
+  const selectedQuestions = questions.value.filter(q => selectedIds.value.has(q.id))
+  questionBasket.addMany(selectedQuestions.map(q => ({
+    id: q.id,
+    subject_id: q.subject_id ?? 0,
+    content_preview: richDocToPlainText(q.content).slice(0, 40),
+    q_type: q.q_type,
+    difficulty: q.difficulty,
+  })))
+  toast.success(t('basket.addedMany', { count: ids.length }))
+  selectedIds.value.clear()
+}
+
+const batchAddDirectlyToComposition = () => {
+  const ids = Array.from(selectedIds.value)
+  if (ids.length === 0) return
+  compositionPickerQuestionIds.value = ids
+  compositionPickerOpen.value = true
+}
+
+const onCompositionPickerAdded = () => {
+  selectedIds.value.clear()
+}
+
+const batchDelete = async () => {
+  const ids = Array.from(selectedIds.value)
+  if (ids.length === 0) return
+  
+  if (!confirm(t('questions.list.batchDeleteConfirm', { count: ids.length }))) return
+  
+  try {
+    const res = await $api<{ deleted_count: number }>('/questions/batch-delete', {
+      method: 'POST',
+      body: { ids }
+    })
+    
+    toast.success(t('questions.list.batchDeleted', { count: res.deleted_count }))
+    selectedIds.value.clear()
+    refreshQuestions()
+  } catch (error) {
+    console.error(error)
+    toast.error(t('questions.list.batchDeleteFailed'))
+  }
+}
+
+// --- Batch Update Source ---
+const isSourceDialogOpen = ref(false)
+const newSourceValue = ref('')
+
+const openBatchUpdateSourceDialog = () => {
+  if (selectedIds.value.size === 0) return
+  newSourceValue.value = ''
+  isSourceDialogOpen.value = true
+}
+
+const batchUpdateSource = async () => {
+  const ids = Array.from(selectedIds.value)
+  if (ids.length === 0) return
+  
+  try {
+    const res = await $api<{ updated_count: number }>('/questions/batch-update', {
+      method: 'POST',
+      body: { 
+        ids,
+        source: newSourceValue.value
+      }
+    })
+    
+    toast.success(t('questions.list.sourceUpdated', { count: res.updated_count }))
+    isSourceDialogOpen.value = false
+    selectedIds.value.clear()
+    refreshQuestions()
+  } catch (error) {
+    console.error(error)
+    toast.error(t('questions.list.sourceUpdateFailed'))
+  }
+}
+
+// Clear selection when page changes
+watch([page, pageSize], () => {
+  selectedIds.value.clear()
+})
+
+// Auto-select subject tab if viewing a task and no subject selected
+watch(questions, (newQuestions) => {
+  if ((filters.import_task_id || filters.import_task_name) && newQuestions.length > 0 && !selectedSubjectId.value) {
+    const firstQ = newQuestions[0]
+    if (firstQ.subject_id) {
+      selectedSubjectId.value = String(firstQ.subject_id)
+    }
+  }
+}, { immediate: true })
+
+const { data: knowledgePoints, refresh: refreshKnowledgePoints } = await useAPI<KnowledgePoint[]>('/knowledge-points', {
+  query: { limit: -1 }
+})
+const { data: tagsPage, refresh: refreshTags } = await useAPI<TagPage>('/tags', {
+  query: computed(() => ({
+    subject_id: selectedSubjectId.value && selectedSubjectId.value !== '0' ? selectedSubjectId.value : undefined,
+    size: -1, // 标签选择下拉需要该学科下的全部标签，不分页
+  })),
+  immediate: false,
+  watch: false,
+})
+const tags = computed(() => tagsPage.value?.items)
+const { data: tagCategories, refresh: refreshTagCategories } = await useAPI<TagCategory[]>('/tag-categories', {
+  query: computed(() => ({
+    subject_id: selectedSubjectId.value && selectedSubjectId.value !== '0' ? selectedSubjectId.value : undefined
+  })),
+  immediate: false,
+  watch: false,
+})
+
+// Only fetch tags/categories once a real subject is selected (never send an empty subject_id).
+watch(selectedSubjectId, (newId) => {
+  if (newId && newId !== '0') {
+    refreshTags()
+    refreshTagCategories()
+  }
+}, { immediate: true })
+
+const { data: users } = await useAPI<User[]>('/users', {
+  query: computed(() => ({
+    subject_id: selectedSubjectId.value && selectedSubjectId.value !== '0' ? selectedSubjectId.value : undefined
+  }))
+})
+
+// Options for Selects
+const statusOptions = computed(() => [
+  { label: t('questions.filters.allStatuses'), value: '0' },
+  { label: t('questions.statuses.draft'), value: 'draft' },
+  { label: t('questions.statuses.pending'), value: 'pending' },
+  { label: t('questions.statuses.published'), value: 'published' },
+  { label: t('questions.statuses.archived'), value: 'archived' },
+])
+
+const qTypeOptions = computed(() => [
+  { label: t('questions.filters.allTypes'), value: '0' },
+  { label: t('questions.types.singleChoice'), value: 'single_choice' },
+  { label: t('questions.types.multipleChoice'), value: 'multiple_choice' },
+  { label: t('questions.types.trueFalse'), value: 'true_false' },
+  { label: t('questions.types.fillInTheBlank'), value: 'fill_in_the_blank' },
+  { label: t('questions.types.freeResponse'), value: 'free_response' },
+  { label: t('questions.types.optionMatching'), value: 'option_matching' },
+])
+
+const difficultyOptions = computed(() => [
+  { label: t('questions.filters.allDifficulties'), value: '0' },
+  { label: '1', value: '1' },
+  { label: '2', value: '2' },
+  { label: '3', value: '3' },
+  { label: '4', value: '4' },
+  { label: '5', value: '5' },
+])
+
+const userOptions = computed(() => {
+  const opts = [{ label: t('common.all'), value: '0' }]
+  if (users.value) {
+    opts.push(...users.value.map(u => ({
+      label: u.full_name || u.username,
+      value: String(u.id)
+    })))
+  }
+  return opts
+})
+
+// --- Actions ---
+const deleteQuestion = async (id: number) => {
+  if (!confirm(t('questions.list.deleteConfirm'))) return
+  try {
+    await $api(`/questions/${id}`, {
+      method: 'DELETE',
+    })
+    refreshQuestions()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const createQuestion = () => {
+  editingQuestion.value = null
+  derivedFromQuestionId.value = null
+  dialogMode.value = 'create'
+  isDialogOpen.value = true
+}
+
+const decomposeQuestion = (parent: Question) => {
+  editingQuestion.value = null
+  derivedFromQuestionId.value = parent.id
+  dialogMode.value = 'create'
+  isDialogOpen.value = true
+}
+
+const editQuestion = (question: Question) => {
+  editingQuestion.value = question
+  derivedFromQuestionId.value = null
+  dialogMode.value = 'edit'
+  isDialogOpen.value = true
+}
+
+const handleEditSuccess = () => {
+  isDialogOpen.value = false
+  editingQuestion.value = null
+  derivedFromQuestionId.value = null
+  refreshQuestions()
+}
+
+// Filter helpers
+const filteredKnowledgePoints = computed(() => {
+  if (!filters.subject_id || filters.subject_id === '0') return knowledgePoints.value
+  return knowledgePoints.value?.filter(c => String(c.subject_id) === filters.subject_id)
+})
+
+// Knowledge point filter now lives in a popover trigger instead of a dedicated sidebar column.
+const kpPopoverOpen = ref(false)
+const selectedKnowledgePointNames = computed(() => {
+  return filters.knowledge_point_ids
+    .map(id => knowledgePoints.value?.find(kp => String(kp.id) === id)?.name)
+    .filter((name): name is string => Boolean(name))
+})
+const knowledgePointFilterLabel = computed(() => {
+  const names = selectedKnowledgePointNames.value
+  if (names.length === 0) return t('knowledgePoint.all')
+  if (names.length === 1) return names[0]
+  return t('questions.filters.knowledgePointSelected', { count: names.length })
+})
+const toggleKnowledgePoint = (id: string) => {
+  const index = filters.knowledge_point_ids.indexOf(id)
+  if (index >= 0) {
+    filters.knowledge_point_ids.splice(index, 1)
+  } else {
+    filters.knowledge_point_ids.push(id)
+  }
+}
+const clearKnowledgePoints = () => {
+  filters.knowledge_point_ids = []
+}
+
+const resetFilters = () => {
+  filters.id = undefined
+  
+  // If no subject is selected (e.g. coming from ID/Task view), select the first one
+  if ((!selectedSubjectId.value || selectedSubjectId.value === '0') && subjects.value && subjects.value.length > 0) {
+    selectedSubjectId.value = String(subjects.value[0].id)
+  }
+
+  filters.subject_id = selectedSubjectId.value
+  filters.knowledge_point_ids = []
+  filters.tag_ids = []
+  filters.q_type = undefined
+  filters.difficulty = undefined
+  filters.status = undefined
+  filters.import_task_id = undefined
+  filters.import_task_name = undefined
+  filters.review_count = undefined
+  filters.creator_id = undefined
+  filters.reviewer_id = undefined
+  filters.keyword = undefined
+  filters.source = undefined
+  filters.root_only = false
+  filters.membership = 'all'
+  page.value = 1
+  
+  // Remove query param
+  const query = { ...route.query }
+  delete query.import_task_id
+  delete query.id
+  router.replace({ query })
+}
+
+// Watch for query param to open dialog
+watch(() => route.query.create, (newVal) => {
+  if (newVal === 'true') {
+    createQuestion()
+  }
+}, { immediate: true })
+
+// Clear query param when dialog closes
+watch(isDialogOpen, (newVal) => {
+  if (!newVal && route.query.create) {
+    router.replace({ query: { ...route.query, create: undefined } })
+  }
+})
+
+const handleQuestionUpdate = (newQuestion: Question) => {
+  if (questionPage.value && questionPage.value.items) {
+    const index = questionPage.value.items.findIndex(q => q.id === newQuestion.id)
+    if (index !== -1) {
+      // Create a new array reference to ensure reactivity
+      const newItems = [...questionPage.value.items]
+      newItems[index] = newQuestion
+      
+      // Update the page object with the new items array to trigger reactivity
+      questionPage.value = {
+        ...questionPage.value,
+        items: newItems
+      }
+    }
+  }
+}
+
+// --- Structure Sheet ---
+const structureSheetOpen = ref(false)
+const structureQuestionId = ref<number | null>(null)
+
+const viewStructure = (question: Question) => {
+  structureQuestionId.value = question.id
+  structureSheetOpen.value = true
+}
+</script>
+
+<template>
+  <!-- Header -->
+  <PageHeader :title="t('nav.questionBank')">
+    <template #actions>
+      <QuestionBasketButton @click="basketPanelOpen = true" />
+      <DropdownMenu v-if="canEditCurrentSubject">
+        <DropdownMenuTrigger as-child>
+          <Button size="sm">
+            <Plus class="mr-2 h-4 w-4" />
+            {{ t('questions.list.create') }}
+            <ChevronDown class="ml-1 h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" class="w-64">
+          <DropdownMenuItem class="items-start" @click="createQuestion">
+            <FileText class="mt-0.5 mr-2 h-4 w-4" />
+            <div>
+              <div class="font-medium">{{ t('questions.list.createSingle') }}</div>
+              <div class="text-xs text-muted-foreground">{{ t('questions.list.createSingleDesc') }}</div>
+            </div>
+          </DropdownMenuItem>
+          <DropdownMenuItem class="items-start" @click="router.push('/materials/new')">
+            <Layers3 class="mt-0.5 mr-2 h-4 w-4" />
+            <div>
+              <div class="font-medium">{{ t('questions.list.createMaterial') }}</div>
+              <div class="text-xs text-muted-foreground">{{ t('questions.list.createMaterialDesc') }}</div>
+            </div>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </template>
+  </PageHeader>
+  <QuestionBankNav />
+  <div class="flex flex-1 flex-col">
+    <div class="@container/main flex flex-1 flex-col px-4 space-y-6 py-6">
+      <p class="text-sm text-muted-foreground">{{ t('questions.list.description') }}</p>
+      
+      <div v-if="filters.import_task_id" class="bg-primary/10 text-primary px-4 py-3 rounded-md flex items-center justify-between">
+          <span class="text-sm font-medium">{{ t('questions.list.importTaskBanner') }}</span>
+          <Button variant="ghost" size="sm" @click="resetFilters" class="h-8 hover:bg-primary/20">
+              <X class="mr-2 h-4 w-4" />
+              {{ t('questions.list.resetFilters') }}
+          </Button>
+      </div>
+
+      <Tabs v-model="selectedSubjectId" class="w-full">
+        <TabsContent v-for="subject in subjects" :key="subject.id" :value="String(subject.id)" class="mt-4 space-y-6">
+          <div class="space-y-6">
+              <!-- Filters: only the high-frequency fields stay always visible to reduce visual clutter -->
+              <div class="space-y-4 p-4 rounded-lg bg-muted/40">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                  <!-- Keyword Filter -->
+                  <div class="space-y-2 sm:col-span-2 xl:col-span-1">
+                    <Label class="text-xs font-medium">{{ t('questions.filters.keyword') }}</Label>
+                    <ClearableInput v-model="filters.keyword" :placeholder="t('questions.filters.keywordPlaceholder')" />
+                  </div>
+
+                  <!-- ID Filter: exact match, scoped to the current subject like every other filter here -->
+                  <div class="space-y-2">
+                    <Label class="text-xs font-medium">{{ t('questions.filters.id') }}</Label>
+                    <ClearableInput v-model="filters.id" type="number" :placeholder="t('questions.filters.idPlaceholder')" />
+                  </div>
+
+                  <!-- Status Filter -->
+                  <div class="space-y-2">
+                    <Label class="text-xs font-medium">{{ t('questions.filters.status') }}</Label>
+                    <ClearableSelect v-model="filters.status" :options="statusOptions" :placeholder="t('questions.filters.allStatuses')" />
+                  </div>
+
+                  <!-- Type Filter -->
+                  <div class="space-y-2">
+                    <Label class="text-xs font-medium">{{ t('questions.filters.type') }}</Label>
+                    <ClearableSelect v-model="filters.q_type" :options="qTypeOptions" :placeholder="t('questions.filters.allTypes')" />
+                  </div>
+
+                  <!-- Difficulty Filter -->
+                  <div class="space-y-2">
+                    <Label class="text-xs font-medium">{{ t('questions.filters.difficulty') }}</Label>
+                    <ClearableSelect v-model="filters.difficulty" :options="difficultyOptions" :placeholder="t('questions.filters.allDifficulties')" />
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-end gap-4">
+                  <!-- Fields group: grows to fill available space, capped so it doesn't stretch unbounded on wide screens -->
+                  <div class="flex flex-1 flex-wrap gap-4">
+                  <!-- Knowledge Point Filter: popover replaces the old dedicated sidebar column -->
+                  <div class="space-y-2 flex-1 min-w-[200px] max-w-sm">
+                    <Label class="text-xs font-medium">{{ t('questions.filters.knowledgePoint') }}</Label>
+                    <Popover v-model:open="kpPopoverOpen">
+                      <PopoverTrigger as-child>
+                        <Button variant="outline" role="combobox" :aria-expanded="kpPopoverOpen" class="h-9 w-full justify-between font-normal">
+                          <div class="flex items-center truncate">
+                            <ListTree class="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                            <span class="truncate">{{ knowledgePointFilterLabel }}</span>
+                          </div>
+                          <div class="flex items-center gap-1 shrink-0">
+                            <Badge v-if="selectedKnowledgePointNames.length > 0" variant="secondary" class="px-1.5">
+                              {{ selectedKnowledgePointNames.length }}
+                            </Badge>
+                            <ChevronsUpDown class="h-4 w-4 opacity-50" />
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent class="w-80 p-2" align="start">
+                        <div class="max-h-96 overflow-y-auto">
+                          <KnowledgePointTreeSelector
+                            :knowledge-points="filteredKnowledgePoints || []"
+                            :selected-ids="filters.knowledge_point_ids"
+                            @toggle="toggleKnowledgePoint"
+                            @clear="clearKnowledgePoints"
+                          />
+                        </div>
+                        <div v-if="selectedKnowledgePointNames.length > 0" class="flex items-center justify-between pt-2 mt-1 border-t px-1">
+                          <span class="text-xs text-muted-foreground">{{ t('questions.filters.selectedCount', { count: selectedKnowledgePointNames.length }) }}</span>
+                          <Button variant="ghost" size="sm" class="h-auto px-2 py-1 text-xs" @click="clearKnowledgePoints">{{ t('common.clear') }}</Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <!-- Tag Filter -->
+                  <div class="space-y-2 flex-1 min-w-[240px] max-w-sm">
+                    <Label class="text-xs font-medium">{{ t('questions.filters.tags') }}</Label>
+                    <TagFilter 
+                      v-model="filters.tag_ids" 
+                      :tags="tags || []" 
+                      :categories="tagCategories || []" 
+                    />
+                  </div>
+                  </div>
+
+                  <div class="space-y-2">
+                    <Label class="text-xs font-medium">{{ t('questions.filters.membership') }}</Label>
+                    <ToggleGroup
+                      :model-value="filters.membership"
+                      type="single"
+                      variant="outline"
+                      size="sm"
+                      @update:model-value="filters.membership = ($event || 'all') as typeof filters.membership"
+                    >
+                      <ToggleGroupItem value="all">{{ t('common.all') }}</ToggleGroupItem>
+                      <ToggleGroupItem value="independent">{{ t('questions.filters.membershipIndependent') }}</ToggleGroupItem>
+                      <ToggleGroupItem value="grouped">{{ t('questions.filters.membershipGrouped') }}</ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+
+                  <!-- Actions group: pinned to the row's trailing edge, visually separate from the filter fields -->
+                  <div class="flex items-center gap-2 ml-auto shrink-0">
+                  <!-- More Filters Popover: source / import task / review count / creator / reviewer -->
+                  <Popover>
+                    <PopoverTrigger as-child>
+                      <Button variant="secondary">
+                        <SlidersHorizontal class="mr-2 h-4 w-4" />
+                        {{ t('questions.filters.more') }}
+                        <Badge v-if="secondaryFilterCount > 0" variant="secondary" class="ml-1 px-1.5">
+                          {{ secondaryFilterCount }}
+                        </Badge>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent class="w-80" align="start">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Source Filter -->
+                        <div class="space-y-2">
+                          <Label class="text-xs font-medium">{{ t('questions.filters.source') }}</Label>
+                          <ClearableInput v-model="filters.source" :placeholder="t('questions.filters.sourcePlaceholder')" />
+                        </div>
+
+                        <!-- Import Task Name Filter -->
+                        <div class="space-y-2">
+                          <Label class="text-xs font-medium">{{ t('questions.filters.importTask') }}</Label>
+                          <ClearableInput v-model="filters.import_task_name" :placeholder="t('questions.filters.importTaskPlaceholder')" />
+                        </div>
+
+                        <!-- Review Count Filter -->
+                        <div class="space-y-2">
+                          <Label class="text-xs font-medium">{{ t('questions.filters.reviewCount') }}</Label>
+                          <ClearableInput v-model="filters.review_count" type="number" :placeholder="t('questions.filters.reviewCountPlaceholder')" />
+                        </div>
+
+                        <!-- Creator Filter -->
+                        <div class="space-y-2">
+                          <Label class="text-xs font-medium">{{ t('questions.filters.creator') }}</Label>
+                          <ClearableSelect v-model="filters.creator_id" :options="userOptions" :placeholder="t('questions.filters.allCreators')" />
+                        </div>
+
+                        <!-- Reviewer Filter -->
+                        <div class="space-y-2 sm:col-span-2">
+                          <Label class="text-xs font-medium">{{ t('questions.filters.reviewer') }}</Label>
+                          <ClearableSelect v-model="filters.reviewer_id" :options="userOptions" :placeholder="t('questions.filters.allReviewers')" />
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  <!-- Hierarchy Filter -->
+                  <!-- <div class="flex items-center space-x-2">
+                    <Checkbox id="root-only" :checked="filters.root_only" @update:checked="(v) => filters.root_only = v" />
+                    <Label for="root-only" class="text-sm font-medium leading-none cursor-pointer">
+                      仅显示原题
+                    </Label>
+                  </div> -->
+
+                  <!-- Reset Button -->
+                  <Button variant="secondary" @click="resetFilters">
+                    <X class="mr-2 h-4 w-4" />
+                    {{ t('common.reset') }}
+                  </Button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Question List -->
+              <div class="space-y-4">
+                <div class="flex justify-between items-center sticky top-0 z-10 bg-background/95 backdrop-blur py-2 border-b px-2" v-if="questionsStatus !== 'pending'">
+                  <div class="flex items-center space-x-2">
+                    <Checkbox 
+                      id="select-all" 
+                      :model-value="isAllPageSelected" 
+                      @update:model-value="toggleAllPage" 
+                    />
+                    <Label for="select-all" class="text-sm font-medium cursor-pointer">{{ t('questions.list.selectAllPage') }}</Label>
+                    <Button variant="link" size="sm" class="h-auto p-0 text-muted-foreground" @click="invertSelection">{{ t('questions.list.invertSelection') }}</Button>
+                    
+                    <div v-if="selectedIds.size > 0" class="flex items-center gap-2 ml-4 animate-in fade-in slide-in-from-left-5 duration-300">
+                      <span class="text-sm text-muted-foreground">{{ t('questions.list.selectedCount', { count: selectedIds.size }) }}</span>
+                      <Button size="sm" variant="outline" class="h-7 px-2" @click="batchAddToBasket">
+                        <ShoppingBasket class="mr-1 h-3 w-3" />
+                        {{ t('basket.add') }}
+                      </Button>
+                      <Button size="sm" variant="outline" class="h-7 px-2" @click="batchAddDirectlyToComposition">
+                        <FileText class="mr-1 h-3 w-3" />
+                        {{ t('questions.list.addToComposition') }}
+                      </Button>
+                      <Button size="sm" variant="outline" class="h-7 px-2" @click="openBatchUpdateSourceDialog">
+                        <Edit class="mr-1 h-3 w-3" />
+                        {{ t('questions.list.editSource') }}
+                      </Button>
+                      <Button size="sm" variant="destructive" class="h-7 px-2" @click="batchDelete">
+                        <Trash2 class="mr-1 h-3 w-3" />
+                        {{ t('common.delete') }}
+                      </Button>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <span class="text-sm text-muted-foreground">{{ t('questions.list.total', { total }) }}</span>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm text-muted-foreground">{{ t('questions.list.perPage') }}</span>
+                      <Select :model-value="String(pageSize)" @update:model-value="(v) => pageSize = Number(v)">
+                        <SelectTrigger class="h-8 w-[80px]">
+                          <SelectValue :placeholder="String(pageSize)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="questionsStatus === 'pending'" class="flex justify-center py-8">
+                  <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+                <div v-else-if="questions.length === 0" class="text-center py-8 text-muted-foreground">
+                  {{ t('common.noData') }}
+                </div>
+                <div v-else class="space-y-4">
+                  <QuestionListItem 
+                    v-for="question in questions" 
+                    :key="question.id"
+                    :item="question"
+                    mode="library"
+                    selectable
+                    :selected="selectedIds.has(question.id)"
+                    @select="(v) => handleSelect(question.id, v)"
+                    @edit="editQuestion(question)"
+                    @delete="deleteQuestion(question.id)"
+                    @update="handleQuestionUpdate"
+                    @view-structure="viewStructure"
+                    @decompose="decomposeQuestion"
+                  />
+                </div>
+
+                <!-- Pagination: icon-only prev/next + subdued active page, kept light to match the card list -->
+                <div v-if="total > 0" class="flex justify-center mt-10 pb-8">
+                  <Pagination v-model:page="page" :total="total" :sibling-count="1" show-edges :default-page="1"
+                    :items-per-page="pageSize">
+                    <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
+                      <PaginationPrevious class="h-8 w-8 p-0" :aria-label="t('common.prevPage')">
+                        <ChevronLeft class="h-4 w-4" />
+                      </PaginationPrevious>
+                      <template v-for="(item, index) in items">
+                        <PaginationItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
+                          <Button
+                            :variant="item.value === page ? 'outline' : 'ghost'"
+                            :class="[
+                              'w-8 h-8 p-0 text-sm',
+                              item.value === page ? 'border-primary text-primary font-medium' : 'text-muted-foreground'
+                            ]"
+                          >
+                            {{ item.value }}
+                          </Button>
+                        </PaginationItem>
+                        <PaginationEllipsis v-else :key="item.type" :index="index" class="size-8" />
+                      </template>
+                      <PaginationNext class="h-8 w-8 p-0" :aria-label="t('common.nextPage')">
+                        <ChevronRight class="h-4 w-4" />
+                      </PaginationNext>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  </div>
+
+  <!-- Edit Dialog -->
+  <QuestionEditDialog
+    :open="isDialogOpen"
+    :question="editingQuestion"
+    :knowledge-points="knowledgePoints"
+    :subjects="subjects"
+    :mode="dialogMode"
+    :auto-fill-subject-id="currentSubjectId ?? undefined"
+    :derived-from-question-id="derivedFromQuestionId"
+    @update:open="(v) => isDialogOpen = v"
+    @success="handleEditSuccess"
+  />
+  
+  <QuestionStructureSheet
+    v-model:open="structureSheetOpen"
+    :question-id="structureQuestionId"
+  />
+  
+  <Dialog :open="isSourceDialogOpen" @update:open="(v) => isSourceDialogOpen = v">
+    <DialogContent class="sm:max-w-[425px]">
+      <DialogHeader>
+        <DialogTitle>{{ t('questions.batchSource.title') }}</DialogTitle>
+        <DialogDescription>
+          {{ t('questions.batchSource.description', { count: selectedIds.size }) }}
+        </DialogDescription>
+      </DialogHeader>
+      <div class="grid gap-4 py-4">
+        <div class="grid grid-cols-4 items-center gap-4">
+          <Label for="source" class="text-right">
+            {{ t('questions.batchSource.label') }}
+          </Label>
+          <Input
+            id="source"
+            v-model="newSourceValue"
+            class="col-span-3"
+            :placeholder="t('questions.batchSource.placeholder')"
+          />
+        </div>
+      </div>
+      <DialogFooter>
+        <Button type="submit" @click="batchUpdateSource">{{ t('questions.batchSource.submit') }}</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <CompositionTargetPicker
+    v-model:open="compositionPickerOpen"
+    :subject-id="currentSubjectId"
+    :question-ids="compositionPickerQuestionIds"
+    @added="onCompositionPickerAdded"
+  />
+
+  <QuestionBasketPanel v-model:open="basketPanelOpen" :subjects="subjects" />
+</template>

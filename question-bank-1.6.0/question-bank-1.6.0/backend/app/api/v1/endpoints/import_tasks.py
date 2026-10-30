@@ -1,0 +1,455 @@
+from typing import Any, List, Optional
+from fastapi import APIRouter, Depends, UploadFile, File, Query
+from fastapi.responses import FileResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update, func
+from sqlalchemy.orm import selectinload
+from app import models, schemas
+from app.api import deps
+from app.core.api_errors import ApiError, ErrorCode
+from app.core import permissions, storage
+from app.core.locale import get_locale
+from app.core.file_paths import VIRTUAL_SOURCE, import_source_file, task_source_file
+from app.core.permissions import Permission
+from app.crud.crud_question import is_question_visible
+from app.models.import_task import ImportTask, ImportTaskStatus
+from app.models.question import Question
+from app.services.importing.ingest import extract_markdown_archive
+from app.services.importing.media import ImportImageSink
+import logging
+import zipfile
+from pathlib import Path
+import asyncio
+from datetime import datetime
+import math
+import json
+
+router = APIRouter()
+logger = logging.getLogger(__name__)
+
+@router.get("/queue-status", response_model=dict)
+async def get_queue_status(
+    db: deps.SessionDep,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get global queue statistics and active tasks.
+    """
+    # 1. Get stats
+    stats_stmt = select(ImportTask.status, func.count(ImportTask.id)).group_by(ImportTask.status)
+    stats_result = await db.execute(stats_stmt)
+    stats_dict = {status: count for status, count in stats_result.all()}
+    
+    # Ensure all statuses are present
+    stats = {
+        "pending": stats_dict.get(ImportTaskStatus.PENDING, 0),
+        "processing": stats_dict.get(ImportTaskStatus.PROCESSING, 0),
+        "completed": stats_dict.get(ImportTaskStatus.COMPLETED, 0),
+        "failed": stats_dict.get(ImportTaskStatus.FAILED, 0),
+        "cancelled": stats_dict.get(ImportTaskStatus.CANCELLED, 0),
+    }
+
+    # 2. Get active tasks (Pending & Processing) with User info
+    # Ordered by created_at asc (FIFO queue)
+    active_stmt = select(ImportTask).options(selectinload(ImportTask.user))\
+        .where(ImportTask.status.in_([ImportTaskStatus.PENDING, ImportTaskStatus.PROCESSING]))
+    
+    # Access Control for active tasks list
+    if not current_user.is_superuser:
+        active_stmt = active_stmt.where(ImportTask.user_id == current_user.id)
+
+    active_stmt = active_stmt.order_by(ImportTask.created_at.asc())
+        
+    active_result = await db.execute(active_stmt)
+    active_tasks_db = active_result.scalars().all()
+    
+    active_tasks = []
+    for index, task in enumerate(active_tasks_db):
+        active_tasks.append({
+            "id": task.id,
+            "original_filename": task.original_filename,
+            "status": task.status,
+            "created_at": task.created_at,
+            "owner_name": task.user.full_name if task.user else "Unknown",
+            "queue_position": index + 1
+        })
+        
+    return {
+        "stats": stats,
+        "active_tasks": active_tasks
+    }
+
+@router.get("", response_model=dict)
+async def list_import_tasks(
+    *,
+    db: deps.SessionDep,
+    page: int = 1,
+    size: int = 10,
+    status: Optional[str] = None,
+    user_id: Optional[int] = None,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    List import tasks for all users.
+    """
+    skip = (page - 1) * size
+    
+    # Base query conditions
+    conditions = [ImportTask.source == "batch_upload"]
+    if status:
+        conditions.append(ImportTask.status == status)
+    
+    # Access Control
+    if current_user.is_superuser:
+        if user_id:
+            conditions.append(ImportTask.user_id == user_id)
+    else:
+        conditions.append(ImportTask.user_id == current_user.id)
+    
+    # Count query
+    count_stmt = select(func.count()).select_from(ImportTask).where(*conditions)
+    count_result = await db.execute(count_stmt)
+    total = count_result.scalar_one()
+
+    stmt = select(ImportTask).options(selectinload(ImportTask.user))\
+        .where(*conditions)\
+        .order_by(ImportTask.created_at.desc())\
+        .offset(skip)\
+        .limit(size)
+    
+    result = await db.execute(stmt)
+    tasks = result.scalars().all()
+    
+    return {
+        "items": [
+            {
+                "id": t.id,
+                "original_filename": t.original_filename,
+                "status": t.status,
+                "created_at": t.created_at,
+                "error_message": t.error_message,
+                "result_summary": t.result_summary,
+                "description": t.description,
+                "source": t.source,
+                "owner_name": t.user.full_name if t.user else "Unknown"
+            }
+            for t in tasks
+        ],
+        "total": total,
+        "page": page,
+        "size": size,
+        "pages": math.ceil(total / size) if size > 0 else 0
+    }
+
+@router.post("", response_model=List[dict])
+async def create_import_tasks(
+    *,
+    db: deps.SessionDep,
+    files: List[UploadFile] = File(...),
+    mode: str = Query("extract", description="Processing mode: extract or solve"),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Upload multiple files for processing. Each file becomes an ImportTask.
+    """
+    if not files:
+        raise ApiError(400, ErrorCode.IMPORT_TASK_NO_FILES, "No files provided")
+
+    # 学科在创建时确定:抽取出的图片与题目都归属它,不受之后切换学科影响。
+    subject_id = current_user.last_active_subject_id
+    if subject_id is None:
+        raise ApiError(400, ErrorCode.IMPORT_TASK_SUBJECT_REQUIRED, "请先选择所属学科")
+    deps.require(current_user, Permission.EDIT_QUESTION, subject_id=subject_id)
+    sink = ImportImageSink(db, subject_id=subject_id, actor_id=current_user.id)
+
+    created_tasks = []
+
+    def _new_task(source_sha256: str, original_filename: str, file_type: str) -> ImportTask:
+        task = ImportTask(
+            user_id=current_user.id,
+            subject_id=subject_id,
+            file_path=VIRTUAL_SOURCE,
+            source_sha256=source_sha256,
+            original_filename=original_filename,
+            file_type=file_type,
+            status=ImportTaskStatus.PENDING,
+            source="batch_upload",
+            description=f"Import {original_filename}",
+            mode=mode,
+            locale=get_locale(),
+        )
+        db.add(task)
+        created_tasks.append(task)
+        return task
+
+    for file in files:
+        # Determine file type
+        ext = Path(file.filename).suffix.lower()
+
+        # A .zip is a markdown archive: images become subject assets, then fan out into one
+        # markdown task per contained .md (each stored as its own rewritten source object).
+        if ext == '.zip':
+            content = await file.read()
+            zip_sha = await asyncio.to_thread(storage.put_bytes, content)
+            try:
+                parts = await extract_markdown_archive(storage.object_path(zip_sha), store=sink.store)
+            except (ValueError, zipfile.BadZipFile):
+                continue
+
+            archive_stem = Path(file.filename).stem
+            for md_name, rewritten in parts:
+                md_sha = await asyncio.to_thread(storage.put_bytes, rewritten.encode("utf-8"))
+                _new_task(md_sha, f"{archive_stem}/{md_name}", 'markdown')
+            continue
+
+        if ext == '.docx':
+            file_type = 'docx'
+        elif ext == '.md':
+            file_type = 'markdown'
+        else:
+            continue 
+
+        content = await file.read()
+        sha256 = await asyncio.to_thread(storage.put_bytes, content)
+        _new_task(sha256, file.filename, file_type)
+    
+    if not created_tasks:
+         raise ApiError(
+            400, ErrorCode.IMPORT_TASK_NO_VALID_FILES, "No valid files found (supported: .docx, .md, .zip)"
+        )
+
+    await db.commit()
+    
+    # Refresh to get IDs
+    for task in created_tasks:
+        await db.refresh(task)
+        
+    return [
+        {
+            "id": t.id,
+            "original_filename": t.original_filename,
+            "status": t.status,
+            "created_at": t.created_at
+        }
+        for t in created_tasks
+    ]
+
+@router.post("/reset-stuck", response_model=dict)
+async def reset_stuck_tasks(
+    *,
+    db: deps.SessionDep,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Reset tasks that are stuck in processing state to pending.
+    """
+    stmt = select(ImportTask).where(
+        ImportTask.status == ImportTaskStatus.PROCESSING,
+        ImportTask.source == "batch_upload"
+    )
+    
+    if not current_user.is_superuser:
+        stmt = stmt.where(ImportTask.user_id == current_user.id)
+        
+    result = await db.execute(stmt)
+    tasks = result.scalars().all()
+    
+    count = 0
+    for task in tasks:
+        task.status = ImportTaskStatus.PENDING
+        task.error_message = None
+        task.updated_at = datetime.utcnow()
+        count += 1
+        
+    await db.commit()
+    
+    return {"message": f"Reset {count} tasks to pending state", "count": count}
+
+@router.get("/{task_id}", response_model=dict)
+async def get_import_task_status(
+    *,
+    db: deps.SessionDep,
+    task_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get status of an import task.
+    """
+    stmt = select(ImportTask).where(ImportTask.id == task_id)
+    result = await db.execute(stmt)
+    task = result.scalar_one_or_none()
+    
+    if not task:
+        raise ApiError(404, ErrorCode.IMPORT_TASK_NOT_FOUND, "Task not found")
+        
+    if task.user_id != current_user.id and not current_user.is_superuser:
+        raise ApiError(403, ErrorCode.IMPORT_TASK_FORBIDDEN, "Not enough permissions")
+        
+    return {
+        "id": task.id,
+        "original_filename": task.original_filename,
+        "status": task.status,
+        "error_message": task.error_message,
+        "result_summary": task.result_summary,
+        "created_at": task.created_at,
+        "description": task.description,
+        "source": task.source
+    }
+
+@router.post("/{task_id}/cancel", response_model=dict)
+async def cancel_import_task(
+    *,
+    db: deps.SessionDep,
+    task_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Cancel an import task.
+    """
+    stmt = select(ImportTask).where(ImportTask.id == task_id)
+    result = await db.execute(stmt)
+    task = result.scalar_one_or_none()
+    
+    if not task:
+        raise ApiError(404, ErrorCode.IMPORT_TASK_NOT_FOUND, "Task not found")
+        
+    if task.user_id != current_user.id and not current_user.is_superuser:
+        raise ApiError(403, ErrorCode.IMPORT_TASK_FORBIDDEN, "Not enough permissions")
+        
+    if task.status in [ImportTaskStatus.COMPLETED, ImportTaskStatus.FAILED, ImportTaskStatus.CANCELLED]:
+        raise ApiError(400, ErrorCode.IMPORT_TASK_ALREADY_FINISHED, "Task already finished")
+        
+    # Update task status
+    task.status = ImportTaskStatus.CANCELLED
+    await db.commit()
+    
+    return {"message": "Task cancelled"}
+
+@router.post("/{task_id}/retry", response_model=dict)
+async def retry_import_task(
+    *,
+    db: deps.SessionDep,
+    task_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Retry a failed import task.
+    """
+    stmt = select(ImportTask).where(ImportTask.id == task_id)
+    result = await db.execute(stmt)
+    task = result.scalar_one_or_none()
+    
+    if not task:
+        raise ApiError(404, ErrorCode.IMPORT_TASK_NOT_FOUND, "Task not found")
+        
+    if task.user_id != current_user.id and not current_user.is_superuser:
+        raise ApiError(403, ErrorCode.IMPORT_TASK_FORBIDDEN, "Not enough permissions")
+        
+    # Check if retry is allowed
+    can_retry = False
+    if task.status in [ImportTaskStatus.FAILED, ImportTaskStatus.CANCELLED]:
+        can_retry = True
+    elif task.status == ImportTaskStatus.COMPLETED:
+        # Allow retry if 0 questions were extracted
+        try:
+            if task.result_summary:
+                summary = json.loads(task.result_summary)
+                if summary.get("count", 0) == 0:
+                    can_retry = True
+        except Exception:
+            pass
+
+    if not can_retry:
+        raise ApiError(
+            400,
+            ErrorCode.IMPORT_TASK_NOT_RETRYABLE,
+            "Only failed, cancelled, or empty completed tasks can be retried",
+        )
+        
+    # Reset task status
+    task.status = ImportTaskStatus.PENDING
+    task.error_message = None
+    task.result_summary = None
+    task.created_at = datetime.utcnow() # Update timestamp to move to top of queue? Or keep original? Maybe update created_at so it looks new.
+    
+    await db.commit()
+    
+    return {"message": "Task queued for retry"}
+
+@router.delete("/{task_id}", response_model=dict)
+async def delete_import_task(
+    *,
+    db: deps.SessionDep,
+    task_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Delete an import task.
+    """
+    stmt = select(ImportTask).where(ImportTask.id == task_id)
+    result = await db.execute(stmt)
+    task = result.scalar_one_or_none()
+    
+    if not task:
+        raise ApiError(404, ErrorCode.IMPORT_TASK_NOT_FOUND, "Task not found")
+        
+    if task.user_id != current_user.id and not current_user.is_superuser:
+        raise ApiError(403, ErrorCode.IMPORT_TASK_FORBIDDEN, "Not enough permissions")
+        
+    # Delete file if exists
+    source = import_source_file(task.file_path)
+    if source is not None:
+        try:
+            source.unlink()
+        except OSError as e:
+            logger.warning("Error deleting import source %s: %s", source, e)
+        
+    await db.delete(task)
+    await db.commit()
+    
+    return {"message": "Task deleted"}
+
+
+_SOURCE_MEDIA_TYPES = {
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".md": "text/markdown; charset=utf-8",
+    ".zip": "application/zip",
+}
+
+
+async def _can_view_import_source(db, task: ImportTask, user: models.User) -> bool:
+    if user.is_superuser or task.user_id == user.id:
+        return True
+    # 能看到该任务导入的任一道题,即可对照原卷。
+    rows = await db.scalars(
+        select(Question)
+        .where(Question.import_task_id == task.id, Question.deleted_at.is_(None))
+        .limit(500)
+    )
+    return any(
+        is_question_visible(question, user)
+        and permissions.can(user, Permission.VIEW_QUESTION, subject_id=question.subject_id)
+        for question in rows.all()
+    )
+
+
+@router.get("/{task_id}/source")
+async def download_import_source(
+    *,
+    db: deps.SessionDep,
+    task_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> FileResponse:
+    task = await db.get(ImportTask, task_id)
+    if task is None or not await _can_view_import_source(db, task, current_user):
+        raise ApiError(404, ErrorCode.IMPORT_TASK_NOT_FOUND, "Task not found")
+    source = task_source_file(task.file_path, task.source_sha256)
+    if source is None:
+        raise ApiError(404, ErrorCode.IMPORT_TASK_SOURCE_UNAVAILABLE, "Source file not available")
+    filename = Path(task.original_filename or source.name).name
+    return FileResponse(
+        source,
+        media_type=_SOURCE_MEDIA_TYPES.get(Path(filename).suffix.lower(), "application/octet-stream"),
+        filename=filename,
+        headers={"X-Content-Type-Options": "nosniff"},
+    )

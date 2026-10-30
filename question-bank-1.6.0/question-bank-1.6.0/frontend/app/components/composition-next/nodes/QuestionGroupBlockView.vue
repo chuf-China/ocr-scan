@@ -1,0 +1,314 @@
+<script setup lang="ts">
+import { computed, inject, ref } from 'vue'
+import { NodeViewWrapper } from '@tiptap/vue-3'
+import { Files, ListPlus, Loader2, Plus, Trash2 } from '@lucide/vue'
+import RichContent from '@/components/rich-editor/RichContent.vue'
+import RichEditor from '@/components/rich-editor/RichEditor.vue'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import QuestionBlockView from './QuestionBlockView.vue'
+import {
+  createAnswerSpaceNode,
+  createRichTextNode,
+  generateNodeId,
+  mergeQuestionsIntoGroupNode,
+  removeQuestionFromGroupNode,
+} from '@/lib/compositionDocument'
+import type { EditorNode } from '@/lib/compositionDocument'
+import { clampAnswerSpaceLines, resolveAnswerSpacePropsOrFallback } from '@/lib/answerSpaceRules'
+import { richDocToPlainText } from '@/components/rich-editor/richDoc'
+import {
+  ANSWER_SPACE_RULES_KEY,
+  FALLBACK_ANSWER_SPACE_RULES,
+  STIMULUS_QUESTIONS_KEY,
+  noStimulusQuestions,
+} from '../editorContext'
+import type { Question, RichDoc, RichDocNode } from '@/types'
+
+const props = defineProps<{
+  node: { attrs: Record<string, unknown> }
+  updateAttributes: (attrs: Record<string, unknown>) => void
+  deleteNode: () => void
+  selected?: boolean
+}>()
+
+const { t } = useI18n()
+const answerSpaceRules = inject(ANSWER_SPACE_RULES_KEY, FALLBACK_ANSWER_SPACE_RULES)
+const loadStimulusQuestions = inject(STIMULUS_QUESTIONS_KEY, noStimulusQuestions)
+
+const children = computed(() => (props.node.attrs.children as EditorNode[] | null) ?? [])
+const stimulus = computed(() => (props.node.attrs.stimulus as RichDocNode | null) ?? null)
+const questionCount = computed(() => children.value.filter(child => child.nodeType === 'question').length)
+
+function asGroupNode(): EditorNode {
+  return { children: children.value } as EditorNode
+}
+
+// 至少保留一道小题；要去掉整道材料题请删除整个节点。
+function removeQuestion(questionNodeId: string) {
+  if (questionCount.value <= 1) return
+  props.updateAttributes({ children: removeQuestionFromGroupNode(asGroupNode(), questionNodeId).children })
+}
+
+const candidates = ref<Question[]>([])
+const candidatesLoading = ref(false)
+const candidatePositions = ref(new Map<number, number>())
+async function loadCandidates(open: boolean) {
+  if (!open) return
+  const stimulusId = props.node.attrs.stimulusId as number | null
+  if (stimulusId == null) return
+  candidatesLoading.value = true
+  try {
+    const live = await loadStimulusQuestions(stimulusId)
+    const present = new Set(children.value.map(child => child.questionId))
+    candidatePositions.value = new Map(live.map(q => [q.id, q.stimulus_position ?? 0]))
+    candidates.value = live.filter(q => !present.has(q.id))
+  } finally {
+    candidatesLoading.value = false
+  }
+}
+
+function addQuestion(question: Question) {
+  const { node } = mergeQuestionsIntoGroupNode(asGroupNode(), [question], candidatePositions.value)
+  props.updateAttributes({ children: node.children })
+}
+
+function preview(question: Question): string {
+  const text = richDocToPlainText(question.content)
+  return text.length > 40 ? `${text.slice(0, 40)}…` : text
+}
+
+function replaceChild(index: number, child: EditorNode) {
+  const next = children.value.slice()
+  next[index] = child
+  props.updateAttributes({ children: next })
+}
+
+function removeChild(index: number) {
+  props.updateAttributes({ children: children.value.filter((_, childIndex) => childIndex !== index) })
+}
+
+function updateQuestion(index: number, attrs: Record<string, unknown>) {
+  const child = children.value[index]!
+  replaceChild(index, { ...child, props: (attrs.props as EditorNode['props']) ?? child.props })
+}
+
+function hasAnswerSpace(index: number) {
+  const question = children.value[index]
+  const next = children.value[index + 1]
+  return question?.nodeType === 'question'
+    && next?.nodeType === 'answer_space'
+    && next.sourceQuestionNodeId === question.id
+}
+
+function addAnswerSpace(afterIndex: number) {
+  const question = children.value[afterIndex]
+  if (!question || question.nodeType !== 'question' || hasAnswerSpace(afterIndex)) return
+  const derived = resolveAnswerSpacePropsOrFallback(
+    question.questionContent?.q_type,
+    (question.props as { score?: number } | null)?.score,
+    answerSpaceRules.value,
+  )
+  const answerSpace = createAnswerSpaceNode(derived.lines, derived.style)
+  answerSpace.id = generateNodeId()
+  answerSpace.sourceQuestionNodeId = question.id
+  const next = children.value.slice()
+  next.splice(afterIndex + 1, 0, answerSpace)
+  props.updateAttributes({ children: next })
+}
+
+/** 拖拽底边调整作答区高度：每 LINE_PX 像素折算一行，与画布行高近似。 */
+const LINE_PX = 28
+function startResize(event: PointerEvent, index: number) {
+  const child = children.value[index]
+  if (!child) return
+  const startY = event.clientY
+  const startLines = ((child.props as { lines?: number } | null)?.lines) ?? 3
+  const target = event.currentTarget as HTMLElement
+  target.setPointerCapture(event.pointerId)
+
+  const onMove = (move: PointerEvent) => {
+    const delta = Math.round((move.clientY - startY) / LINE_PX)
+    const lines = clampAnswerSpaceLines(startLines + delta)
+    if (lines !== ((children.value[index]?.props as { lines?: number } | null)?.lines)) {
+      patchAnswerSpace(index, { lines })
+    }
+  }
+  const onUp = () => {
+    target.releasePointerCapture(event.pointerId)
+    target.removeEventListener('pointermove', onMove)
+    target.removeEventListener('pointerup', onUp)
+  }
+  target.addEventListener('pointermove', onMove)
+  target.addEventListener('pointerup', onUp)
+}
+
+/** 锚定到其后的小题：该小题被移出题组时，说明文字顺延到下一道题而非被丢弃。 */
+function insertCustomBefore(index: number, anchorId: string | null) {
+  const custom = createRichTextNode()
+  custom.anchorBeforeNodeId = anchorId
+  const next = children.value.slice()
+  next.splice(index, 0, custom)
+  props.updateAttributes({ children: next })
+}
+
+function patchCustomContent(index: number, content: RichDoc) {
+  const child = children.value[index]!
+  replaceChild(index, { ...child, content: content ?? null })
+}
+
+function patchAnswerSpace(index: number, patch: { lines?: number; style?: 'blank' | 'lined' }) {
+  const child = children.value[index]!
+  const lines = patch.lines == null ? undefined : Math.min(50, Math.max(1, patch.lines))
+  replaceChild(index, {
+    ...child,
+    props: { ...(child.props as object), ...patch, ...(lines == null ? {} : { lines }) },
+  })
+}
+</script>
+
+<template>
+  <NodeViewWrapper
+    data-composition-block
+    class="group relative -mx-3 my-3 border-y bg-muted/20 px-3 py-4"
+    :class="selected ? 'border-primary/50' : 'border-border'"
+    contenteditable="false"
+  >
+    <div class="mb-3 flex items-center gap-2">
+      <Files class="size-4 text-muted-foreground" />
+      <span class="text-sm font-medium">{{ t('compositionNodes.questionGroup', { id: node.attrs.stimulusId }) }}</span>
+      <Badge v-if="node.attrs.stimulusRevision != null" variant="secondary" class="text-[11px]">{{ t('compositionNodes.stimulusRevision', { revision: node.attrs.stimulusRevision }) }}</Badge>
+      <DropdownMenu @update:open="loadCandidates">
+        <DropdownMenuTrigger as-child>
+          <Button class="ml-auto h-7 text-xs" variant="ghost" size="sm" :title="t('compositionNodes.group.addQuestionTitle')">
+            <ListPlus class="mr-1 size-3.5" />{{ t('compositionNodes.group.addQuestion') }}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" class="w-80">
+          <DropdownMenuLabel class="text-xs text-muted-foreground">{{ t('compositionNodes.group.addQuestionHint') }}</DropdownMenuLabel>
+          <div v-if="candidatesLoading" class="flex justify-center py-4"><Loader2 class="size-4 animate-spin" /></div>
+          <p v-else-if="candidates.length === 0" class="px-2 py-3 text-xs text-muted-foreground">{{ t('compositionNodes.group.noCandidates') }}</p>
+          <DropdownMenuItem v-for="question in candidates" :key="question.id" @click="addQuestion(question)">
+            <span class="truncate text-xs">#{{ question.id }} {{ preview(question) }}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button class="size-7" variant="ghost" size="icon" :title="t('compositionNodes.group.delete')" :aria-label="t('compositionNodes.group.delete')" @click="deleteNode">
+        <Trash2 class="size-4 text-destructive" />
+      </Button>
+    </div>
+
+    <div class="mb-4 border-l-2 border-primary/30 pl-4">
+      <RichContent :content="stimulus" :empty-text="t('compositionNodes.emptyStimulus')" />
+    </div>
+
+    <div class="space-y-2">
+      <template v-for="(child, index) in children" :key="child.id">
+        <div v-if="child.nodeType === 'question'">
+          <div class="flex justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              class="h-6 text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+              @click="insertCustomBefore(index, child.id)"
+            >
+              <Plus class="mr-1 size-3.5" />{{ t('compositionNodes.group.instruction') }}
+            </Button>
+          </div>
+          <QuestionBlockView
+            :node="{ attrs: { uid: child.id, questionId: child.questionId, questionRevision: child.questionRevision, snapshot: child.questionContent, props: child.props } }"
+            :update-attributes="attrs => updateQuestion(index, attrs)"
+            :delete-node="() => removeQuestion(child.id)"
+            :deletable="questionCount > 1"
+            :syncable="false"
+          />
+          <Button
+            v-if="!hasAnswerSpace(index)"
+            variant="ghost"
+            size="sm"
+            class="ml-3 h-7 text-xs text-muted-foreground"
+            @click="addAnswerSpace(index)"
+          >
+            <Plus class="mr-1 size-3.5" />{{ t('compositionNodes.group.answerArea') }}
+          </Button>
+        </div>
+        <div
+          v-else-if="child.nodeType === 'rich_text' || child.nodeType === 'heading'"
+          class="flex items-start gap-2"
+          @mousedown.stop
+          @keydown.stop
+        >
+          <RichEditor
+            class="min-w-0 flex-1"
+            :model-value="child.content"
+            :placeholder="t('compositionNodes.group.instructionPlaceholder')"
+            @update:model-value="patchCustomContent(index, $event)"
+          />
+          <Button variant="ghost" size="icon" class="size-7 shrink-0" :title="t('compositionNodes.group.deleteInstruction')" :aria-label="t('compositionNodes.group.deleteInstruction')" @click="removeChild(index)">
+            <Trash2 class="size-3.5" />
+          </Button>
+        </div>
+        <div v-else-if="child.nodeType === 'answer_space'" class="ml-3 border-l pl-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-muted-foreground">{{ t('compositionNodes.group.answerArea') }}</span>
+            <input
+              type="number" min="1" max="50"
+              class="h-7 w-16 rounded border bg-background px-2 text-xs"
+              :value="(child.props as any)?.lines ?? 3"
+              @input="patchAnswerSpace(index, { lines: Number(($event.target as HTMLInputElement).value) || 1 })"
+            >
+            <select
+              class="h-7 rounded border bg-background px-2 text-xs"
+              :value="(child.props as any)?.style ?? 'blank'"
+              @change="patchAnswerSpace(index, { style: ($event.target as HTMLSelectElement).value as 'blank' | 'lined' })"
+            >
+              <option value="blank">{{ t('compositionNodes.group.styleBlank') }}</option>
+              <option value="lined">{{ t('compositionNodes.group.styleLined') }}</option>
+            </select>
+            <Button variant="ghost" size="icon" class="size-7" :title="t('compositionNodes.group.deleteAnswerArea')" :aria-label="t('compositionNodes.group.deleteAnswerArea')" @click="removeChild(index)">
+              <Trash2 class="size-3.5" />
+            </Button>
+          </div>
+          <!-- 所见即所得的高度预览；底边可拖拽调整行数 -->
+          <div
+            class="relative mt-1 rounded-sm bg-background/60"
+            :style="{ height: `${((child.props as any)?.lines ?? 3) * 28}px` }"
+          >
+            <div
+              v-if="(child.props as any)?.style === 'lined'"
+              class="absolute inset-0"
+              :style="{
+                backgroundImage: 'repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--color-border) 27px, var(--color-border) 28px)',
+              }"
+            />
+            <div
+              class="absolute inset-x-0 -bottom-1 h-2 cursor-ns-resize"
+              role="separator"
+              :aria-label="t('compositionNodes.group.resizeAnswerArea')"
+              @pointerdown.prevent.stop="startResize($event, index)"
+            >
+              <div class="mx-auto h-1 w-10 rounded-full bg-border opacity-0 transition-opacity group-hover:opacity-100" />
+            </div>
+          </div>
+        </div>
+      </template>
+      <div class="flex justify-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-6 text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+          @click="insertCustomBefore(children.length, null)"
+        >
+          <Plus class="mr-1 size-3.5" />{{ t('compositionNodes.group.instruction') }}
+        </Button>
+      </div>
+    </div>
+  </NodeViewWrapper>
+</template>

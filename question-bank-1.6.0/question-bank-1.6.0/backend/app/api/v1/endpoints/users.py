@@ -1,0 +1,251 @@
+from typing import Any, List, Optional
+
+from fastapi import APIRouter, Body, Depends, UploadFile, File
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import StreamingResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api import deps
+from app.crud import crud_user
+from app.core import permissions as perm
+from app.schemas.user import (
+    User,
+    UserCreate,
+    UserUpdate,
+    UserUpdatePassword,
+    UserUpdateLastSubject,
+    UserImportResult,
+)
+from app.schemas.subject_member import MyPermissions, SubjectMembershipMini
+from app.core import security
+from app.models.user import User as UserModel
+from app.services import setup_state, user_import_service
+from app.core.api_errors import ApiError, ErrorCode
+
+router = APIRouter()
+
+
+async def _ensure_not_last_active_superuser(
+    session: AsyncSession,
+    target: UserModel,
+    *,
+    removing: bool,
+    user_in: Optional[UserUpdate] = None,
+) -> None:
+    """Reject changes that would leave the system without an active superuser,
+    which would otherwise reopen the first-admin setup wizard."""
+    if not (target.is_superuser and target.is_active):
+        return
+    if not removing:
+        demoted = user_in is not None and user_in.is_superuser is False
+        deactivated = user_in is not None and user_in.is_active is False
+        if not (demoted or deactivated):
+            return
+    if await setup_state.count_active_superusers(session) <= 1:
+        raise ApiError(400, ErrorCode.USER_LAST_SUPERUSER, "Cannot remove, demote or deactivate the last active superuser")
+
+
+MAX_IMPORT_SIZE = 5 * 1024 * 1024  # 5 MB
+
+@router.get("", response_model=List[User])
+async def read_users(
+    session: deps.SessionDep,
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Retrieve users.
+    """
+    users = await crud_user.user.get_multi(session, skip=skip, limit=limit)
+    return users
+
+@router.post("", response_model=User)
+async def create_user(
+    *,
+    session: deps.SessionDep,
+    user_in: UserCreate,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Create new user.
+    """
+    user = await crud_user.user.get_by_username(session, username=user_in.username)
+    if user:
+        raise ApiError(400, ErrorCode.AUTH_USERNAME_TAKEN, "The user with this username already exists in the system.")
+    user = await crud_user.user.create(session, obj_in=user_in)
+    return user
+
+@router.get("/import-template")
+async def download_import_template(
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """Download the .xlsx user import template."""
+    content = user_import_service.generate_template()
+    return StreamingResponse(
+        iter([content]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": 'attachment; filename="users_template.xlsx"'
+        },
+    )
+
+@router.post("/import", response_model=UserImportResult)
+async def import_users(
+    *,
+    session: deps.SessionDep,
+    file: UploadFile = File(...),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """Batch import users from an .xlsx file."""
+    if not file.filename or not file.filename.lower().endswith(".xlsx"):
+        raise ApiError(400, ErrorCode.COMMON_XLSX_ONLY, "仅支持 .xlsx 格式的文件")
+
+    content = await file.read()
+    if len(content) > MAX_IMPORT_SIZE:
+        raise ApiError(400, ErrorCode.COMMON_IMPORT_FILE_TOO_LARGE, "文件过大，请确保文件小于 5MB")
+
+    return await user_import_service.import_excel(session, file_bytes=content)
+
+@router.get("/me", response_model=User)
+async def read_user_me(
+    session: deps.SessionDep,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get current user.
+    """
+    return current_user
+
+@router.get("/me/permissions", response_model=MyPermissions)
+async def read_my_permissions(
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """前端权限判定的单一真源:每学科角色 + 生效能力集。"""
+    memberships = [
+        SubjectMembershipMini(subject_id=m.subject_id, role=m.role)
+        for m in current_user.subject_memberships
+    ]
+    capabilities = {
+        str(m.subject_id): [
+            c.value for c in perm.permissions_for(current_user, subject_id=m.subject_id)
+        ]
+        for m in current_user.subject_memberships
+    }
+    acc = perm.accessible_subject_ids(current_user)
+    return MyPermissions(
+        is_superuser=bool(current_user.is_superuser),
+        accessible_subject_ids=(None if acc is None else sorted(acc)),
+        memberships=memberships,
+        capabilities=capabilities,
+    )
+
+@router.put("/me", response_model=User)
+async def update_user_me(
+    *,
+    session: deps.SessionDep,
+    user_in: UserUpdate,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update own user.
+    """
+    if user_in.password:
+        # Prevent password update via this endpoint if needed, or handle it.
+        # The schema UserUpdate allows password.
+        # But we have a specific endpoint for password update.
+        # Let's allow it here too for consistency, or maybe restrict it.
+        # Given the schema, it's allowed.
+        pass
+
+    await _ensure_not_last_active_superuser(session, current_user, removing=False, user_in=user_in)
+    user = await crud_user.user.update(session, db_obj=current_user, obj_in=user_in)
+    return user
+
+@router.put("/me/last-subject", response_model=User)
+async def update_last_subject_me(
+    *,
+    session: deps.SessionDep,
+    body: UserUpdateLastSubject,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Persist the current user's last active (working) subject.
+    """
+    user_in = UserUpdate(last_active_subject_id=body.subject_id)
+    user = await crud_user.user.update(session, db_obj=current_user, obj_in=user_in)
+    return user
+
+@router.post("/me/password", response_model=User)
+async def update_password_me(
+    *,
+    session: deps.SessionDep,
+    body: UserUpdatePassword,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update own password.
+    """
+    if not security.verify_password(body.current_password, current_user.hashed_password):
+        raise ApiError(400, ErrorCode.USER_INCORRECT_PASSWORD, "Incorrect password")
+    if body.current_password == body.new_password:
+        raise ApiError(400, ErrorCode.USER_PASSWORD_UNCHANGED, "New password cannot be the same as the current one")
+    
+    user_in = UserUpdate(password=body.new_password)
+    user = await crud_user.user.update(session, db_obj=current_user, obj_in=user_in)
+    return user
+
+@router.get("/{user_id}", response_model=User)
+async def read_user_by_id(
+    user_id: int,
+    session: deps.SessionDep,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    user = await crud_user.user.get(session, id=user_id)
+    if user == current_user:
+        return user
+    if not current_user.is_superuser:
+        raise ApiError(400, ErrorCode.AUTH_FORBIDDEN, "The user doesn't have enough privileges")
+    return user
+
+@router.put("/{user_id}", response_model=User)
+async def update_user(
+    *,
+    session: deps.SessionDep,
+    user_id: int,
+    user_in: UserUpdate,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Update a user.
+    """
+    user = await crud_user.user.get(session, id=user_id)
+    if not user:
+        raise ApiError(404, ErrorCode.AUTH_USER_NOT_FOUND, "The user with this username does not exist in the system")
+    if user_in.username and user_in.username != user.username:
+        existing_user = await crud_user.user.get_by_username(session, username=user_in.username)
+        if existing_user:
+            raise ApiError(400, ErrorCode.AUTH_USERNAME_TAKEN, "The user with this username already exists in the system.")
+    await _ensure_not_last_active_superuser(session, user, removing=False, user_in=user_in)
+    user = await crud_user.user.update(session, db_obj=user, obj_in=user_in)
+    return user
+
+@router.delete("/{user_id}", response_model=User)
+async def delete_user(
+    *,
+    session: deps.SessionDep,
+    user_id: int,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Delete a user.
+    """
+    user = await crud_user.user.get(session, id=user_id)
+    if not user:
+        raise ApiError(404, ErrorCode.AUTH_USER_NOT_FOUND, "The user with this username does not exist in the system")
+    await _ensure_not_last_active_superuser(session, user, removing=True)
+    user = await crud_user.user.remove(session, id=user_id)
+    return user

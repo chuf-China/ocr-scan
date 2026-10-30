@@ -1,0 +1,398 @@
+export type {
+  RichDoc,
+  RichDocNode,
+  RichNode,
+  RichMark,
+} from './richContent'
+export type {
+  QuestionType,
+  QuestionStatus,
+  OptionSpec,
+  AnswerSpec,
+  SingleChoiceAnswer,
+  MultipleChoiceAnswer,
+  TrueFalseAnswer,
+  FillBlankAnswer,
+  FreeResponseAnswer,
+  MatchingSlot,
+  OptionMatchingAnswer,
+  LegacyUnresolvedAnswer,
+  Blank,
+} from './question'
+export type {
+  CompositionScope,
+  CompositionStatus,
+  CompositionFolder,
+  Composition,
+  FolderCreatePayload,
+  FolderUpdatePayload,
+  CompositionCreatePayload,
+  CompositionMetaUpdatePayload,
+  CompositionFolderNode,
+  CompositionNodeKind,
+  CompositionNodeType,
+  HeadingLevel,
+  HeadingProps,
+  AnswerFieldKey,
+  DetailScope,
+  QuestionDetailsProps,
+  AnswerItemOverride,
+  AnswerItemProps,
+  QuestionContentSnapshot,
+  RichTextNode,
+  HeadingNode,
+  QuestionNode,
+  QuestionGroupNode,
+  PageBreakNode,
+  AnswerSpaceNode,
+  AnswerSpaceProps,
+  AnswerSpaceStyle,
+  QuestionDetailsNode,
+  AnswerItemNode,
+  CompositionNode,
+  CompositionDetail,
+  CompositionNodeInput,
+  CompositionNodesReplaceRequest,
+  CompositionNodesReplaceResponse,
+  QuestionRevisionStatus,
+  CompositionQuestionNodesSyncRequest,
+  CompositionQuestionNodesSyncResponse,
+  QuestionGroupMemberRevisionStatus,
+  QuestionGroupRevisionStatus,
+  CompositionQuestionGroupNodesSyncRequest,
+  CompositionQuestionGroupNodesSyncResponse,
+  CompositionVersionCreatePayload,
+  CompositionVersionSummary,
+  CompositionVersionDetail,
+  CompositionExportFormat,
+  CompositionExportPayload,
+  CompositionSnapshotV2,
+  CompositionSnapshotV3,
+  CompositionSnapshot,
+  QuestionSnapshot,
+  SnapshotNode,
+  SnapshotRichTextNode,
+  SnapshotHeadingNode,
+  SnapshotQuestionNode,
+  SnapshotQuestionGroupNode,
+  SnapshotPageBreakNode,
+  SnapshotAnswerSpaceNode,
+  SnapshotQuestionDetailsNode,
+  SnapshotAnswerItemNode,
+  CompositionEventType,
+  CompositionEventActor,
+  CompositionEvent,
+  CompositionEventPage,
+} from './composition'
+export {
+  ANSWER_FIELD_KEYS,
+  BODY_SLOT,
+} from './composition'
+
+import type { RichDoc } from './richContent'
+import type {
+  QuestionType,
+  QuestionStatus,
+  OptionSpec,
+  AnswerSpec,
+} from './question'
+
+export interface Subject {
+  id: number
+  name: string
+  slug: string
+  description?: string
+  required_review_count: number
+  created_at: string
+}
+
+export interface SubjectCreate {
+  name: string
+  slug: string
+  description?: string
+  required_review_count?: number
+}
+
+export interface KnowledgePoint {
+  id: number
+  name: string
+  slug: string
+  subject_id: number
+  parent_id?: number
+}
+
+export interface VectorStatus {
+  embedding_configured: boolean
+  db_count: number
+  vector_count: number
+  needs_reindex: boolean
+  reason: string
+  reason_code: 'not_configured' | 'out_of_sync' | 'up_to_date'
+  count: number
+}
+
+export interface ReindexResult {
+  status: string
+  reindexed: number
+  duration: number
+}
+
+export interface KPImportRowError {
+  row: number
+  message: string
+}
+
+export interface KPImportResult {
+  status: 'success' | 'partial' | 'failed'
+  subject_name?: string
+  mode: string
+  created: number
+  skipped: number
+  failed: number
+  total: number
+  duration: number
+  vector_synced: boolean
+  errors: KPImportRowError[]
+}
+
+export interface KPImportPreflight {
+  subject_id: number
+  subject_name: string
+  existing_count: number
+  affected_questions: number
+}
+
+export interface UserImportRowError {
+  row: number
+  message: string
+}
+
+export interface UserImportResult {
+  status: 'success' | 'partial' | 'failed'
+  created: number
+  failed: number
+  total: number
+  errors: UserImportRowError[]
+}
+
+export interface TagImportRowError {
+  row: number
+  message: string
+}
+
+export interface TagImportResult {
+  status: 'success' | 'failed'
+  created: number
+  failed: number
+  skipped: number
+  total: number
+  errors: TagImportRowError[]
+}
+
+export interface Tag {
+  id: number
+  name: string
+  category_id: number | null
+  color: string
+  subject_id: number
+}
+
+export interface TagCategory {
+  id: number
+  name: string
+  sort_order: number
+  is_active: boolean
+}
+
+export interface TagPage {
+  items: Tag[]
+  total: number
+  page: number
+  size: number
+  pages: number
+}
+
+export interface ActivityLog {
+  id: number
+  user_id?: number
+  action: string
+  resource_type?: string
+  resource_id?: number
+  details?: any
+  created_at: string
+  user?: User
+}
+
+export interface ImportTask {
+  id: number
+  description?: string
+  source: string
+  has_source: boolean
+  original_filename: string
+  file_type: string
+  mode: string
+  status: string
+  error_message?: string
+  created_at: string
+}
+
+export interface Question {
+  id: number
+  content_revision: number
+  content_schema_version: number
+  content: RichDoc
+  options?: OptionSpec[] | null
+  answer?: AnswerSpec | null
+  thinking?: RichDoc
+  analysis?: RichDoc
+  summary?: RichDoc
+  q_type: QuestionType
+  status: QuestionStatus
+  difficulty: number
+  visibility: 'public' | 'private'
+  knowledge_points: KnowledgePoint[]
+  tags: Tag[]
+  created_at: string
+  updated_at: string
+  import_task_id?: number
+  import_task?: ImportTask
+  subject_id?: number
+  review_count: number
+  source?: string
+  creator?: User
+  updater?: User
+  review_logs?: ActivityLog[]
+  subject?: Subject
+  stimulus_id?: number | null
+  stimulus_position?: number | null
+  incoming_relation_count?: number
+  outgoing_relation_count?: number
+}
+
+export interface QuestionListItem extends Question {
+  incoming_relation_count: number
+  outgoing_relation_count: number
+}
+
+export interface QuestionPage {
+  items: QuestionListItem[]
+  total: number
+  page: number
+  size: number
+  pages: number
+}
+
+export interface QuestionRelationPeer {
+  relation_id: number
+  relation_type: 'decomposed_from'
+  question: Pick<Question, 'id' | 'subject_id' | 'content' | 'q_type' | 'knowledge_points'>
+  created_at: string
+  created_by?: number
+}
+
+export interface QuestionRelations {
+  question_id: number
+  sources: QuestionRelationPeer[]
+  targets: QuestionRelationPeer[]
+}
+
+export interface StimulusListItem {
+  id: number
+  subject_id: number
+  content: RichDoc
+  status: QuestionStatus
+  visibility: 'public' | 'private'
+  source?: string | null
+  metadata: Record<string, unknown>
+  revision: number
+  content_revision: number
+  created_by?: number | null
+  updated_by?: number | null
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+  question_count: number
+  composition_count: number
+}
+
+export interface StimulusPage {
+  items: StimulusListItem[]
+  total: number
+  page: number
+  size: number
+  pages: number
+}
+
+export type Stimulus = Omit<StimulusListItem, 'question_count'>
+
+/** GET 材料详情:附带按 stimulus_position 排列、当前用户可见的小题。 */
+export interface StimulusDetail extends Stimulus {
+  questions: QuestionSummary[]
+  composition_count?: number
+}
+
+export interface StimulusQuestionsUpdateRequest {
+  expected_revision: number
+  question_ids: number[]
+}
+
+export interface StimulusCreateRequest {
+  content: RichDoc
+  status: QuestionStatus
+  visibility: 'public' | 'private'
+  source?: string | null
+}
+
+export interface StimulusUpdateRequest extends StimulusCreateRequest {
+  expected_revision: number
+}
+
+/** 材料题整体保存:无 id 的小题按 create 新建,有 id 的保留并可附带 update;顺序即小题顺序。 */
+export interface StimulusBundleRequest extends StimulusCreateRequest {
+  questions: Array<{ create: Record<string, unknown> } | { id: number, update?: Record<string, unknown> }>
+}
+
+export interface StimulusBundleUpdateRequest extends StimulusBundleRequest {
+  expected_revision: number
+}
+
+export interface QuestionSummary {
+  id: number
+  content: RichDoc
+  options?: OptionSpec[] | null
+  answer?: AnswerSpec | null
+  thinking?: RichDoc
+  analysis?: RichDoc
+  summary?: RichDoc
+  q_type: QuestionType
+  status: QuestionStatus
+  difficulty: number
+  visibility: 'public' | 'private'
+  source?: string | null
+  stimulus_id?: number | null
+  stimulus_position?: number | null
+  created_at: string
+  updated_at: string
+}
+
+
+export interface User {
+  id: number
+  username: string
+  full_name?: string
+  avatar_url?: string
+  is_active: boolean
+  is_superuser: boolean
+  last_active_subject_id?: number
+}
+
+export interface LoginRequest {
+  username: string
+  password: string
+}
+
+export interface UserUpdatePassword {
+  current_password: string
+  new_password: string
+}
+export type { SetupStatus } from './setup'

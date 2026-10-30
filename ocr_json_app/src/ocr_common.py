@@ -145,12 +145,20 @@ def ocr_png(host: str, model: str, png: bytes, prompt: str,
 def check_health(host: str, timeout: int = 10) -> None:
     try:
         with urllib.request.urlopen(f"{host}/health", timeout=timeout) as resp:
-            payload = json.load(resp)
+            body = resp.read()
     except Exception as exc:  # noqa: BLE001
         die(f"OCR 引擎未就绪（{host}）：{exc}\n"
             f"  启动：pwsh -NoProfile -File $HOME\\.dsh-llama\\start-ocr-server.ps1 -Ctx 16384",
             2)
-    if str(payload.get("status", "")).lower() not in ("ok", "ready"):
+    # 这个探测只回答「引擎在不在」，不回答「模型好不好」。llama-server 的 /health 返回
+    # {"status":"ok"}，而 vLLM（例如用 OXR-1.0 当识别后端时）的 /health 是**空 200**——
+    # 早先直接 json.load() 会抛 JSONDecodeError，把可用的 vLLM 误判成未就绪。
+    try:
+        payload = json.loads(body or b"{}")
+    except ValueError:
+        payload = {}
+    status = str(payload.get("status", "")).lower()
+    if status and status not in ("ok", "ready"):
         print(f"[ocr] 警告：引擎 health 状态为 {payload.get('status')!r}", file=sys.stderr)
 
 

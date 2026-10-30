@@ -1,0 +1,311 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import type { AnswerSpec, OptionSpec, RichDoc } from '@/types'
+import { collectBlankIds, richDocToPlainText } from '@/components/rich-editor/richDoc'
+import {
+    createDefaultAnswer,
+    createDefaultOptions,
+    dbQuestionToDraft,
+    fillBlanksFromStem,
+    generateOptionId,
+    matchingSlotsFromStem,
+    pruneAnswerOptionRef,
+    validateQuestionDraft,
+    buildQuestionPayload,
+    createEmptyDraft,
+} from '@/lib/questionModel'
+import { answerToPlainText, matchingAnswerEntries, optionLabelsForAnswer } from '@/lib/answerFormat'
+import { setTranslator } from '@/lib/locale'
+
+// 校验错误是界面文案（走 i18n）：测试里把 key 与参数原样拼出来，断言结构而不依赖具体语言。
+beforeAll(() => {
+    setTranslator((key, params) => (params ? `${key}(${Object.values(params).join('|')})` : key))
+})
+afterAll(() => {
+    setTranslator((key) => key)
+})
+
+function doc(text: string): RichDoc {
+    return { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] }
+}
+
+function stemWithBlanks(...ids: string[]): RichDoc {
+    return {
+        type: 'doc',
+        content: [
+            {
+                type: 'paragraph',
+                content: ids.map((id) => ({ type: 'blank', attrs: { blankId: id } })),
+            },
+        ],
+    }
+}
+
+describe('richDoc helpers', () => {
+    it('collectBlankIds 按出现顺序收集', () => {
+        expect(collectBlankIds(stemWithBlanks('b1', 'b2'))).toEqual(['b1', 'b2'])
+        expect(collectBlankIds(null)).toEqual([])
+        expect(collectBlankIds(doc('无空'))).toEqual([])
+    })
+
+    it('richDocToPlainText 抽纯文本，填空转下划线，公式取 latex', () => {
+        expect(richDocToPlainText(doc('你好'))).toBe('你好')
+        expect(richDocToPlainText(stemWithBlanks('b1'))).toBe('____')
+        expect(richDocToPlainText(null)).toBe('')
+        const math: RichDoc = {
+            type: 'doc',
+            content: [{ type: 'paragraph', content: [{ type: 'inlineMath', attrs: { latex: 'x^2' } }] }],
+        }
+        expect(richDocToPlainText(math)).toBe('x^2')
+    })
+})
+
+describe('option / answer defaults', () => {
+    it('generateOptionId 前缀 opt_ 且唯一', () => {
+        const a = generateOptionId()
+        const b = generateOptionId()
+        expect(a.startsWith('opt_')).toBe(true)
+        expect(a).not.toBe(b)
+    })
+
+    it('createDefaultOptions 生成 4 个带 id 的空选项', () => {
+        const opts = createDefaultOptions()
+        expect(opts).toHaveLength(4)
+        expect(opts.map((o) => o.label)).toEqual(['A', 'B', 'C', 'D'])
+        expect(new Set(opts.map((o) => o.id)).size).toBe(4)
+        expect(opts.every((o) => o.content === null)).toBe(true)
+    })
+
+    it('createDefaultAnswer 按题型给合法默认值', () => {
+        const opts = createDefaultOptions()
+        expect(createDefaultAnswer('single_choice', opts)).toEqual({ kind: 'single_choice', correct: opts[0].id })
+        expect(createDefaultAnswer('multiple_choice', opts)).toEqual({ kind: 'multiple_choice', correct: [] })
+        expect(createDefaultAnswer('true_false', opts)).toEqual({ kind: 'true_false', correct: true })
+        expect(createDefaultAnswer('free_response', opts)).toEqual({ kind: 'free_response', reference: null })
+        const fill = createDefaultAnswer('fill_in_the_blank', opts)
+        expect(fill.kind).toBe('fill_in_the_blank')
+    })
+})
+
+describe('fillBlanksFromStem', () => {
+    it('题干含 blank 节点时按其顺序同步，保留已有 accept', () => {
+        const prev = [
+            { id: 'b1', accept: [doc('答案1')] },
+            { id: 'bx', accept: [doc('旧的')] },
+        ]
+        const synced = fillBlanksFromStem(stemWithBlanks('b2', 'b1'), prev)
+        expect(synced.map((b) => b.id)).toEqual(['b2', 'b1'])
+        // b1 的 accept 被保留
+        expect(synced[1].accept).toEqual([doc('答案1')])
+        // 新增的 b2 得到空 accept
+        expect(synced[0].accept).toEqual([null])
+    })
+
+    it('题干无 blank 节点时保留原答案（迁移旧题）', () => {
+        const prev = [{ id: 'old', accept: [doc('a')] }]
+        expect(fillBlanksFromStem(doc('无空题干'), prev)).toBe(prev)
+        // 无 prev 时回退到一个空 blank
+        const fresh = fillBlanksFromStem(null)
+        expect(fresh).toHaveLength(1)
+        expect(fresh[0].accept).toEqual([null])
+    })
+})
+
+describe('pruneAnswerOptionRef', () => {
+    it('删除单选正确项后置空', () => {
+        const a: AnswerSpec = { kind: 'single_choice', correct: 'opt_x' }
+        expect(pruneAnswerOptionRef(a, 'opt_x')).toEqual({ kind: 'single_choice', correct: '' })
+    })
+    it('删除多选中的引用', () => {
+        const a: AnswerSpec = { kind: 'multiple_choice', correct: ['opt_x', 'opt_y'] }
+        expect(pruneAnswerOptionRef(a, 'opt_x')).toEqual({ kind: 'multiple_choice', correct: ['opt_y'] })
+    })
+})
+
+describe('answer formatter', () => {
+    const opts: OptionSpec[] = [
+        { id: 'opt_a', label: 'A', content: doc('甲') },
+        { id: 'opt_b', label: 'B', content: doc('乙') },
+    ]
+    it('optionLabelsForAnswer 映射 id → label', () => {
+        expect(optionLabelsForAnswer({ kind: 'single_choice', correct: 'opt_b' }, opts)).toEqual(['B'])
+        expect(optionLabelsForAnswer({ kind: 'multiple_choice', correct: ['opt_a', 'opt_b'] }, opts)).toEqual(['A', 'B'])
+    })
+    it('answerToPlainText 各题型', () => {
+        expect(answerToPlainText({ kind: 'single_choice', correct: 'opt_a' }, opts)).toBe('A')
+        expect(answerToPlainText({ kind: 'multiple_choice', correct: ['opt_a', 'opt_b'] }, opts)).toBe('A、B')
+        expect(answerToPlainText({ kind: 'true_false', correct: false }, opts)).toBe('错误')
+        expect(
+            answerToPlainText(
+                { kind: 'fill_in_the_blank', blanks: [{ id: 'b1', accept: [doc('x'), doc('y')] }] },
+                null,
+            ),
+        ).toBe('x / y')
+        expect(answerToPlainText({ kind: 'free_response', reference: doc('参考') }, null)).toBe('参考')
+        expect(answerToPlainText(null, null)).toBe('')
+    })
+})
+
+describe('validateQuestionDraft', () => {
+    it('题干为空报错', () => {
+        const d = createEmptyDraft()
+        expect(validateQuestionDraft(d)).toBe('questionModel.validation.contentRequired')
+    })
+
+    it('草稿允许答案为空或未完成', () => {
+        const d = createEmptyDraft()
+        d.content = doc('题干')
+        expect(d.answer).toBeNull()
+        expect(validateQuestionDraft(d)).toBeNull()
+        d.answer = { kind: 'single_choice', correct: '' }
+        expect(validateQuestionDraft(d)).toBeNull()
+    })
+
+    it('合法单选通过', () => {
+        const d = createEmptyDraft()
+        d.content = doc('题干')
+        // 默认 answer 已指向第一个选项
+        expect(validateQuestionDraft(d)).toBeNull()
+    })
+
+    it('pending 多选空集合报错', () => {
+        const d = createEmptyDraft()
+        d.content = doc('题干')
+        d.q_type = 'multiple_choice'
+        d.answer = { kind: 'multiple_choice', correct: [] }
+        d.status = 'pending'
+        expect(validateQuestionDraft(d)).toBe('questionModel.validation.selectAtLeastOne')
+    })
+
+    it('legacy_unresolved 被拒绝', () => {
+        const d = createEmptyDraft()
+        d.content = doc('题干')
+        d.q_type = 'free_response'
+        d.answer = { kind: 'legacy_unresolved', expected_kind: 'free_response', raw: doc('旧答案') }
+        expect(validateQuestionDraft(d)).toBe('questionModel.validation.legacyAnswer')
+    })
+
+    it('published 填空缺参考答案报错，且题干填空数量需匹配', () => {
+        const d = createEmptyDraft()
+        d.q_type = 'fill_in_the_blank'
+        d.content = stemWithBlanks('b1', 'b2')
+        d.answer = {
+            kind: 'fill_in_the_blank',
+            blanks: [
+                { id: 'b1', accept: [null] },
+                { id: 'b2', accept: [doc('x')] },
+            ],
+        }
+        d.status = 'published'
+        expect(validateQuestionDraft(d)).toBe('questionModel.validation.blankAcceptRequired(1)')
+
+        d.answer = {
+            kind: 'fill_in_the_blank',
+            blanks: [{ id: 'b1', accept: [doc('x')] }],
+        }
+        expect(validateQuestionDraft(d)).toBe('questionModel.validation.blankMismatch')
+    })
+})
+
+describe('dbQuestionToDraft + buildQuestionPayload', () => {
+    it('映射 DB 题目并生成对象 payload（不 stringify）', () => {
+        const draft = dbQuestionToDraft({
+            id: 7,
+            content: doc('题干'),
+            q_type: 'single_choice',
+            options: [
+                { id: 'opt_a', label: 'A', content: doc('甲') },
+                { id: 'opt_b', label: 'B', content: doc('乙') },
+            ],
+            answer: { kind: 'single_choice', correct: 'opt_a' },
+            thinking: doc('思路'),
+            knowledge_points: [{ id: 3, name: 'x', slug: 'x', subject_id: 1 }],
+            tags: [{ id: 5, name: 't', category_id: null, color: '#000', subject_id: 1 }],
+            subject_id: 1,
+            difficulty: 4,
+            status: 'published',
+        })
+        expect(draft.id).toBe(7)
+        expect(draft.thinking).toEqual(doc('思路'))
+        expect(draft.knowledge_point_ids).toEqual([3])
+        expect(draft.tag_ids).toEqual([5])
+        const payload = buildQuestionPayload(draft)
+        expect(payload.answer).toEqual({ kind: 'single_choice', correct: 'opt_a' })
+        expect(typeof payload.answer).toBe('object')
+        expect(Array.isArray(payload.options)).toBe(true)
+        // 非选择题时 options 为 null
+        draft.q_type = 'free_response'
+        expect(buildQuestionPayload(draft).options).toBeNull()
+        // 选项匹配保留共享选项池
+        draft.q_type = 'option_matching'
+        expect(buildQuestionPayload(draft).options).toHaveLength(2)
+    })
+})
+
+describe('option_matching', () => {
+    const pool: OptionSpec[] = ['A', 'B', 'C'].map((label) => ({
+        id: `opt_${label.toLowerCase()}`,
+        label,
+        content: doc(label),
+    }))
+
+    function matchingDraft(slots: { id: string; correct: string }[], allowReuse = false) {
+        const d = createEmptyDraft()
+        d.q_type = 'option_matching'
+        d.content = stemWithBlanks('b1', 'b2')
+        d.options = pool
+        d.answer = { kind: 'option_matching', slots, allow_reuse: allowReuse }
+        return d
+    }
+
+    it('默认答案按题干空位生成未选空位；缺选项时补默认选项', () => {
+        expect(createDefaultAnswer('option_matching', pool, stemWithBlanks('b1', 'b2'))).toEqual({
+            kind: 'option_matching',
+            slots: [{ id: 'b1', correct: '' }, { id: 'b2', correct: '' }],
+            allow_reuse: false,
+        })
+        expect(dbQuestionToDraft({ q_type: 'option_matching', content: doc('x') }).options).toHaveLength(4)
+    })
+
+    it('空位随题干同步并保留已选答案', () => {
+        expect(matchingSlotsFromStem(stemWithBlanks('b2', 'b3'), [{ id: 'b2', correct: 'opt_a' }])).toEqual([
+            { id: 'b2', correct: 'opt_a' },
+            { id: 'b3', correct: '' },
+        ])
+    })
+
+    it('重复选用需开启 allow_reuse；发布前每空必须作答', () => {
+        expect(validateQuestionDraft(matchingDraft([{ id: 'b1', correct: 'opt_a' }, { id: 'b2', correct: 'opt_a' }])))
+            .toBe('questionModel.validation.duplicateMatching')
+        expect(validateQuestionDraft(matchingDraft([{ id: 'b1', correct: 'opt_a' }, { id: 'b2', correct: 'opt_a' }], true)))
+            .toBeNull()
+        const pending = matchingDraft([{ id: 'b1', correct: 'opt_a' }, { id: 'b2', correct: '' }])
+        expect(validateQuestionDraft(pending)).toBeNull()
+        pending.status = 'pending'
+        expect(validateQuestionDraft(pending)).toBe('questionModel.validation.slotUnanswered(2)')
+    })
+
+    it('删除选项时清空引用它的空位', () => {
+        const answer: AnswerSpec = {
+            kind: 'option_matching',
+            slots: [{ id: 'b1', correct: 'opt_a' }, { id: 'b2', correct: 'opt_b' }],
+            allow_reuse: false,
+        }
+        expect(pruneAnswerOptionRef(answer, 'opt_a')).toEqual({
+            ...answer,
+            slots: [{ id: 'b1', correct: '' }, { id: 'b2', correct: 'opt_b' }],
+        })
+    })
+
+    it('答案纯文本按空位列出，可带稿件题号', () => {
+        const answer: AnswerSpec = {
+            kind: 'option_matching',
+            slots: [{ id: 'b1', correct: 'opt_c' }, { id: 'b2', correct: '' }],
+            allow_reuse: false,
+        }
+        expect(answerToPlainText(answer, pool)).toBe('1. C；2. ？')
+        expect(matchingAnswerEntries(answer, pool, { b1: '36' })).toEqual([
+            { number: '36', label: 'C' },
+            { number: '2', label: '' },
+        ])
+    })
+})

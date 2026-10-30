@@ -1,0 +1,351 @@
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
+from typing import Optional, List, Any, Dict, Literal, Annotated, Union
+from datetime import datetime
+from app.models.question import QuestionType, QuestionStatus, QuestionVisibility
+from app.services.question_content import (
+    normalize_options,
+    parse_json_field,
+    validate_question_domain,
+    validate_rich_doc,
+)
+from .tag import Tag
+from .knowledge_point import KnowledgePoint
+from .user import User
+from .activity_log import ActivityLog
+from .subject import Subject
+from .import_task import ImportTask
+
+
+# --------------------------------------------------------------------------- #
+# RichDoc:统一富文本原子。ORM 存 JSON 字符串 / API 传对象;before 校验统一解析并校验根节点。
+# --------------------------------------------------------------------------- #
+def _coerce_rich_doc(v: Any) -> Any:
+    return validate_rich_doc(parse_json_field(v))
+
+
+RichDoc = Annotated[Optional[Dict[str, Any]], BeforeValidator(_coerce_rich_doc)]
+
+
+# --------------------------------------------------------------------------- #
+# Option
+# --------------------------------------------------------------------------- #
+class Option(BaseModel):
+    id: str
+    label: str
+    content: RichDoc = None
+
+    @field_validator("id")
+    @classmethod
+    def _id_non_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("option id 不能为空")
+        return v
+
+
+# --------------------------------------------------------------------------- #
+# AnswerSpec 判别联合(见 PRD §6)
+# --------------------------------------------------------------------------- #
+class SingleChoiceAnswer(BaseModel):
+    kind: Literal["single_choice"]
+    correct: str
+
+
+class MultipleChoiceAnswer(BaseModel):
+    kind: Literal["multiple_choice"]
+    correct: List[str]
+    grading: Optional[Literal["all_or_nothing", "partial"]] = None
+
+
+class TrueFalseAnswer(BaseModel):
+    kind: Literal["true_false"]
+    correct: bool
+
+
+class Blank(BaseModel):
+    id: str
+    accept: List[RichDoc]
+    match: Optional[Literal["exact", "ignore_space", "ignore_case", "numeric"]] = None
+
+    @field_validator("id")
+    @classmethod
+    def _id_non_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("blank id 不能为空")
+        return v
+
+class FillBlankAnswer(BaseModel):
+    kind: Literal["fill_in_the_blank"]
+    blanks: List[Blank]
+
+
+class FreeResponseAnswer(BaseModel):
+    kind: Literal["free_response"]
+    reference: RichDoc = None
+
+
+class MatchingSlot(BaseModel):
+    id: str
+    correct: str = ""
+
+    @field_validator("id")
+    @classmethod
+    def _id_non_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("slot id 不能为空")
+        return v
+
+
+class OptionMatchingAnswer(BaseModel):
+    kind: Literal["option_matching"]
+    slots: List[MatchingSlot]
+    allow_reuse: bool = False
+
+
+class LegacyUnresolvedAnswer(BaseModel):
+    kind: Literal["legacy_unresolved"]
+    expected_kind: QuestionType
+    raw: RichDoc = None
+
+
+# 读 union(API 响应可读取 legacy_unresolved);写请求另行拒绝 legacy。
+AnswerSpec = Annotated[
+    Union[
+        SingleChoiceAnswer,
+        MultipleChoiceAnswer,
+        TrueFalseAnswer,
+        FillBlankAnswer,
+        FreeResponseAnswer,
+        OptionMatchingAnswer,
+        LegacyUnresolvedAnswer,
+    ],
+    Field(discriminator="kind"),
+]
+
+
+def _answer_to_dict(answer: Any) -> Optional[Dict[str, Any]]:
+    return answer.model_dump() if answer is not None else None
+
+
+def _options_to_dicts(options: Any) -> Optional[List[Dict[str, Any]]]:
+    return [o.model_dump() for o in options] if options else None
+
+
+# --------------------------------------------------------------------------- #
+# Question schemas
+# --------------------------------------------------------------------------- #
+class QuestionBase(BaseModel):
+    content: RichDoc
+    options: Optional[List[Option]] = None
+    answer: Optional[AnswerSpec] = None
+    thinking: RichDoc = None
+    analysis: RichDoc = None
+    summary: RichDoc = None
+    q_type: QuestionType
+    status: QuestionStatus = QuestionStatus.DRAFT
+    difficulty: int = 1
+    visibility: QuestionVisibility = QuestionVisibility.PUBLIC
+    source: Optional[str] = None
+
+    @field_validator("answer", mode="before")
+    @classmethod
+    def _parse_answer(cls, v: Any) -> Any:
+        return parse_json_field(v)
+
+
+def _reject_legacy(answer: Any) -> None:
+    if isinstance(answer, LegacyUnresolvedAnswer):
+        raise ValueError("legacy_unresolved 只读,不允许出现在写请求中")
+
+
+class QuestionCreate(QuestionBase):
+    model_config = ConfigDict(extra="forbid")
+
+    knowledge_point_ids: List[int] = []
+    tag_ids: Optional[List[int]] = []
+    import_task_id: Optional[int] = None
+    subject_id: Optional[int] = None
+    ai_suggested_tags: Optional[Dict[str, List[str]]] = None
+    temp_id: Optional[str] = None
+    # 查重确认:为 True 时即使题库中已有重复/相似题也照常录入。不入库。
+    allow_duplicate: bool = Field(default=False, exclude=True)
+
+    @model_validator(mode='after')
+    def _validate_domain(self) -> 'QuestionCreate':
+        _reject_legacy(self.answer)
+        self.options = normalize_options(self.q_type, self.options)
+        validate_question_domain(
+            q_type=self.q_type,
+            status=self.status,
+            content=self.content,
+            options=_options_to_dicts(self.options),
+            answer=_answer_to_dict(self.answer),
+            partial=False,
+        )
+        return self
+
+
+class QuestionBatchItemCreate(QuestionCreate):
+    children: Optional[List['QuestionBatchItemCreate']] = None
+    parent_id: Optional[Any] = None
+
+
+class QuestionBatchCreate(BaseModel):
+    filename: Optional[str] = None
+    file_path: Optional[str] = None
+    questions: List[QuestionBatchItemCreate]
+
+
+class QuestionUpdate(QuestionBase):
+    model_config = ConfigDict(extra="forbid")
+
+    content: RichDoc = None
+    q_type: Optional[QuestionType] = None
+    status: Optional[QuestionStatus] = None
+    knowledge_point_ids: Optional[List[int]] = None
+    tag_ids: Optional[List[int]] = None
+    subject_id: Optional[int] = None
+    allow_duplicate: bool = Field(default=False, exclude=True)
+
+    @model_validator(mode='after')
+    def _validate_partial_domain(self) -> 'QuestionUpdate':
+        _reject_legacy(self.answer)
+        # 不改写 self.options(避免污染 model_fields_set / exclude_unset);
+        # 归一化只用于本次 partial 校验,真正落库的归一化由 CRUD 合并现状后执行。
+        options = normalize_options(self.q_type, self.options)
+        validate_question_domain(
+            q_type=self.q_type,
+            status=self.status,
+            content=self.content,
+            options=_options_to_dicts(options),
+            answer=_answer_to_dict(self.answer),
+            partial=True,
+        )
+        return self
+
+
+class QuestionReview(BaseModel):
+    # 前端只表达审核意图，最终 status 由后端依据 subject.required_review_count 计算，
+    # 避免客户端在不知道审核进度的情况下臆断题目是否应变为 published。
+    action: Literal["approve", "reject"]
+    comment: Optional[str] = None
+
+
+class QuestionSummary(QuestionBase):
+    id: int
+    stimulus_id: Optional[int] = None
+    stimulus_position: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class Question(QuestionBase):
+    id: int
+    import_task_id: Optional[int] = None
+    subject_id: Optional[int] = None
+    stimulus_id: Optional[int] = None
+    stimulus_position: Optional[int] = None
+    content_revision: int = 1
+    knowledge_points: List[KnowledgePoint] = []
+    created_at: datetime
+    updated_at: datetime
+    tags: List[Tag] = []
+
+    review_count: int = 0
+    creator: Optional[User] = None
+    updater: Optional[User] = None
+    review_logs: List[ActivityLog] = []
+    subject: Optional[Subject] = None
+    import_task: Optional[ImportTask] = None
+    @field_validator('review_count', mode='before')
+    @classmethod
+    def set_review_count_default(cls, v):
+        return v or 0
+
+    class Config:
+        from_attributes = True
+
+
+class QuestionListItem(Question):
+    incoming_relation_count: int = 0
+    outgoing_relation_count: int = 0
+
+
+class QuestionPage(BaseModel):
+    items: List[QuestionListItem]
+    total: int
+    page: int
+    size: int
+    pages: int
+
+
+class DuplicateCheckRequest(BaseModel):
+    """查重预检:与新建题目同形的草稿,只读不写库。"""
+    q_type: QuestionType
+    content: RichDoc = None
+    options: Optional[List[Dict[str, Any]]] = None
+    subject_id: Optional[int] = None
+    stimulus_id: Optional[int] = None
+    exclude_question_id: Optional[int] = None
+
+
+class DuplicateCheckResponse(BaseModel):
+    candidates: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class QuestionBatchConfirm(BaseModel):
+    question_ids: List[int]
+    action: str # "approve" or "reject"
+
+
+class QuestionBatchDelete(BaseModel):
+    ids: List[int]
+
+
+class QuestionBatchUpdate(BaseModel):
+    ids: List[int]
+    source: Optional[str] = None
+
+
+Question.model_rebuild()
+QuestionBatchItemCreate.model_rebuild()
+
+
+# --------------------------------------------------------------------------- #
+# Legacy 导入(智能导入工作台):旧字符串形态 payload,由后端 adapter 转 v2。
+# 严格 QuestionCreate 不接受旧格式;前端不复制 Python 解析规则。
+# --------------------------------------------------------------------------- #
+class LegacyQuestionCreate(BaseModel):
+    content: Optional[str] = None
+    q_type: QuestionType
+    options: Optional[List[Any]] = None
+    answer: Optional[Any] = None
+    thinking: Optional[str] = None
+    analysis: Optional[str] = None
+    summary: Optional[str] = None
+    difficulty: int = 1
+    knowledge_point_ids: List[int] = []
+    tag_ids: Optional[List[int]] = []
+    subject_id: Optional[int] = None
+    ai_suggested_tags: Optional[Dict[str, List[str]]] = None
+    status: QuestionStatus = QuestionStatus.PENDING
+    source: Optional[str] = None
+
+
+class LegacyQuestionBatchCreate(BaseModel):
+    filename: Optional[str] = None
+    file_path: Optional[str] = None
+    questions: List[LegacyQuestionCreate]
+
+
+class LegacyBatchError(BaseModel):
+    index: int
+    message: str
+
+
+class LegacyBatchResult(BaseModel):
+    import_task_id: Optional[int] = None
+    created: List[Question] = []
+    failed: List[LegacyBatchError] = []

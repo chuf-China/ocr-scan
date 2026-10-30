@@ -1,0 +1,97 @@
+from typing import Any, List
+from fastapi import APIRouter, Depends
+from sqlalchemy import select, delete
+from app import crud, schemas, models
+from app.api import deps
+from app.core.permissions import Permission
+from app.models.tag import Tag
+from app.models.question import question_tags
+from app.core.api_errors import ApiError, ErrorCode
+
+router = APIRouter()
+
+@router.get("", response_model=List[schemas.TagCategory])
+async def read_tag_categories(
+    db: deps.SessionDep,
+    subject_id: int | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Retrieve tag categories.
+    """
+    if subject_id is not None:
+        deps.require(current_user, Permission.VIEW_QUESTION, subject_id=subject_id)
+        tag_categories = await crud.tag_category.get_multi_by_subject(db, subject_id=subject_id, skip=skip, limit=limit)
+    else:
+        tag_categories = await crud.tag_category.get_multi(db, skip=skip, limit=limit)
+    return tag_categories
+
+@router.post("", response_model=schemas.TagCategory)
+async def create_tag_category(
+    *,
+    db: deps.SessionDep,
+    tag_category_in: schemas.TagCategoryCreate,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Create new tag category.
+    """
+    if not tag_category_in.subject_id:
+        raise ApiError(400, ErrorCode.TAG_CATEGORY_SUBJECT_REQUIRED, "subject_id is required")
+    deps.require(current_user, Permission.MANAGE_SUBJECT, subject_id=tag_category_in.subject_id)
+
+    existing = await crud.tag_category.get_by_name_in_subject(db, name=tag_category_in.name, subject_id=tag_category_in.subject_id)
+    if existing:
+        raise ApiError(400, ErrorCode.TAG_CATEGORY_NAME_EXISTS, "Tag category with this name already exists in this subject")
+        
+    tag_category = await crud.tag_category.create(db=db, obj_in=tag_category_in)
+    return tag_category
+
+@router.put("/{id}", response_model=schemas.TagCategory)
+async def update_tag_category(
+    *,
+    db: deps.SessionDep,
+    id: int,
+    tag_category_in: schemas.TagCategoryUpdate,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update a tag category.
+    """
+    tag_category = await crud.tag_category.get(db=db, id=id)
+    if not tag_category:
+        raise ApiError(404, ErrorCode.TAG_CATEGORY_NOT_FOUND, "Tag category not found")
+    deps.require(current_user, Permission.MANAGE_SUBJECT, subject_id=tag_category.subject_id)
+    tag_category = await crud.tag_category.update(db=db, db_obj=tag_category, obj_in=tag_category_in)
+    return tag_category
+
+@router.delete("/{id}", response_model=schemas.TagCategory)
+async def delete_tag_category(
+    *,
+    db: deps.SessionDep,
+    id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Delete a tag category.
+    """
+    tag_category = await crud.tag_category.get(db=db, id=id)
+    if not tag_category:
+        raise ApiError(404, ErrorCode.TAG_CATEGORY_NOT_FOUND, "Tag category not found")
+    deps.require(current_user, Permission.MANAGE_SUBJECT, subject_id=tag_category.subject_id)
+    
+    # Find all tags in this category
+    result = await db.execute(select(Tag).where(Tag.category_id == id))
+    tags = result.scalars().all()
+    
+    for tag in tags:
+        # Delete associations in question_tags
+        await db.execute(delete(question_tags).where(question_tags.c.tag_id == tag.id))
+        # Delete the tag
+        await db.delete(tag)
+
+    await db.delete(tag_category)
+    await db.commit()
+    return tag_category

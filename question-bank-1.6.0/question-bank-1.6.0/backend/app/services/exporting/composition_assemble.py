@@ -1,0 +1,429 @@
+"""Snapshot v2/v3 → CompositionExportDoc 装配器(导出格式无关)。
+
+树重建与 answer_item 有效字段解析,与前端 `compositionSnapshot.ts` 的
+`buildSnapshotTree` / `effectiveAnswerFields` 语义严格对齐,保证导出与只读预览
+(SnapshotRenderer.vue)的内容一致(见 docs/development/composition-next-phase-plan.md §5.3)。
+
+version-driven:只消费传入的不可变 snapshot dict,绝不查询实时 Question/Composition。
+"""
+
+from __future__ import annotations
+
+from collections import defaultdict
+from typing import Any, Optional
+
+from app.services.exporting.composition_contracts import (
+    CompositionExportDoc,
+    CompositionExportNode,
+    ExportAnswerEntry,
+    ExportAnswerSpaceNode,
+    ExportHeadingNode,
+    ExportOption,
+    ExportPageBreakNode,
+    ExportQuestionDetailsNode,
+    ExportQuestionGroupNode,
+    ExportQuestionNode,
+    ExportRichTextNode,
+    QuestionDetailsChild,
+    QuestionGroupChild,
+)
+from app.services.question_content_converter import rich_doc_to_plain_text
+
+ANSWER_FIELD_KEYS = ("answer", "thinking", "analysis", "summary")
+SUPPORTED_SCHEMA_VERSIONS = frozenset({2, 3})
+
+
+class CompositionExportError(Exception):
+    """导出装配失败;detail/node_id/node_type 供 API 层转换成 422 响应体。"""
+
+    def __init__(self, detail: str, *, node_id: Optional[str] = None, node_type: Optional[str] = None):
+        super().__init__(detail)
+        self.detail = detail
+        self.node_id = node_id
+        self.node_type = node_type
+
+
+def _parse_options(raw: Any) -> list[ExportOption]:
+    result: list[ExportOption] = []
+    if isinstance(raw, list):
+        for idx, opt in enumerate(raw):
+            if isinstance(opt, dict):
+                result.append(
+                    ExportOption(
+                        id=str(opt.get("id", "")),
+                        label=str(opt.get("label", "") or chr(65 + idx)),
+                        content=opt.get("content"),
+                    )
+                )
+    return result
+
+
+def _option_has_wide_content(doc: Any) -> bool:
+    """选项含图片/表格/块公式时视为"宽内容"(镜像前端 optionHasWideContent)。"""
+    if not isinstance(doc, dict):
+        return False
+
+    def walk(node: Any) -> bool:
+        if not isinstance(node, dict):
+            return False
+        if node.get("type") in ("image", "table", "blockMath"):
+            return True
+        return any(walk(c) for c in node.get("content") or [])
+
+    return any(walk(n) for n in doc.get("content") or [])
+
+
+def _resolve_option_columns(options: list[ExportOption], layout: Any) -> int:
+    """镜像前端 compositionDocument.ts 的 resolveOptionColumns:手动固定列数按选项数收窄,
+    auto 按最长选项文本长度自适应,含宽内容(图片/表格/块公式)强制单列。
+    """
+    count = len(options)
+    if count == 0:
+        return 1
+    if layout in (1, 2, 4):
+        return min(layout, count)
+    max_len = 0
+    for opt in options:
+        if _option_has_wide_content(opt.content):
+            return 1
+        max_len = max(max_len, len(rich_doc_to_plain_text(opt.content)))
+    desired = 4 if max_len <= 4 else 2 if max_len <= 12 else 1
+    return min(desired, count)
+
+
+def _slot_props(q: dict[str, Any], props: dict[str, Any]) -> Optional[dict[str, Any]]:
+    """选项匹配题返回 {slotId: {number?, score?}};其他题型返回 None。"""
+    if q.get("q_type") != "option_matching":
+        return None
+    slots = props.get("slots")
+    return {k: v for k, v in slots.items() if isinstance(v, dict)} if isinstance(slots, dict) else {}
+
+
+def _slot_numbers(slots: dict[str, Any], numbering_enabled: bool) -> dict[str, str]:
+    if not numbering_enabled:
+        return {}
+    return {k: str(v["number"]) for k, v in slots.items() if v.get("number")}
+
+
+def _label_blanks(node: Any, numbers: dict[str, str]) -> Any:
+    """深拷贝 RichDoc,把空位题号写到 blank 节点 attrs.label 供渲染器显示。"""
+    if isinstance(node, list):
+        return [_label_blanks(child, numbers) for child in node]
+    if not isinstance(node, dict):
+        return node
+    out = {key: _label_blanks(value, numbers) for key, value in node.items()}
+    if node.get("type") == "blank":
+        blank_id = (node.get("attrs") or {}).get("blankId")
+        if blank_id in numbers:
+            out["attrs"] = {**(node.get("attrs") or {}), "label": numbers[blank_id]}
+    return out
+
+
+def _number_answer_slots(answer: Any, numbers: dict[str, str]) -> Any:
+    if not numbers or not isinstance(answer, dict):
+        return answer
+    return {
+        **answer,
+        "slots": [
+            {**slot, "number": numbers[slot.get("id")]} if slot.get("id") in numbers else slot
+            for slot in answer.get("slots") or []
+            if isinstance(slot, dict)
+        ],
+    }
+
+
+def _slot_score_text(slots: dict[str, Any], slot_count: int) -> Optional[str]:
+    scores = [
+        v["score"] for v in slots.values()
+        if isinstance(v.get("score"), (int, float)) and not isinstance(v.get("score"), bool)
+    ]
+    if not scores:
+        return None
+    if len(scores) == slot_count and len(set(scores)) == 1:
+        return f"每空 {scores[0]:g} 分"
+    return f"共 {sum(scores):g} 分"
+
+
+class CompositionAssembler:
+    def assemble(self, snapshot: dict[str, Any]) -> CompositionExportDoc:
+        schema_version = snapshot.get("schema_version")
+        if schema_version not in SUPPORTED_SCHEMA_VERSIONS:
+            raise CompositionExportError(
+                f"Unsupported snapshot schema_version: {snapshot.get('schema_version')!r}"
+            )
+
+        nodes = snapshot.get("nodes") or []
+        numbering_enabled = bool(snapshot.get("numbering_enabled"))
+        scoring_enabled = bool(snapshot.get("scoring_enabled"))
+        question_display = {
+            k: bool((snapshot.get("question_display") or {}).get(k, False)) for k in ANSWER_FIELD_KEYS
+        }
+
+        roots: list[dict[str, Any]] = []
+        children_by_parent: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        question_nodes_by_id: dict[str, dict[str, Any]] = {}
+        for n in nodes:
+            if n.get("parent_id") is None:
+                roots.append(n)
+            else:
+                children_by_parent[n["parent_id"]].append(n)
+            if n.get("node_type") == "question":
+                question_nodes_by_id[n["id"]] = n
+        roots.sort(key=lambda n: (n["position"], n["id"]))
+
+        export_nodes: list[CompositionExportNode] = [
+            self._assemble_node(
+                n,
+                children_by_parent,
+                question_nodes_by_id,
+                numbering_enabled=numbering_enabled,
+                scoring_enabled=scoring_enabled,
+                question_display=question_display,
+                snapshot_schema_version=schema_version,
+            )
+            for n in roots
+        ]
+        return CompositionExportDoc(title=snapshot.get("title") or "", nodes=export_nodes)
+
+    def _assemble_node(
+        self,
+        n: dict[str, Any],
+        children_by_parent: dict[str, list[dict[str, Any]]],
+        question_nodes_by_id: dict[str, dict[str, Any]],
+        *,
+        numbering_enabled: bool,
+        scoring_enabled: bool,
+        question_display: dict[str, bool],
+        snapshot_schema_version: int,
+    ) -> CompositionExportNode:
+        node_type = n.get("node_type")
+        if node_type == "rich_text":
+            return ExportRichTextNode(content=n.get("content"))
+        if node_type == "heading":
+            props = n.get("props") or {}
+            return ExportHeadingNode(level=int(props.get("level", 2)), content=n.get("content"))
+        if node_type == "page_break":
+            return ExportPageBreakNode()
+        if node_type == "answer_space":
+            props = n.get("props") or {}
+            return ExportAnswerSpaceNode(
+                lines=int(props.get("lines", 3)),
+                style=str(props.get("style", "blank")),
+            )
+        if node_type == "question":
+            return self._assemble_question(
+                n,
+                numbering_enabled=numbering_enabled,
+                scoring_enabled=scoring_enabled,
+                question_display=question_display,
+            )
+        if node_type == "question_details":
+            return self._assemble_question_details(
+                n, children_by_parent, question_nodes_by_id, numbering_enabled=numbering_enabled,
+            )
+        if node_type == "question_group" and snapshot_schema_version >= 3:
+            return self._assemble_question_group(
+                n,
+                children_by_parent,
+                numbering_enabled=numbering_enabled,
+                scoring_enabled=scoring_enabled,
+                question_display=question_display,
+            )
+        raise CompositionExportError(
+            f"Unsupported snapshot node type: {node_type!r}", node_id=n.get("id"), node_type=node_type,
+        )
+
+    def _assemble_question_group(
+        self,
+        n: dict[str, Any],
+        children_by_parent: dict[str, list[dict[str, Any]]],
+        *,
+        numbering_enabled: bool,
+        scoring_enabled: bool,
+        question_display: dict[str, bool],
+    ) -> ExportQuestionGroupNode:
+        raw_children = sorted(
+            children_by_parent.get(n["id"], []), key=lambda child: (child["position"], child["id"])
+        )
+        children: list[QuestionGroupChild] = []
+        previous_question_id: Optional[str] = None
+        for child in raw_children:
+            child_type = child.get("node_type")
+            if child_type == "question":
+                if child.get("question_id") is None or not isinstance(child.get("question"), dict):
+                    raise CompositionExportError(
+                        "question_group question child has no frozen source",
+                        node_id=child.get("id"),
+                        node_type=child_type,
+                    )
+                children.append(
+                    self._assemble_question(
+                        child,
+                        numbering_enabled=numbering_enabled,
+                        scoring_enabled=scoring_enabled,
+                        question_display=question_display,
+                    )
+                )
+                previous_question_id = child.get("id")
+            elif child_type == "answer_space":
+                if child.get("source_question_node_id") != previous_question_id:
+                    raise CompositionExportError(
+                        "question_group answer_space source must reference the preceding question",
+                        node_id=child.get("id"),
+                        node_type=child_type,
+                    )
+                props = child.get("props") or {}
+                children.append(
+                    ExportAnswerSpaceNode(
+                        lines=int(props.get("lines", 3)),
+                        style=str(props.get("style", "blank")),
+                    )
+                )
+                previous_question_id = None
+            elif child_type == "rich_text":
+                children.append(ExportRichTextNode(content=child.get("content")))
+            elif child_type == "heading":
+                props = child.get("props") or {}
+                children.append(
+                    ExportHeadingNode(
+                        level=int(props.get("level", 2)), content=child.get("content")
+                    )
+                )
+            else:
+                raise CompositionExportError(
+                    f"Unsupported question_group child node type: {child_type!r}",
+                    node_id=child.get("id"),
+                    node_type=child_type,
+                )
+        return ExportQuestionGroupNode(stimulus=n.get("content"), children=children)
+
+    def _assemble_question(
+        self,
+        n: dict[str, Any],
+        *,
+        numbering_enabled: bool,
+        scoring_enabled: bool,
+        question_display: dict[str, bool],
+    ) -> ExportQuestionNode:
+        q = n.get("question") or {}
+        props = n.get("props") or {}
+        options = _parse_options(q.get("options"))
+        slots = _slot_props(q, props)
+        slot_numbers = _slot_numbers(slots or {}, numbering_enabled)
+
+        number = (props.get("number") or "") if numbering_enabled and slots is None else ""
+        score = props.get("score") if scoring_enabled else None
+        if isinstance(score, bool) or not isinstance(score, (int, float)):
+            score = None
+        score_text = None
+        if slots is not None and scoring_enabled:
+            answer_slots = ((q.get("answer") or {}).get("slots")) or []
+            score_text = _slot_score_text(slots, len(answer_slots))
+
+        columns = _resolve_option_columns(options, props.get("optionLayout"))
+        show = props.get("show") or {}
+
+        def field_or_none(key: str) -> Any:
+            override = show.get(key)
+            visible = override if isinstance(override, bool) else question_display.get(key, False)
+            return q.get(key) if visible else None
+
+        return ExportQuestionNode(
+            number=number,
+            score=score,
+            q_type=str(q.get("q_type", "")),
+            stem=_label_blanks(q.get("content"), slot_numbers) if slot_numbers else q.get("content"),
+            options=options,
+            option_columns=columns,
+            answer=_number_answer_slots(field_or_none("answer"), slot_numbers),
+            thinking=field_or_none("thinking"),
+            analysis=field_or_none("analysis"),
+            summary=field_or_none("summary"),
+            score_text=score_text,
+        )
+
+    def _assemble_question_details(
+        self,
+        n: dict[str, Any],
+        children_by_parent: dict[str, list[dict[str, Any]]],
+        question_nodes_by_id: dict[str, dict[str, Any]],
+        *,
+        numbering_enabled: bool,
+    ) -> ExportQuestionDetailsNode:
+        props = n.get("props") or {}
+        scope = str(props.get("scope", "all"))
+        module_fields = props.get("fields") or {}
+        raw_children = sorted(
+            children_by_parent.get(n["id"], []), key=lambda c: (c["position"], c["id"])
+        )
+
+        children: list[QuestionDetailsChild] = []
+        for c in raw_children:
+            ctype = c.get("node_type")
+            if ctype == "heading":
+                cprops = c.get("props") or {}
+                children.append(ExportHeadingNode(level=int(cprops.get("level", 2)), content=c.get("content")))
+            elif ctype == "rich_text":
+                children.append(ExportRichTextNode(content=c.get("content")))
+            elif ctype == "answer_item":
+                entry = self._assemble_answer_item(
+                    c, question_nodes_by_id, module_fields, numbering_enabled=numbering_enabled,
+                )
+                if entry is not None:
+                    children.append(entry)
+            else:
+                raise CompositionExportError(
+                    f"Unsupported question_details child node type: {ctype!r}",
+                    node_id=c.get("id"), node_type=ctype,
+                )
+        return ExportQuestionDetailsNode(scope=scope, children=children)
+
+    def _assemble_answer_item(
+        self,
+        c: dict[str, Any],
+        question_nodes_by_id: dict[str, dict[str, Any]],
+        module_fields: dict[str, Any],
+        *,
+        numbering_enabled: bool,
+    ) -> Optional[ExportAnswerEntry]:
+        props = c.get("props") or {}
+        # included=false:该题在此模块内被排除,与前端 effectiveAnswerFields 一致地整条跳过。
+        if not props.get("included", False):
+            return None
+
+        source_id = c.get("source_question_node_id")
+        source = question_nodes_by_id.get(source_id) if source_id else None
+        if source is None:
+            raise CompositionExportError(
+                "answer_item source question node not found in snapshot",
+                node_id=c.get("id"), node_type="answer_item",
+            )
+
+        q = source.get("question") or {}
+        overrides = props.get("overrides") or {}
+        source_props = source.get("props") or {}
+        slots = _slot_props(q, source_props)
+        slot_numbers = _slot_numbers(slots or {}, numbering_enabled)
+        # 题号取自源 question 节点自身的 props(与本体题目块同一个值),而非 answer_item 自身的 props。
+        number = (
+            str(source_props.get("number") or "")
+            if numbering_enabled and slots is None
+            else ""
+        )
+
+        def field_or_none(key: str) -> Any:
+            override = overrides.get(key)
+            visible = override if isinstance(override, bool) else bool(module_fields.get(key, False))
+            return q.get(key) if visible else None
+
+        return ExportAnswerEntry(
+            question_id=q.get("id"),
+            number=number,
+            q_type=str(q.get("q_type", "")),
+            stem=q.get("content"),
+            options=_parse_options(q.get("options")),
+            answer=_number_answer_slots(field_or_none("answer"), slot_numbers),
+            thinking=field_or_none("thinking"),
+            analysis=field_or_none("analysis"),
+            summary=field_or_none("summary"),
+        )
