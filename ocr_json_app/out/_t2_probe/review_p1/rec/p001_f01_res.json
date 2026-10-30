@@ -1,5 +1,0 @@
-{
-    "input_path": "out/_t2_probe/review_p1\\crops\\p001_f01.png",
-    "page_index": null,
-    "rec_formula": "f(x)=\\left\\{\\begin{aligned}&-ax+1,&x<a,\\\\&(x-2)^{2},&x\\geqslant a.\\end{aligned}\\right."
-}

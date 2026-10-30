@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>原生 PDF 试卷转换 · 目标架构 v2.2（标注未做）</title>
+<!--
+  手写架构图（非流水线产物），对应 2026-10-30 的目标架构 v2.2。
+  状态口径：阶段级；“部分”= 目标要求的组件已有一些，但未形成该阶段的完整能力；
+  “未做”= 目标架构要求、仓库尚未实现。依据：目标架构 md + 仓库代码审计。
+  整页截图由 Chrome CDP 以 2x 设备像素比生成（1800 CSS px 宽）。
+-->
+<style>
+  :root{
+    --bg:#eef3fa; --ink:#0b1526; --ink2:#33415c; --muted:#5b6b84;
+    --line:#dbe5f2;
+    --blue:#2563eb; --blue2:#1d4ed8; --indigo:#4338ca;
+    --teal:#0f766e; --amber:#b45309; --red:#dc2626;
+    --mono:"Cascadia Code","JetBrains Mono",Consolas,"SFMono-Regular",monospace;
+    --sans:"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{width:1800px;background:var(--bg);font-family:var(--sans);color:var(--ink);
+       -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .sheet{
+    position:relative;width:1800px;padding:50px 64px 26px;overflow:hidden;
+    background:
+      radial-gradient(1150px 620px at 91% -10%,rgba(37,99,235,.13),transparent 62%),
+      radial-gradient(900px 520px at -4% 8%,rgba(6,182,212,.09),transparent 58%),
+      #eef3fa;
+  }
+  .sheet::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(15,23,42,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(15,23,42,.045) 1px,transparent 1px);
+    background-size:48px 48px;
+    -webkit-mask-image:radial-gradient(920px 560px at 28% -2%,#000 0%,transparent 70%);
+    mask-image:radial-gradient(920px 560px at 28% -2%,#000 0%,transparent 70%);
+  }
+  .sheet > *{position:relative;z-index:1}
+
+  /* ---------- header ---------- */
+  .kicker{display:flex;align-items:center;gap:10px;font-family:var(--mono);
+          font-size:10.5px;font-weight:600;letter-spacing:.2em;color:#1d4ed8;text-transform:uppercase}
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:#06b6d4;
+               box-shadow:0 0 0 3px rgba(6,182,212,.14)}
+  .kicker .sep{width:1px;height:11px;background:#b9cbe6;margin:0 2px}
+  .kicker .plain{color:#7c8da6;letter-spacing:.14em}
+  .head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;margin-top:13px}
+  h1{font-size:38px;line-height:1.14;margin:0;letter-spacing:-.01em}
+  h1 span{display:inline-block;margin-left:13px;font-size:18px;font-weight:600;
+           letter-spacing:.01em;color:#5b6b84;vertical-align:3px}
+  .sub{margin:11px 0 0;font-size:15px;line-height:1.6;color:#33415c;max-width:1080px}
+  .sub b{color:#0b1526}
+  .sub .hl{color:#1d4ed8;font-weight:700}
+  .kpis{display:flex;gap:12px;flex:0 0 auto}
+  .kpi{width:168px;padding:12px 14px 11px;border-radius:14px;
+       background:rgba(255,255,255,.88);border:1px solid #d8e3f3;
+       box-shadow:0 6px 18px rgba(15,23,42,.04)}
+  .kpi span{display:block;font-size:9.5px;letter-spacing:.16em;color:#7c8da6;font-weight:700;text-transform:uppercase}
+  .kpi b{display:block;margin-top:5px;font-size:15px;letter-spacing:.01em}
+  .kpi i{display:block;margin-top:2px;font-size:10px;font-style:normal;color:#64748b}
+
+  /* ---------- legend ---------- */
+  .legend{display:flex;align-items:center;gap:16px;margin-top:15px;padding:9px 14px;
+          background:rgba(255,255,255,.72);border:1px solid #dbe5f2;border-radius:11px;
+          font-size:10.5px;color:#475569}
+  .legend .lg{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .legend .sw{width:9px;height:9px;border-radius:3px;display:inline-block}
+  .legend .note{margin-left:auto;color:#7c8da6;font-size:10px}
+
+  /* ---------- main grid ---------- */
+  .main{display:grid;grid-template-columns:1120px 516px;gap:35px;margin-top:20px;align-items:start}
+
+  /* ---------- stack ---------- */
+  .stack{position:relative}
+  .spine{position:absolute;left:30px;top:-4px;bottom:26px;width:2px;
+         background:linear-gradient(180deg,#a9c6f8,#c9d9ef 58%,#d6e2f2);z-index:0}
+  .row{
+    --accent:#b45309;--soft:#fff7e8;--line2:#f3dfb9;
+    position:relative;z-index:1;margin-left:56px;min-height:102px;
+    display:grid;grid-template-columns:260px 370px minmax(0,1fr);
+    gap:16px;align-items:center;padding:13px 18px;
+    background:#fff;border:1px solid #dde7f4;border-left:4px solid var(--accent);
+    border-radius:15px;box-shadow:0 9px 22px rgba(15,23,42,.05);
+  }
+  .row + .row{margin-top:12px}
+  .row + .row::before{
+    content:"";position:absolute;left:-32px;top:-11px;width:0;height:0;
+    border-left:6px solid transparent;border-right:6px solid transparent;
+    border-top:8px solid #9dbce6;z-index:2;
+  }
+  .row.partial{--accent:#b45309;--soft:#fff7e8;--line2:#f3dfb9}
+  .row.todo{--accent:#dc2626;--soft:#fef2f2;--line2:#fecaca}
+  .row.done{--accent:#0f766e;--soft:#e9f7f3;--line2:#c9e9e1}
+  .row.todo{background:linear-gradient(180deg,#fff,#fffafa);border-color:#f1d4d4}
+  .idx{
+    position:absolute;left:-45px;top:50%;transform:translateY(-50%);
+    width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent);
+    background:#fff;border:1.5px solid var(--line2);z-index:3;
+  }
+  .row.todo .idx{background:var(--soft)}
+  .txt{min-width:0}
+  .role{font-size:9px;font-weight:800;letter-spacing:.13em;color:var(--accent);text-transform:uppercase}
+  .txt h3{margin:4px 0 4px;font-size:17px;line-height:1.22;font-weight:700;letter-spacing:-.005em}
+  .txt p{margin:0;font-size:11.5px;line-height:1.5;color:#5b6b84}
+  .method{min-width:0;padding:7px 10px;border-radius:9px;background:#f8fafd;border:1px solid #e6eef9}
+  .mname{font-size:11.5px;font-weight:700;color:#1d4ed8;line-height:1.3}
+  .mname .mut{color:#64748b;font-weight:600}
+  .mmeta{font-size:10px;line-height:1.45;color:#475569;margin-top:2px}
+  .mmeta b{color:#0b1526}
+  .state{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+         background:var(--soft);border:1px solid var(--line2);color:var(--accent);
+         font-size:9.5px;font-weight:800;letter-spacing:.06em;white-space:nowrap}
+  .badge::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent)}
+  .miss{font-size:10.5px;line-height:1.45;color:var(--accent);font-weight:600}
+  .miss b{font-weight:800}
+  .have{font-size:9.5px;line-height:1.45;color:#64748b}
+  .have b{color:#475569;font-weight:600}
+
+  /* ---------- sidebar ---------- */
+  .side{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .card{background:rgba(255,255,255,.95);border:1px solid #dbe5f2;border-radius:15px;
+        padding:13px 16px 12px;box-shadow:0 9px 24px rgba(15,23,42,.05)}
+  .card-title{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;
+              letter-spacing:.15em;color:#64748b;text-transform:uppercase;margin-bottom:8px}
+  .card-title::before{content:"";width:7px;height:7px;border-radius:2px;background:#2563eb}
+  .card-title.red::before{background:#dc2626}
+  .card-title.amber::before{background:#b45309}
+  .card-title.teal::before{background:#0f766e}
+  .card-title .cn{letter-spacing:.04em;font-size:10.5px;color:#64748b;font-weight:700;text-transform:none}
+  .list{list-style:none;margin:0;padding:0}
+  .list li{position:relative;padding-left:13px;font-size:10.5px;line-height:1.5;color:#33415c;margin-bottom:4px}
+  .list li:last-child{margin-bottom:0}
+  .list li::before{content:"";position:absolute;left:0;top:5px;width:5px;height:5px;border-radius:1px;background:#2563eb}
+  .list.red li::before{background:#dc2626}
+  .list.teal li::before{background:#0f766e}
+  .list b{color:#0b1526;font-weight:700}
+  .list code{font-family:var(--mono);font-size:9px;background:#f3f6fa;padding:1px 4px;border-radius:3px;color:#33415c}
+
+  .m{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:start;
+     padding:5px 0;border-top:1px solid #eef2f9}
+  .m:first-of-type{border-top:0;padding-top:0}
+  .m:last-of-type{padding-bottom:0}
+  .m b{font-family:var(--mono);font-size:10px;color:#1d4ed8;padding-top:1px}
+  .m span{font-size:10px;line-height:1.45;color:#33415c}
+  .m i{font-style:normal;font-size:8px;font-weight:800;padding:2px 6px;border-radius:999px;
+       background:#fff7e8;color:#b45309;border:1px solid #f3dfb9;white-space:nowrap}
+  .m i.red{background:#fef2f2;color:#dc2626;border-color:#fecaca}
+  .m i.teal{background:#e9f7f3;color:#0f766e;border-color:#c9e9e1}
+
+  .note{margin:7px 0 0;padding-top:7px;border-top:1px dashed #e2e8f0;
+        font-size:9.5px;line-height:1.5;color:#5b6b84}
+  .note b{color:#0b1526}
+
+  /* ---------- footer ---------- */
+  .foot{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;
+        margin-top:18px;padding-top:11px;border-top:1px solid #dbe5f2;
+        font-size:9.5px;color:#7c8da6;line-height:1.6}
+  .foot b{color:#5b6b84;font-weight:600}
+  .foot .src{text-align:right}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="kicker">
+      <span class="dot"></span>NATIVE-PDF
+      <span class="sep"></span>
+      <span class="plain">TARGET ARCHITECTURE / v2.2 / 2026-10-30</span>
+    </div>
+    <div class="head-row">
+      <div>
+        <h1>几何优先 × 零人工<span>原生 PDF 试卷转换 · 目标架构</span></h1>
+        <p class="sub">
+          从 PDF 里的<b>字符、框线、图片</b>直接重建题级 JSON；视觉模型只在验证失败时升级。
+          <b>主路径 CPU 确定性</b>，<span class="hl">每个不确定节点在 HTML 里可见</span>。
+          阶段状态为<b>迁移前</b>快照：无完整阶段，S3 未开工；旧流水线已移到 legacy。
+        </p>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><span>阶段</span><b>S0–S9 · 0 完整</b><i>9 部分 · 1 未做</i></div>
+        <div class="kpi"><span>语料</span><b>27 份 / 0 扫描</b><i>77 页 · 全 born-digital</i></div>
+        <div class="kpi"><span>决策门</span><b>M0–M6</b><i>M0 仅证据 · M1–M6 未开工</i></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="legend">
+    <span class="lg"><i class="sw" style="background:#0f766e"></i>已落地</span>
+    <span class="lg"><i class="sw" style="background:#b45309"></i>部分（有组件，未成阶段）</span>
+    <span class="lg"><i class="sw" style="background:#dc2626"></i>未做（目标要求，仓库未实现）</span>
+    <span class="note">旧代码在 legacy；『部分』指旧能力</span>
+  </div>
+
+  <div class="main">
+    <section class="stack" aria-label="目标架构 S0–S9">
+      <div class="spine"></div>
+
+      <!-- S0 -->
+      <article class="row partial">
+        <div class="idx">S0</div>
+        <div class="txt">
+          <div class="role">Ingest · Profile · Route</div>
+          <h3>S0 摄入、画像、路由</h3>
+          <p>逐页算健康度：cid / FFFD / PUA、无 Unicode 映射字体、重复或越界字符、最大图覆盖率；按 A/B/C 路由。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">health report + producer 指纹</span></div>
+          <div class="mmeta"><b>现状：</b>pypdfium2 预渲染、page_type / coverage 已有；<b>没有</b> producer 指纹与 A/B/C 路由。</div>
+        </div>
+        <div class="state">
+          <span class="badge">部分</span>
+          <div class="miss"><b>缺：</b>producer 指纹 · A/B/C 路由 · 每页 health report</div>
+          <div class="have"><b>有：</b>预渲染 · 页面画像</div>
+        </div>
+      </article>
+
+      <!-- S1 -->
+      <article class="row partial">
+        <div class="idx">S1</div>
+        <div class="txt">
+          <div class="role">Primitives</div>
+          <h3>S1 原语抽取</h3>
+          <p>每个字符（字体 / 字号 / 颜色 / transform / bbox）、每条框线、每张图及其原生流；版本化 primitive store。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">normalized primitive store</span></div>
+          <div class="mmeta"><b>现状：</b>pdfplumber 已取字符 / 框线 / 图；<b>没有</b> 版本化 store、颜色与 transform 全量。</div>
+        </div>
+        <div class="state">
+          <span class="badge">部分</span>
+          <div class="miss"><b>缺：</b>primitive store · 颜色 / transform 全量 · 去重</div>
+          <div class="have"><b>有：</b>字符 · 框线 · 图</div>
+        </div>
+      </article>
+
+      <!-- S2 -->
+      <article class="row partial">
+        <div class="idx">S2</div>
+        <div class="txt">
+          <div class="role">Zones</div>
+          <h3>S2 分区与行聚类</h3>
+          <p>先找数学区（数学字体、分式横线、大运算符做种子），再按字符几何聚类成行；不依赖文本层顺序。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">math-zone 种子 + 几何聚类</span></div>
+          <div class="mmeta"><b>现状：</b>行 / 栏投影已有；<b>没有</b> 数学区种子与几何聚类；静安区逐字断行会破坏文本顺序。</div>
+        </div>
+        <div class="state">
+          <span class="badge">部分</span>
+          <div class="miss"><b>缺：</b>math-zone 种子 · 字符几何聚类</div>
+          <div class="have"><b>有：</b>行 / 栏投影</div>
+        </div>
+      </article>
+
+      <!-- S3 -->
+      <article class="row todo">
+        <div class="idx">S3</div>
+        <div class="txt">
+          <div class="role">Math Reconstruction</div>
+          <h3>S3 数学重建</h3>
+          <p>从几何解析上下标 / 分式 / 根式 / 定界符 / 大运算符 / accents / 方程组，生成 LaTeX + 公式树 + confidence。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">几何 → 公式树 → LaTeX</span></div>
+          <div class="mmeta"><b>现状：</b><b>没有</b>解析器；现有 formula_review 只是证据，不覆盖正文。</div>
+        </div>
+        <div class="state">
+          <span class="badge">未做</span>
+          <div class="miss"><b>缺：</b>公式树解析 · LaTeX 生成 · confidence · 升级触发</div>
+          <div class="have"><b>有：</b>公式复核证据（可选）</div>
+        </div>
+      </article>
+
+      <!-- S4 -->
+      <article class="row partial">
+        <div class="idx">S4</div>
+        <div class="txt">
+          <div class="role">Text · Blocks</div>
+          <h3>S4 文本与块装配</h3>
+          <p>段落 / 列 / 选项网格；内联公式按左到右放；`【答案】/【解析】` 整块丢弃并记 ignore 原因。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">ordered blocks + 答案解析除</span></div>
+          <div class="mmeta"><b>现状：</b>行文本 / 阅读顺序已有；<b>没有</b> 答案解析除、选项网格、题级 block。</div>
+        </div>
+        <div class="state">
+          <span class="badge">部分</span>
+          <div class="miss"><b>缺：</b>答案解析除 · 选项网格 · 题级 block</div>
+          <div class="have"><b>有：</b>行文本 · 阅读顺序</div>
+        </div>
+      </article>
+
+      <!-- S5 -->
+      <article class="row partial">
+        <div class="idx">S5</div>
+        <div class="txt">
+          <div class="role">Figures · Tables</div>
+          <h3>S5 图与表</h3>
+          <p>图按原生分辨率嵌入，bbox 只做定位，发 FigureRef；表格按框线网格分格，合并单元格按框线缺口。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">FigureRef + 单元格网格</span></div>
+          <div class="mmeta"><b>现状：</b>图抽取、table_review 已有；<b>没有</b> FigureRef、单元格归属、原生分辨率嵌入。</div>
+        </div>
+        <div class="state">
+          <span class="badge">部分</span>
+          <div class="miss"><b>缺：</b>FigureRef · 单元格网格 · 原生像素嵌入</div>
+          <div class="have"><b>有：</b>图抽取 · table_review</div>
+        </div>
+      </article>
+
+      <!-- S6 -->
+      <article class="row partial">
+        <div class="idx">S6</div>
+        <div class="txt">
+          <div class="role">Structure</div>
+          <h3>S6 题目结构化</h3>
+          <p>语法状态机识别大题 / 题号 / 小问 / 选项 / 分值；低置信度只允许 LLM 做 span labeling，不改写。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">grammar 状态机 + 题级 JSON</span></div>
+          <div class="mmeta"><b>现状：</b>exam_structure 已有 sections / questions / options；<b>没有</b> 新 grammar、span labeling、答案区边界。</div>
+        </div>
+        <div class="state">
+          <span class="badge">部分</span>
+          <div class="miss"><b>缺：</b>grammar 状态机 · span labeling · 答案区边界</div>
+          <div class="have"><b>有：</b>exam_structure</div>
+        </div>
+      </article>
+
+      <!-- S7 -->
+      <article class="row partial">
+        <div class="idx">S7</div>
+        <div class="txt">
+          <div class="role">Verify</div>
+          <h3>S7 守恒与验证</h3>
+          <p>字符 / 框线 / 图恰好被消费一次；bbox 覆盖；KaTeX 解析；数学往返；硬不变量失败 → 重升级。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">conservation + round-trip + uncertain</span></div>
+          <div class="mmeta"><b>现状：</b>五道门 / 21 checks 已有；<b>没有</b> conservation、round-trip、uncertain 持久化。</div>
+        </div>
+        <div class="state">
+          <span class="badge">部分</span>
+          <div class="miss"><b>缺：</b>conservation · round-trip · uncertain</div>
+          <div class="have"><b>有：</b>五道门 21 checks</div>
+        </div>
+      </article>
+
+      <!-- S8 -->
+      <article class="row partial">
+        <div class="idx">S8</div>
+        <div class="txt">
+          <div class="role">Escalation</div>
+          <h3>S8 升级与回退</h3>
+          <p>200 dpi → 300 dpi padded → llama.cpp VLM（最快）；最多 2 次；硬不变量先淘汰，全失败标 uncertain。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">固定 ladder + best-of</span></div>
+          <div class="mmeta"><b>现状：</b>官方 layout + VLM 已跑通；<b>没有</b> ladder、llama.cpp 接线、best-of 选择。</div>
+        </div>
+        <div class="state">
+          <span class="badge">部分</span>
+          <div class="miss"><b>缺：</b>retry ladder · llama.cpp 接线 · best-of</div>
+          <div class="have"><b>有：</b>官方 layout + VLM</div>
+        </div>
+      </article>
+
+      <!-- S9 -->
+      <article class="row partial">
+        <div class="idx">S9</div>
+        <div class="txt">
+          <div class="role">Render · QA</div>
+          <h3>S9 渲染与 QA</h3>
+          <p>题级 JSON → 确定性 HTML；KaTeX 预渲染；uncertain 可见；QA 叠加原 PDF bbox。</p>
+        </div>
+        <div class="method">
+          <div class="mname">目标 <span class="mut">题级 JSON 渲染</span></div>
+          <div class="mmeta"><b>现状：</b>KaTeX viewer 已有；<b>没有</b> 题级 JSON 渲染、uncertain marker、QA overlay。</div>
+        </div>
+        <div class="state">
+          <span class="badge">部分</span>
+          <div class="miss"><b>缺：</b>题级 JSON 渲染 · uncertain marker · QA overlay</div>
+          <div class="have"><b>有：</b>KaTeX viewer</div>
+        </div>
+      </article>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <div class="card-title teal">现在有什么 <span class="cn">/ 已存在</span></div>
+        <ul class="list teal">
+          <li><b>官方 OCR</b>：PP-DocLayoutV3 + PaddleOCR-VL-1.6，已跑通；后端 native。</li>
+          <li><b>阅读器</b>：KaTeX 单文件 HTML；23 套验收通过。</li>
+          <li><b>exam_structure</b>：sections / questions / options / quality。</li>
+          <li><b>公式 / 表格复核</b>：证据层，不改正文。</li>
+          <li><b>语料审计</b>：27 份 / 77 页 / 0 扫描；24 LaTeX + Word + WPS + XeTeX。</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <div class="card-title red">哪里还没做 <span class="cn">/ 按阶段</span></div>
+        <ul class="list red">
+          <li><b>S3 数学重建</b>：公式树 / LaTeX / confidence 全部未写。</li>
+          <li><b>S7 守恒</b>：只有旧五道门，没有逐原语 conservation 与 round-trip。</li>
+          <li><b>S8 升级</b>：retry ladder、llama.cpp VLM 接线、best-of 都没有。</li>
+          <li><b>外围</b>：S0 健康路由、S1 primitive store、S2 math-zone、S4 答案解析除、S5 FigureRef、S6 新 grammar、S9 题级渲染。</li>
+        </ul>
+        <p class="note"><b>0 个阶段完整落地</b>；现有能力集中在 S8 的官方流程与 S9 的 KaTeX 阅读器。</p>
+      </section>
+
+      <section class="card">
+        <div class="card-title amber">决策门 M0–M6 <span class="cn">/ 开工顺序</span></div>
+        <div class="m"><b>M0</b><span>语料审计已有；per-font 778 字符待验，gate 代码未落地</span><i>未做</i></div>
+        <div class="m"><b>M1</b><span>primitives + health + conservation harness</span><i class="red">未做</i></div>
+        <div class="m"><b>M2</b><span>文本 / 答案解析除 / 选项 / 结构 / HTML</span><i class="red">未做</i></div>
+        <div class="m"><b>M3</b><span>数学重建 v1：LaTeX 先行，再 Word</span><i class="red">未做</i></div>
+        <div class="m"><b>M4</b><span>图 / 表：原生分辨率 + FigureRef</span><i class="red">未做</i></div>
+        <div class="m"><b>M5</b><span>retry ladder + llama.cpp retry-2</span><i class="red">未做</i></div>
+        <div class="m"><b>M6</b><span>shadow audit / uncertain 校准 / silent error</span><i class="red">未做</i></div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">关键决策 <span class="cn">/ v2.2</span></div>
+        <ul class="list">
+          <li>几何优先；<b>模型只做升级</b>，不默认跑。</li>
+          <li><b>0 人工</b>；uncertain 在 HTML 可见、JSON 持久化。</li>
+          <li>无外部 schema；<b>HTML 是验收物</b>。</li>
+          <li>表格全有框：<b>不做无边框表</b>。</li>
+          <li>retry-2 = <b>llama.cpp VLM</b>（最快）。</li>
+          <li>图按<b>原生分辨率</b>嵌入，不放大。</li>
+          <li><b>0 扫描样本</b>仍是最大未知。</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <div class="card-title teal">验收口径 <span class="cn">/ 怎么算完成</span></div>
+        <ul class="list">
+          <li><b>守恒</b>：字符 / 框线 / 图每项恰好消费一次。</li>
+          <li><b>结构</b>：题数 / 选项 A–D / 表格填充 ≥ 90%。</li>
+          <li><b>数学</b>：KaTeX 解析 0 错；公式往返容差内。</li>
+          <li><b>可见</b>：uncertain 同时进 HTML 与 JSON。</li>
+          <li><b>静默错误</b>：以题数为分母，不以页数为分母。</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <div>
+      <b>口径：</b>阶段级；“部分”= 目标组件已有一些但未成阶段；“未做”= 目标要求、仓库未实现。
+      <b>不是</b>现有 OCR 流程图（见 architecture-models）。
+    </div>
+    <div class="src">
+      依据：目标架构 v2.2 · 仓库代码审计 · 2026-10-30<br>
+      手写图，非流水线产物；数字来自 27 份 PDF 审计
+    </div>
+  </footer>
+</div>
+</body>
+</html>
